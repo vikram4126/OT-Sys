@@ -246,14 +246,14 @@ function VisibilityPanel({ assets, zones }) {
           {v.registerOnlyAssets.length > 0 && <>
             <div className="kpmg-modal-section-title-warning">In register, never observed</div>
             {v.registerOnlyAssets.map(a => (
-              <div key={a.id} className="kpmg-modal-item-row">{a.name} <span style={{ color: C.muted }}>· {a.deviceType}</span></div>
+              <div key={a.id} className="kpmg-modal-item-row">{a.name} <span className="kpmg-muted-text">· {a.deviceType}</span></div>
             ))}
             <div className="kpmg-modal-item-muted">Either decommissioned and never removed, or powered down during collection. Both are worth confirming.</div>
           </>}
           {v.shadowAssets.length > 0 && <>
             <div className="kpmg-modal-section-title-danger">Observed but unregistered (shadow)</div>
             {v.shadowAssets.map(a => (
-              <div key={a.id} className="kpmg-modal-item-row">{a.name} <span style={{ color: C.muted }}>· {a.deviceType || 'unclassified'}</span></div>
+              <div key={a.id} className="kpmg-modal-item-row">{a.name} <span className="kpmg-muted-text">· {a.deviceType || 'unclassified'}</span></div>
             ))}
             <div className="kpmg-modal-item-muted">Clear these by assigning a zone and completing the standard fields — visibility recalculates as you do.</div>
           </>}
@@ -283,7 +283,7 @@ function ZoneVisibilityModal({ zone, assets, onClose }) {
       {registerOnlyAssets.length > 0 && <>
         <div className="kpmg-modal-section-title-warning">In register, never observed</div>
         {registerOnlyAssets.map(a => (
-          <div key={a.id} className="kpmg-modal-item-row">{a.name} <span style={{ color: C.muted }}>· {a.deviceType}</span></div>
+          <div key={a.id} className="kpmg-modal-item-row">{a.name} <span className="kpmg-muted-text">· {a.deviceType}</span></div>
         ))}
         <div className="kpmg-modal-item-muted">Either decommissioned and never removed, or powered down during collection. Both are worth confirming.</div>
       </>}
@@ -291,7 +291,7 @@ function ZoneVisibilityModal({ zone, assets, onClose }) {
         <div className="kpmg-modal-section-title-danger">Observed but unregistered (shadow)</div>
         {shadows.map(s => (
           <div key={s.id} className="kpmg-modal-item-row">
-            <div className="kpmg-modal-item-row">{s.name} <span style={{ color: C.muted }}>· {s.deviceType || 'unclassified'}</span></div>
+            <div className="kpmg-modal-item-row">{s.name} <span className="kpmg-muted-text">· {s.deviceType || 'unclassified'}</span></div>
             <div className="kpmg-text-danger">{s.seenAs}</div>
           </div>
         ))}
@@ -374,7 +374,7 @@ function ProvenanceModal({ asset, zName, aName, onClose }) {
       <div className="kpmg-provenance-box">
         <span className="kpmg-provenance-brain-icon"><Brain /></span>
         <div>
-          <div className="kpmg-provenance-title">Purdue level L{p.purdue.level}{p.purdue.confidence != null && <span style={{ fontWeight: 500, color: C.muted }}> · {p.purdue.confidence}% confidence</span>}</div>
+          <div className="kpmg-provenance-title">Purdue level L{p.purdue.level}{p.purdue.confidence != null && <span className="kpmg-muted-text" style={{ fontWeight: 500 }}> · {p.purdue.confidence}% confidence</span>}</div>
           <div className="kpmg-provenance-desc">{p.purdue.rationale}</div>
         </div>
       </div>
