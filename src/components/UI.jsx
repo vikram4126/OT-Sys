@@ -98,31 +98,50 @@ export const SLBadge = ({sl}) => {
 };
 
 // Pagination control
-export const Pagination = ({page,total,perPage,onChange}) => {
-  const pages = Math.ceil(total/perPage);
-  if (pages<=1) return null;
-  const start = (page-1)*perPage+1;
-  const end   = Math.min(page*perPage, total);
+export const Pagination = ({ page, total, perPage, onChange }) => {
+  const pages = Math.ceil(total / perPage);
+  if (pages <= 1) return null;
+  const start = (page - 1) * perPage + 1;
+  const end = Math.min(page * perPage, total);
   return (
     <div className="kpmg-pagination">
-      <span className="kpmg-pagination-text">Showing {start}–{end} of {total}</span>
+      <span className="kpmg-pagination-text">
+        Showing <strong>{start}</strong> to <strong>{end}</strong> of <strong>{total}</strong> results
+      </span>
       <div className="kpmg-pagination-btns">
-        <button onClick={()=>onChange(page-1)} disabled={page===1} className="kpmg-pagination-btn">← Prev</button>
-        {Array.from({length:Math.min(7,pages)},(_,i)=>{
+        <button
+          onClick={() => onChange(page - 1)}
+          disabled={page === 1}
+          className="kpmg-pagination-nav-btn"
+          title="Previous page"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        {Array.from({ length: Math.min(7, pages) }, (_, i) => {
           let p;
-          if (pages<=7) p=i+1;
-          else if (page<=4) p=i+1;
-          else if (page>=pages-3) p=pages-6+i;
-          else p=page-3+i;
-          if (p<1||p>pages) return null;
+          if (pages <= 7) p = i + 1;
+          else if (page <= 4) p = i + 1;
+          else if (page >= pages - 3) p = pages - 6 + i;
+          else p = page - 3 + i;
+          if (p < 1 || p > pages) return null;
           return (
-            <button key={p} onClick={()=>onChange(p)}
-              className={`kpmg-pagination-btn ${p===page?'kpmg-pagination-btn-active':''}`}>
+            <button
+              key={p}
+              onClick={() => onChange(p)}
+              className={`kpmg-pagination-num-btn ${p === page ? 'active' : ''}`}
+            >
               {p}
             </button>
           );
         })}
-        <button onClick={()=>onChange(page+1)} disabled={page===pages} className="kpmg-pagination-btn">Next →</button>
+        <button
+          onClick={() => onChange(page + 1)}
+          disabled={page === pages}
+          className="kpmg-pagination-nav-btn"
+          title="Next page"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
       </div>
     </div>
   );

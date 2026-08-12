@@ -1533,43 +1533,87 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 14px 20px;
   border-top: 1px solid var(--border-color, #e5e5e5);
-  background: #FAFBFF;
+  background: #ffffff;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  width: 100%;
 }
 
 .kpmg-pagination-text {
-  font-size: 11.5px;
-  color: var(--subtext-color, #666666);
+  font-size: 13px;
+  color: var(--subtext-color, #475467);
+  font-weight: 400;
+}
+
+.kpmg-pagination-text strong {
+  color: var(--heading-color, #101828);
+  font-weight: 600;
 }
 
 .kpmg-pagination-btns {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
 }
 
-.kpmg-pagination-btn {
-  padding: 5px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color, #e5e5e5);
-  background: #ffffff;
+.kpmg-pagination-nav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
   cursor: pointer;
-  font-size: 11.5px;
-  color: var(--heading-color, #333333);
-  font-weight: 500;
+  color: var(--heading-color, #344054);
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
-.kpmg-pagination-btn:disabled {
+.kpmg-pagination-nav-btn:hover:not(:disabled) {
+  background: #f2f4f7;
+  color: var(--heading-color, #101828);
+}
+
+.kpmg-pagination-nav-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
-  color: var(--subtext-color, #666666);
+  opacity: 0.3;
 }
 
-.kpmg-pagination-btn-active {
-  background: var(--kpmg-primary-blue, #00338d);
-  color: #ffffff;
-  border-color: var(--kpmg-primary-blue, #00338d);
+.kpmg-pagination-num-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--subtext-color, #475467);
+  font-weight: 500;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.kpmg-pagination-num-btn:hover:not(.active) {
+  background: #f2f4f7;
+  color: var(--heading-color, #101828);
+}
+
+.kpmg-pagination-num-btn.active {
+  background: #e5e5e5;
+  color: var(--heading-color, #101828);
   font-weight: 700;
+  border: none;
+  box-shadow: none;
 }
 
 .kpmg-form-field {

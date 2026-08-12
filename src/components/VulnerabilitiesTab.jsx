@@ -1019,9 +1019,7 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
           ?<div style={{padding:'40px 16px',textAlign:'center',color:C.muted,fontSize:13}}>No findings match the current filter.</div>
           :paged.map(v=><VulnRow key={v.vuln_id} vuln={v} isMitigated={v._mitigated} onRefresh={load} onNavigate={onNavigate}/>)
         }
-        <div style={{display:'flex',justifyContent:'center',padding:16}}>
-          <Pagination page={page} total={sorted.length} perPage={PER_PAGE} onChange={p=>setPage(p)}/>
-        </div>
+        <Pagination page={page} total={sorted.length} perPage={PER_PAGE} onChange={p=>setPage(p)}/>
       </Card>
 
       {showAdd&&<AddVulnModal onClose={()=>setShowAdd(false)} onAdded={()=>{setShowAdd(false);load();}}/>}
