@@ -181,15 +181,15 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
     <Card>
       <div className="kpmg-card-header-flex">
         <div>
-          <div className="kpmg-modal-title" style={{ fontSize:13, marginBottom:2 }}>Assets across the Purdue model</div>
+          <div className="kpmg-text-title-sm" style={{ marginBottom: 2 }}>Assets across the Purdue model</div>
           <div className="kpmg-subtext">
             Showing <strong>{enriched.length}</strong> of {allEnriched.length} assets{zoneF!=='all'?` in ${zones.find(z=>z.id===zoneF)?.name||zoneF}`:''} — banded by Purdue level, coloured by zone. Node size scales with exposure; severe assets glow red. Click a node for its CVEs.
           </div>
         </div>
-        <div style={{ display:'flex', gap:8, flexShrink:0 }}>
-          <Select value={zoneF} onChange={e=>{ setZoneF(e.target.value); setSelId(null); }} style={{ width:150 }}
+        <div className="kpmg-flex-row" style={{ flexShrink: 0 }}>
+          <Select value={zoneF} onChange={e=>{ setZoneF(e.target.value); setSelId(null); }} className="kpmg-w-150"
             options={[{value:'all',label:'All zones'}, ...zones.map(z=>({value:z.id,label:z.name}))]}/>
-          <Select value={sevF} onChange={e=>{ setSevF(e.target.value); setSelId(null); }} style={{ width:150 }}
+          <Select value={sevF} onChange={e=>{ setSevF(e.target.value); setSelId(null); }} className="kpmg-w-150"
             options={SEV_OPTS.map(([v,l])=>({value:v,label:l}))}/>
         </div>
       </div>

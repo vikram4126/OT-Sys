@@ -185,25 +185,25 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
 
   // A read-only metric block: value + meaning + source, with supporting input underneath.
   const Metric = ({ label, meaning, value, weight, source, support, locked }) => (
-    <div style={{ padding:'11px 12px', border:`1px solid ${C.border}`, borderRadius:9, marginBottom:8, background:'#fff' }}>
-      <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ display:'flex', alignItems:'baseline', gap:8, flexWrap:'wrap' }}>
-            <span style={{ fontSize:12.5, fontWeight:700, color:C.navy }}>{label}</span>
-            {meaning && <span style={{ fontSize:11, color:C.muted }}>{meaning}</span>}
-            {locked && <span title="Pulled from an external source — not editable here" style={{ fontSize:9, color:C.muted, border:`1px solid ${C.border}`, borderRadius:3, padding:'0 5px' }}>read-only</span>}
-            {weight!=null && <span style={{ fontSize:10, color:C.muted, marginLeft:'auto' }}>weight {weight}</span>}
+    <div className="kpmg-metric-card">
+      <div className="kpmg-metric-card-inner">
+        <div className="kpmg-metric-flex-grow">
+          <div className="kpmg-metric-label-row">
+            <span className="kpmg-metric-navy-title">{label}</span>
+            {meaning && <span className="kpmg-text-muted-sm">{meaning}</span>}
+            {locked && <span title="Pulled from an external source — not editable here" className="kpmg-badge-readonly">read-only</span>}
+            {weight!=null && <span className="kpmg-text-muted-sm" style={{ marginLeft:'auto' }}>weight {weight}</span>}
           </div>
         </div>
-        <div style={{ minWidth:120, textAlign:'right' }}>
-          <span style={{ fontSize:14, fontWeight:700, color:C.text }}>{value}</span>
+        <div className="kpmg-metric-val-col">
+          <span className="kpmg-metric-val-text">{value}</span>
         </div>
       </div>
-      {source && <div style={{ fontSize:10, color:C.muted, marginTop:3 }}>source: {source}</div>}
-      {support && <div style={{ marginTop:8, paddingTop:8, borderTop:`1px dashed ${C.border}` }}>{support}</div>}
+      {source && <div className="kpmg-metric-source">source: {source}</div>}
+      {support && <div className="kpmg-metric-support">{support}</div>}
     </div>
   );
-  const SupLabel = ({children}) => <div style={{ fontSize:9.5, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:4 }}>{children}</div>;
+  const SupLabel = ({children}) => <div className="kpmg-sup-label">{children}</div>;
   const Chips = ({items, color=C.navy}) => (
     <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
       {items.map((t,i)=><span key={i} style={{ fontSize:10.5, color, background:`${color}0E`, border:`1px solid ${color}22`, borderRadius:5, padding:'2px 8px' }}>{t}</span>)}

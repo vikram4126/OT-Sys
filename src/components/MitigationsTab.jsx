@@ -721,16 +721,7 @@ function RoadmapStep({
             )}
           </div>
           {/* meta row: SR supported + asset */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 10,
-              flexWrap: 'wrap',
-              fontSize: 11,
-              color: C.muted,
-              marginBottom: 6,
-            }}
-          >
+          <div className="kpmg-mitigation-meta-row">
             <span>
               Supports{' '}
               <strong className="kpmg-code-badge" style={{ color: C.navy }}>
@@ -744,14 +735,10 @@ function RoadmapStep({
           </div>
           {/* ranking rationale — readout of the score factors */}
           <div
+            className="kpmg-mitigation-rationale-box"
             style={{
-              fontSize: 11.5,
-              color: C.text,
-              lineHeight: 1.5,
-              padding: '7px 10px',
               background: `${accent}0A`,
               border: `1px solid ${accent}22`,
-              borderRadius: 8,
             }}
           >
             <strong style={{ color: accent }}>Why #{rank}:</strong>{' '}
@@ -762,16 +749,7 @@ function RoadmapStep({
 
           <button
             onClick={() => setOpen((o) => !o)}
-            style={{
-              marginTop: 8,
-              background: 'none',
-              border: 'none',
-              color: C.navy,
-              fontSize: 11.5,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              padding: 0,
-            }}
+            className="kpmg-btn-text-link"
           >
             {open
               ? 'Hide detail ▲'

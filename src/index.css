@@ -2233,6 +2233,160 @@ h3 {
   margin-bottom: 8px;
 }
 
+/* Global Reusable Utility Classes for Static Inline Style Replacement */
+.kpmg-flex-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpmg-flex-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kpmg-flex-row-start {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.kpmg-flex-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kpmg-text-muted-sm {
+  font-size: 11px;
+  color: var(--subtext-color, #666666);
+}
+
+.kpmg-text-muted-md {
+  font-size: 12px;
+  color: var(--subtext-color, #666666);
+  line-height: 1.5;
+}
+
+.kpmg-text-title-sm {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--heading-color, #333333);
+}
+
+.kpmg-w-150 {
+  width: 150px;
+}
+
+.kpmg-w-full {
+  width: 100%;
+}
+
+/* Metric Card & Label Classes for VulnerabilitiesTab */
+.kpmg-metric-card {
+  padding: 11px 12px;
+  border: 1px solid var(--border-color, #e5e5e5);
+  border-radius: 9px;
+  margin-bottom: 8px;
+  background: #ffffff;
+}
+
+.kpmg-sup-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--subtext-color, #666666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+/* Metric Component Full CSS Classes */
+.kpmg-metric-card-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.kpmg-metric-flex-grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.kpmg-metric-label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kpmg-metric-navy-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--kpmg-primary-blue, #00338d);
+}
+
+.kpmg-metric-val-col {
+  min-width: 120px;
+  text-align: right;
+}
+
+.kpmg-metric-val-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--heading-color, #333333);
+}
+
+.kpmg-metric-source {
+  font-size: 10px;
+  color: var(--subtext-color, #666666);
+  margin-top: 3px;
+}
+
+.kpmg-metric-support {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color, #e5e5e5);
+}
+
+.kpmg-badge-readonly {
+  font-size: 9px;
+  color: var(--subtext-color, #666666);
+  border: 1px solid var(--border-color, #e5e5e5);
+  border-radius: 3px;
+  padding: 0 5px;
+}
+
+/* Mitigation Step Card Classes */
+.kpmg-mitigation-meta-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--subtext-color, #666666);
+  margin-bottom: 6px;
+}
+
+.kpmg-mitigation-rationale-box {
+  font-size: 11.5px;
+  color: var(--heading-color, #333333);
+  line-height: 1.5;
+  padding: 7px 10px;
+  border-radius: 8px;
+}
+
+.kpmg-btn-text-link {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: var(--kpmg-primary-blue, #00338d);
+  font-size: 11.5px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+
 /* Report Tab Classes */
 .kpmg-report-section-title {
   font-size: 11.5px;
