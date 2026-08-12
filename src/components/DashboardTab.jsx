@@ -104,21 +104,21 @@ function SectorSection({ industry, srSeed, zones, assets, vulns }) {
       </div>
 
       {/* Horizontal grouped bars */}
-      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+      <div className="kpmg-page-stack" style={{ gap: 10 }}>
         {data.map(d => {
           const youBetter = view==='compliance' ? d.You>=d.Sector : d.You<=d.Sector;
           return (
             <div key={d.label} className="kpmg-sector-bar-row">
               <span className="kpmg-sector-label">{d.label}</span>
-              <div style={{ flex:1, display:'flex', flexDirection:'column', gap:3 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-                  <div style={{ flex:1, height:11, background:'#F2F5FB', borderRadius:6, overflow:'hidden' }}>
+              <div className="kpmg-flex-col-gap3">
+                <div className="kpmg-flex-row-gap7">
+                  <div className="kpmg-bar-bg-f2f5fb">
                     <div style={{ height:'100%', width:`${Math.min(100,d.You/max*100)}%`, background:youColor, borderRadius:6 }}/>
                   </div>
                   <span style={{ fontSize:11.5, fontWeight:700, color:youColor, width:38, textAlign:'right' }}>{d.You}{unit}</span>
                 </div>
-                <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-                  <div style={{ flex:1, height:8, background:'#F2F5FB', borderRadius:6, overflow:'hidden' }}>
+                <div className="kpmg-flex-row-gap7">
+                  <div className="kpmg-bar-bg-f2f5fb-sub">
                     <div style={{ height:'100%', width:`${Math.min(100,d.Sector/max*100)}%`, background:sectorColor, borderRadius:6 }}/>
                   </div>
                   <span style={{ fontSize:11.5, color:'var(--subtext-color)', width:38, textAlign:'right' }}>{d.Sector}{unit}</span>
@@ -201,14 +201,14 @@ export default function DashboardTab({ onNavigate }) {
       {/* Security level radar + top risk assets */}
       <div className="kpmg-dashboard-grid-2">
         <Card>
-          <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:10, flexWrap:'wrap', marginBottom:4 }}>
+          <div className="kpmg-radar-header">
             <div>
               <CardLabel>Security level — target vs achieved</CardLabel>
               <Sub>SL-T target vs achieved SL-A across the 7 FRs · {activeZone?.name}</Sub>
             </div>
-            <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+            <div className="kpmg-radar-zone-btns">
               {zones.map(z=>{ const on=z.id===activeZoneId; return (
-                <button key={z.id} onClick={()=>setRadarZone(z.id)} className={`kpmg-view-btn ${on?'kpmg-view-btn-active':''}`} style={{ borderRadius:20, border: `1px solid ${on?C.navy:'var(--border-color)'}` }}>{z.name}</button>
+                <button key={z.id} onClick={()=>setRadarZone(z.id)} className={`kpmg-radar-zone-btn ${on?'active':''}`}>{z.name}</button>
               );})}
             </div>
           </div>
@@ -225,12 +225,12 @@ export default function DashboardTab({ onNavigate }) {
           </ResponsiveContainer>
         </Card>
 
-        <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-          <Card style={{ flex:1 }}>
+        <div className="kpmg-flex-col-gap14">
+          <Card className="kpmg-flex-col-gap14-fill">
             <CardLabel>Top risk assets</CardLabel>
             <Sub>Highest-risk assets by mapped vulnerability score</Sub>
             {topAssets.length===0 && <div className="kpmg-subtext">No scored assets yet.</div>}
-            <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
+            <div className="kpmg-flex-col-gap7">
               {topAssets.slice(0,5).map((a,i)=>{ const score=a.score; const c=score>=8.5?'#B42318':score>=6.5?'#C2410C':score>=4?'#B54708':'#067647'; return (
                 <div key={a.asset||i} className="kpmg-top-risk-row">
                   <span className="kpmg-top-risk-num">{i+1}</span>
@@ -247,9 +247,9 @@ export default function DashboardTab({ onNavigate }) {
           <Card>
             <CardLabel>Most at-risk zone</CardLabel>
             {mostAtRisk ? (() => { const b = riskBand(mostAtRisk.risk); return (
-              <div style={{ display:'flex', alignItems:'center', gap:14, marginTop:6 }}>
+              <div className="kpmg-risk-zone-box">
                 <div style={{ textAlign:'center' }}>
-                  <div style={{ fontSize:30, fontWeight:700, color:b.color, lineHeight:1 }}>{mostAtRisk.risk}</div>
+                  <div className="kpmg-risk-zone-score" style={{ color:b.color }}>{mostAtRisk.risk}</div>
                   <div style={{ fontSize:10, color:'var(--subtext-color)' }}>/ 10</div>
                 </div>
                 <div style={{ flex:1 }}>

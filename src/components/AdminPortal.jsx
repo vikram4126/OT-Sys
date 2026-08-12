@@ -442,7 +442,7 @@ const NAV = [
 export default function AdminPortal({onExit}) {
   const [tab,setTab] = useState('users');
   return (
-    <div style={{display:'flex',height:'100vh',fontFamily:"'Segoe UI',-apple-system,sans-serif",background:'#F2F5FB',color:C.text,overflow:'hidden',fontSize:14}}>
+    <div className="kpmg-app-layout">
       <div style={{width:228,background:'#fff',display:'flex',flexDirection:'column',flexShrink:0,borderRight:`1px solid ${C.border}`,boxShadow:'2px 0 8px rgba(0,0,0,.04)'}}>
         <div style={{padding:'18px 16px 14px',display:'flex',alignItems:'center',gap:10,borderBottom:`1px solid ${C.border}`}}>
           <div style={{width:35,height:35,borderRadius:9,background:`${C.navy}0E`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><GearIcon/></div>

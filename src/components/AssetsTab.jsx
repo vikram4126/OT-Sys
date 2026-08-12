@@ -97,7 +97,7 @@ export default function AssetsTab() {
                 {a.internetFacing && <span className="kpmg-badge-internet">Internet-facing</span>}
               </span>
               <span onClick={() => setSel(a)} className="kpmg-asset-type-clickable">{a.deviceType}</span>
-              <span className="kpmg-text-monospace">{a.ip || '10.10.1.20'}</span>
+              <span className="kpmg-text-code-val">{a.ip || '10.10.1.20'}</span>
               <span className="kpmg-text-os">{a.os || 'Windows Server 2019'}</span>
               <span className="kpmg-text-purdue">L{a.level}</span>
               <span className="kpmg-conns-text">
@@ -113,7 +113,7 @@ export default function AssetsTab() {
             <div key={a.id} className="kpmg-table-row kpmg-table-grid-software">
               <span onClick={() => setSel(a)} className="kpmg-asset-name-clickable">{a.name}</span>
               <span onClick={() => setSel(a)} className="kpmg-asset-type-clickable">{a.deviceType}</span>
-              <span className="kpmg-text-monospace">{a.version || '—'}</span>
+              <span className="kpmg-text-code-val">{a.version || '—'}</span>
               <span className="kpmg-text-os">{a.host ? aName(a.host) : '—'}</span>
               <span>{zName(a.zone)}</span>
               <div className="kpmg-text-right">
@@ -239,7 +239,7 @@ function VisibilityPanel({ assets, zones }) {
             <div><strong style={{ color: C.low }}>{v.matched}</strong> in the register and seen in logs</div>
             <div><strong style={{ color: '#B54708' }}>{v.registerOnly}</strong> in the register but never observed</div>
             <div><strong style={{ color: C.critical }}>{v.logOnly}</strong> observed but in no register (shadow)</div>
-            <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 8, paddingTop: 8, fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12 }}>
+            <div className="kpmg-formula-box">
               {v.matched} ÷ ({v.matched} + {v.registerOnly} + {v.logOnly}) = <strong style={{ color: tone }}>{v.score}%</strong>
             </div>
           </div>
@@ -276,7 +276,7 @@ function ZoneVisibilityModal({ zone, assets, onClose }) {
         <div><strong style={{ color: C.low }}>{zone.matched}</strong> in the register and seen in logs</div>
         <div><strong style={{ color: '#B54708' }}>{zone.registerOnly}</strong> in the register but never observed</div>
         <div><strong style={{ color: C.critical }}>{zone.logOnly}</strong> observed but in no register (shadow)</div>
-        <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 8, paddingTop: 8, fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 12 }}>
+        <div className="kpmg-formula-box">
           {zone.matched} ÷ ({zone.matched} + {zone.registerOnly} + {zone.logOnly}) = <strong style={{ color: tone }}>{zone.score}%</strong>
         </div>
       </div>

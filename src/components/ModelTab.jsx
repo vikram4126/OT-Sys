@@ -43,19 +43,15 @@ function SectionNav({ section, setSection, company, prog, zonesCount }) {
     zones: zonesCount || null,
   };
   return (
-    <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+    <div className="kpmg-nav-pills">
       {SECTIONS.map(s => {
         const active = section === s.id;
         const badge = badges[s.id];
         return (
-          <button key={s.id} onClick={() => setSection(s.id)} style={{
-            display:'flex', alignItems:'center', gap:8, padding:'9px 16px', borderRadius:20, cursor:'pointer',
-            fontFamily:'inherit', fontSize:13, fontWeight:active ? 700 : 500,
-            border:`1.5px solid ${active ? C.navy : C.border}`, background:active ? C.navy : '#fff', color:active ? '#fff' : C.text,
-          }}>
+          <button key={s.id} onClick={() => setSection(s.id)} className={`kpmg-nav-pill-btn ${active ? 'active' : ''}`}>
             {s.label}
             {badge != null && <span style={{ fontSize:11, fontWeight:700, padding:'1px 7px', borderRadius:10,
-              background:active ? 'rgba(255,255,255,.22)' : '#EEF2FA', color:active ? '#fff' : C.navy }}>{badge}</span>}
+              background:active ? 'rgba(255,255,255,.22)' : '#EEF2FA', color:active ? '#ffffff' : C.navy }}>{badge}</span>}
           </button>
         );
       })}
@@ -422,7 +418,7 @@ function SubnetChips({ rules, zoneId, onAdd, onRemove }) {
     <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8 }}>
       {cidrs.map(c => (
         <span key={c} style={{ display:'inline-flex', alignItems:'center', gap:6, background:'#EAF1FB', color:C.navy,
-          borderRadius:7, padding:'3px 9px', fontSize:11.5, fontFamily:'ui-monospace, Menlo, monospace' }}>
+          borderRadius:7, padding:'3px 9px', fontSize:11.5, fontFamily:'inherit' }}>
           {c}
           <button onClick={() => onRemove(c)} style={{ background:'none', border:'none', color:C.navy, cursor:'pointer', fontSize:13, padding:0, fontFamily:'inherit' }}>×</button>
         </span>

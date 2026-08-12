@@ -123,7 +123,7 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
 
   return (
     <Modal title={`${item.id} — ${item.name}`} subtitle={`${zone.name} · evidence review`} onClose={onClose} maxWidth={1080}>
-      <div style={{ display:'grid', gridTemplateColumns:'1.1fr 1fr', gap:22 }}>
+      <div className="kpmg-grid-2col-split">
         {/* LEFT — evidence viewer */}
         <div>
           <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:8 }}>Evidence ({docs.length})</div>
@@ -310,7 +310,7 @@ export default function Compliance62443Tab() {
         return (
           <div key={cat.fr} style={{ borderBottom:ci<arr.length-1?`1px solid ${C.border}`:'none' }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', background:'#FAFBFF' }}>
-              <span style={{ fontFamily:'monospace', fontSize:12, fontWeight:700, color:C.navy }}>{cat.fr}</span>
+              <span className="kpmg-code-badge" style={{ fontSize:12, fontWeight:700, color:C.navy }}>{cat.fr}</span>
               <span style={{ fontSize:12.5, fontWeight:600, color:C.text, flex:1 }}>{cat.name}</span>
               <span style={{ fontSize:11, fontWeight:700, color:slColor(slaForFR(srSeed,zone,cat.fr)) }}>SL-A {slaForFR(srSeed,zone,cat.fr)}</span>
             </div>
@@ -321,7 +321,7 @@ export default function Compliance62443Tab() {
                   style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 16px', paddingLeft: it.isRE?40:16, borderTop:`1px solid ${C.border}`, cursor:'pointer' }}
                   onMouseEnter={e=>e.currentTarget.style.background='#F8FAFD'} onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
                   <span style={{ width:15, height:15, borderRadius:4, background:m.bg, color:m.fg, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>{m.mark}</span>
-                  <span style={{ fontFamily:'monospace', fontSize:11, color: it.isRE?C.muted:C.navy, fontWeight:600, width:92 }}>{it.id}</span>
+                  <span className="kpmg-code-badge" style={{ fontSize:11, color: it.isRE?C.muted:C.navy, fontWeight:600, width:92 }}>{it.id}</span>
                   <span style={{ fontSize:12.5, color:C.text, flex:1 }}>{it.name}</span>
                   {(()=>{ const acts=srActions(zone.id, it.id); const n=Object.keys(acts).length; return n>0 && <span title="Consultant action pending" style={{ fontSize:10, fontWeight:700, color:'#B54708', background:'#FEF0C7', padding:'1px 7px', borderRadius:20, whiteSpace:'nowrap' }}>{n} action{n>1?'s':''}</span>; })()}
                   <span style={{ fontSize:11, fontWeight:600, color:m.fg }}>{m.label}</span>
@@ -335,16 +335,16 @@ export default function Compliance62443Tab() {
   );
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
+    <div className="kpmg-page-stack">
+      <div className="kpmg-header-row">
         <div>
-          <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.text, letterSpacing:-.3 }}>IEC 62443-3-3</h2>
-          <p style={{ margin:'3px 0 0', fontSize:13, color:C.muted, lineHeight:1.6, maxWidth:680 }}>
+          <h2 className="kpmg-title">IEC 62443-3-3</h2>
+          <p className="kpmg-subtitle">
             Click a zone or conduit in the diagram to inspect its requirements. Each requirement shows its status; click one to
             review the evidence, see the AI's suggestion, and record your determination.
           </p>
         </div>
-        <button onClick={()=>setActionsOpen(true)} style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', borderRadius:9, background:C.navy, border:'none', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit', flexShrink:0, boxShadow:'0 2px 8px rgba(0,51,141,.2)' }}>
+        <button onClick={()=>setActionsOpen(true)} className="kpmg-btn-primary" style={{ flexShrink:0, boxShadow:'0 2px 8px rgba(0,51,141,.2)' }}>
           <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           Actions{actionCount>0 && <span style={{ fontSize:12, fontWeight:700, background:'rgba(255,255,255,.25)', padding:'1px 8px', borderRadius:20 }}>{actionCount}</span>}
         </button>
@@ -355,8 +355,8 @@ export default function Compliance62443Tab() {
 
       {selZone && renderZoneReqs(selZone)}
       {selConduit && (
-        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          <div style={{ fontSize:12.5, color:C.muted }}>Conduit <strong style={{ color:C.text }}>{selConduit.name}</strong> — restricted-data-flow (FR5) requirements across the connected zones:</div>
+        <div className="kpmg-page-stack" style={{ gap: 12 }}>
+          <div className="kpmg-subtext">Conduit <strong style={{ color:'var(--heading-color)' }}>{selConduit.name}</strong> — restricted-data-flow (FR5) requirements across the connected zones:</div>
           {conduitZones.map(z => renderZoneReqs(z, 'FR5'))}
         </div>
       )}
@@ -373,12 +373,12 @@ export default function Compliance62443Tab() {
       {actionsOpen && (
         <div style={{ position:'fixed', inset:0, background:'rgba(10,22,40,.5)', zIndex:200, display:'flex', justifyContent:'flex-end', backdropFilter:'blur(2px)' }} onClick={()=>setActionsOpen(false)}>
           <div style={{ width:'min(880px, 94vw)', height:'100%', background:'#F4F7FD', boxShadow:'-12px 0 40px rgba(10,22,40,.25)', display:'flex', flexDirection:'column' }} onClick={e=>e.stopPropagation()}>
-            <div style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 22px', background:'#fff', borderBottom:`1px solid ${C.border}`, flexShrink:0 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 22px', background:'#fff', borderBottom:`1px solid var(--border-color)`, flexShrink:0 }}>
               <div>
-                <div style={{ fontSize:16, fontWeight:700, color:C.text }}>Actions</div>
-                <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>Everything outstanding from the 62443 review, across every zone</div>
+                <div className="kpmg-modal-title">Actions</div>
+                <div className="kpmg-modal-subtitle">Everything outstanding from the 62443 review, across every zone</div>
               </div>
-              <button onClick={()=>setActionsOpen(false)} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:24, color:C.muted, lineHeight:1 }}>×</button>
+              <button onClick={()=>setActionsOpen(false)} className="kpmg-modal-close-btn">×</button>
             </div>
             <div style={{ overflowY:'auto', padding:'18px 22px', flex:1 }}>
               <WorkspaceTab embedded/>

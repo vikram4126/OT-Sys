@@ -733,7 +733,7 @@ function RoadmapStep({
           >
             <span>
               Supports{' '}
-              <strong style={{ color: C.navy, fontFamily: 'monospace' }}>
+              <strong className="kpmg-code-badge" style={{ color: C.navy }}>
                 {step.sr || step.category}
               </strong>
             </span>
@@ -838,8 +838,8 @@ function RoadmapStep({
                           }}
                         >
                           <span
+                            className="kpmg-code-badge"
                             style={{
-                              fontFamily: 'monospace',
                               fontSize: 11,
                               color: C.navy,
                             }}

@@ -151,7 +151,7 @@ export default function WorkspaceTab({ embedded = false }) {
           Smart-assist drafts a client-ready output; it does not tick anything
           off — you still action each item and file evidence where needed.
         </div>
-        <div style={{ marginTop: 10, maxWidth: 340 }}>
+        <div className="kpmg-search-wrapper">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -160,14 +160,7 @@ export default function WorkspaceTab({ embedded = false }) {
         </div>
       </Card>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: embedded ? '1fr' : 'repeat(3,1fr)',
-          gap: 16,
-          alignItems: 'start',
-        }}
-      >
+      <div className={`kpmg-ws-grid ${embedded ? 'embedded' : ''}`}>
         {CATS.map((cat) => {
           const full = items[cat.id] || [];
           const list = orderForDisplay(full.filter(matchQ));
@@ -175,48 +168,21 @@ export default function WorkspaceTab({ embedded = false }) {
           const doneCount = full.length - openCount;
           return (
             <Card key={cat.id} style={{ padding: 0, overflow: 'hidden' }}>
-              <div
-                style={{
-                  padding: '13px 15px',
-                  borderBottom: `1px solid ${C.border}`,
-                  background: '#F8FAFD',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span
-                    style={{ fontSize: 13.5, fontWeight: 700, color: C.text }}
-                  >
+              <div className="kpmg-ws-card-header">
+                <div className="kpmg-flex-center-gap8">
+                  <span className="kpmg-modal-title" style={{ fontSize: 13.5 }}>
                     {cat.title}
                   </span>
-                  <span
-                    style={{
-                      marginLeft: 'auto',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: C.navy,
-                      background: `${C.navy}12`,
-                      padding: '1px 9px',
-                      borderRadius: 20,
-                    }}
-                  >
+                  <span className="kpmg-badge-count" style={{ marginLeft: 'auto' }}>
                     {openCount} open
                   </span>
                   {doneCount > 0 && (
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: '#067647',
-                        background: '#DCFAE6',
-                        padding: '1px 8px',
-                        borderRadius: 20,
-                      }}
-                    >
+                    <span className="kpmg-badge-danger kpmg-badge-archived">
                       {doneCount} archived
                     </span>
                   )}
                 </div>
-                <div style={{ fontSize: 11, color: C.muted, marginTop: 3 }}>
+                <div className="kpmg-subtext" style={{ marginTop: 3 }}>
                   {cat.blurb}
                 </div>
                 {cat.smart && (
@@ -226,20 +192,13 @@ export default function WorkspaceTab({ embedded = false }) {
                     style={{ marginTop: 10, width: '100%' }}
                     disabled={!openCount}
                   >
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        justifyContent: 'center',
-                      }}
-                    >
+                    <span className="kpmg-flex-center-gap6">
                       <Brain /> {cat.smart}
                     </span>
                   </Btn>
                 )}
               </div>
-              <div style={{ maxHeight: 460, overflowY: 'auto' }}>
+              <div className="kpmg-ws-item-body">
                 {list.length === 0 && (
                   <div
                     style={{
@@ -323,12 +282,12 @@ function WsItem({ it, onChange }) {
         }}
       >
         <span
+          className="kpmg-code-badge"
           style={{
             fontSize: 10,
             fontWeight: 700,
             color: '#fff',
             background: C.navy,
-            fontFamily: 'monospace',
             padding: '1px 6px',
             borderRadius: 4,
           }}
@@ -336,11 +295,11 @@ function WsItem({ it, onChange }) {
           {it.taskId}
         </span>
         <span
+          className="kpmg-code-badge"
           style={{
             fontSize: 10,
             fontWeight: 700,
             color: C.navy,
-            fontFamily: 'monospace',
           }}
         >
           {it.fr} {it.sr}

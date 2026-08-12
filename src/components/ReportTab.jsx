@@ -20,7 +20,7 @@ const loadClient = () => { try { return JSON.parse(localStorage.getItem('ot_over
 // ── Small components ──────────────────────────────────────────────────────────
 const Section = ({ title, children }) => (
   <div style={{ marginBottom: 26 }}>
-    <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, paddingBottom: 8, borderBottom: `1px solid ${C.border}` }}>
+    <div className="kpmg-report-section-title">
       {title}
     </div>
     {children}
@@ -28,14 +28,12 @@ const Section = ({ title, children }) => (
 );
 
 const Chip = ({ label, color, bg }) => (
-  <span style={{ padding: '3px 9px', borderRadius: 5, fontSize: 11, fontWeight: 500, color, background: bg, display: 'inline-block' }}>{label}</span>
+  <span className="kpmg-chip" style={{ color, background: bg }}>{label}</span>
 );
 
 const SevChip = ({ sev }) => {
-  const s = sev === 'Critical'
-    ? { color: '#991B1B', bg: '#FEE4E2' }
-    : { color: '#92400E', bg: '#FEF0C7' };
-  return <Chip label={sev} {...s} />;
+  const cls = sev === 'Critical' ? 'kpmg-chip-critical' : 'kpmg-chip-warning';
+  return <span className={`kpmg-chip ${cls}`}>{sev}</span>;
 };
 
 // ── Main tab ──────────────────────────────────────────────────────────────────
@@ -499,7 +497,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
                 <div style={{ fontSize:12, color:C.muted, lineHeight:1.7, marginBottom:10 }}>{previewShadow.length} device{previewShadow.length!==1?'s were':' was'} observed communicating but {previewShadow.length!==1?'are':'is'} absent from the asset register. Controls and patching can’t be applied to assets you don’t know exist, so these often sit on the highest-risk paths.</div>
                 {previewShadow.map((s,i)=>(
                   <div key={i} style={{ display:'flex', gap:8, alignItems:'baseline', padding:'5px 0', borderBottom:`1px solid ${C.border}` }}>
-                    <span style={{ fontFamily:'monospace', fontSize:12, fontWeight:600, color:'#510DBC' }}>{s.name}</span>
+                    <span className="kpmg-code-badge" style={{ fontSize:12, fontWeight:600, color:'#510DBC' }}>{s.name}</span>
                     {s.zone && <span style={{ fontSize:11, color:C.muted }}>· {zones.find(z=>z.id===s.zone)?.name||s.zone}</span>}
                     {s.seenAs && <span style={{ fontSize:11.5, color:C.text }}>— observed {s.seenAs}</span>}
                   </div>
@@ -511,7 +509,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
                   <div style={{ fontSize:11.5, color:C.muted, lineHeight:1.6, marginBottom:8 }}>These were found the same way, unregistered and communicating on the network, and have since been added to the register with a zone and standard fields. They no longer count against visibility, but the estate did have them unmanaged at assessment time.</div>
                   {previewRemediatedShadow.map((s,i)=>(
                     <div key={i} style={{ display:'flex', gap:8, alignItems:'baseline', padding:'5px 0', borderBottom:`1px solid ${C.border}` }}>
-                      <span style={{ fontFamily:'monospace', fontSize:12, fontWeight:600, color:'#067647' }}>{s.name}</span>
+                      <span className="kpmg-code-badge" style={{ fontSize:12, fontWeight:600, color:'#067647' }}>{s.name}</span>
                       {s.zone && <span style={{ fontSize:11, color:C.muted }}>· {zones.find(z=>z.id===s.zone)?.name||s.zone}</span>}
                       {s.seenAs && <span style={{ fontSize:11.5, color:C.text }}>— observed {s.seenAs}</span>}
                       <span style={{ marginLeft:'auto', fontSize:9.5, fontWeight:700, padding:'2px 7px', borderRadius:20, background:'#DCFAE6', color:'#067647' }}>registered</span>
@@ -542,7 +540,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
             {topVulns.map((v, i) => (
               <div key={v.vuln_id || v.id || i} style={{ marginBottom: 12, padding: '13px 16px', borderRadius: 10, background: v._pr.label==='P1' ? '#FEF9F9' : '#F8FAFD', border: `1px solid ${v._pr.label==='P1' ? '#FECACA' : C.border}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7, flexWrap:'wrap' }}>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 12, color: C.navy }}>{v.cve_id || v.cve || v.vuln_id}</span>
+                  <span className="kpmg-code-badge" style={{ fontWeight: 700, fontSize: 12, color: C.navy }}>{v.cve_id || v.cve || v.vuln_id}</span>
                   <SevChip sev={v.criticality === 'Critical' ? 'Critical' : 'High'} />
                   <span style={{ fontSize: 11, fontWeight: 600, color: C.text }}>CVSS {v.cvss}</span>
                   <span style={{ fontSize: 10.5, fontWeight: 700, color: v._pr.color, background:`${v._pr.color}14`, padding:'1px 8px', borderRadius:20 }}>{v._pr.label}</span>
@@ -650,7 +648,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
                             {s.title}
                             {(s.resolves||[]).length>=2 && <span style={{ marginLeft: 7, fontSize: 10, fontWeight: 600, color: C.navy, background: `${C.sky}20`, padding: '1px 6px', borderRadius: 4 }}>⚡ Force multiplier · {s.resolves.length}</span>}
                           </div>
-                          {s.cve && <span style={{ fontFamily: 'monospace', fontSize: 10, color: C.navy, background: `${C.navy}0C`, padding: '1px 5px', borderRadius: 3 }}>{s.cve}</span>}
+                          {s.cve && <span className="kpmg-code-badge" style={{ fontSize: 10, color: C.navy, background: `${C.navy}0C`, padding: '1px 5px', borderRadius: 3 }}>{s.cve}</span>}
                         </div>
                       </div>
                     ))}
@@ -666,7 +664,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
                         <div style={{ width: 17, height: 17, borderRadius: '50%', background: '#0F6E5614', color: '#0F6E56', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 12, fontWeight: 500, color: C.text, marginBottom: 2 }}>{s.title}</div>
-                          {s.cve && <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#0F6E56', background: '#0F6E560C', padding: '1px 5px', borderRadius: 3 }}>{s.cve}</span>}
+                          {s.cve && <span className="kpmg-code-badge" style={{ fontSize: 10, color: '#0F6E56', background: '#0F6E560C', padding: '1px 5px', borderRadius: 3 }}>{s.cve}</span>}
                         </div>
                       </div>
                     ))}

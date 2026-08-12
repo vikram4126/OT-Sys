@@ -290,7 +290,7 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
               <SupLabel>Supporting input — what &amp; where (CVE / CPE)</SupLabel>
               {(vuln.cveId||vuln.cve_id||vuln.cve) && (
                 <div style={{ marginBottom:6 }}>
-                  <span style={{ fontFamily:'monospace', fontSize:11.5, fontWeight:600, color:C.navy }}>{vuln.cveId||vuln.cve_id||vuln.cve}</span>
+                  <span className="kpmg-code-badge" style={{ fontSize:11.5, fontWeight:600, color:C.navy }}>{vuln.cveId||vuln.cve_id||vuln.cve}</span>
                   {vuln.cwe && <span style={{ fontSize:11, color:C.muted, marginLeft:8 }}>{vuln.cwe} (root cause)</span>}
                   {(vuln.cveDescription||vuln.cve_description||vuln.description) && <div style={{ fontSize:11, color:C.muted, marginTop:2, lineHeight:1.5 }}>{vuln.cveDescription||vuln.cve_description||vuln.description}</div>}
                 </div>
@@ -359,7 +359,7 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
               <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
                 {notImplemented.map((r,i)=>(
                   <div key={i} style={{ fontSize:11, color:'#B42318', display:'flex', gap:6 }}>
-                    <span style={{ fontFamily:'monospace', fontWeight:600 }}>{r.id}</span>
+                    <span className="kpmg-code-badge" style={{ fontWeight:600 }}>{r.id}</span>
                     <span style={{ color:C.text }}>{r.name}</span>
                     <span style={{ color:C.muted, marginLeft:'auto' }}>{r.zone} · {r.status}</span>
                   </div>
@@ -605,7 +605,7 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
             <div style={{ marginTop:8 }}>
               <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>Associated CVEs</div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-                {form.cves.map(c=><span key={c} style={{ display:'inline-flex', alignItems:'center', gap:6, fontFamily:'monospace', fontSize:11, color:C.navy, background:`${C.navy}0C`, borderRadius:5, padding:'2px 8px' }}>{c}<button onClick={()=>rmCve(c)} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, lineHeight:1 }}>×</button></span>)}
+                {form.cves.map(c=><span key={c} className="kpmg-code-badge" style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:11, color:C.navy, background:`${C.navy}0C`, borderRadius:5, padding:'2px 8px' }}>{c}<button onClick={()=>rmCve(c)} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, lineHeight:1 }}>×</button></span>)}
                 {!form.cves.length && <span style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>No CVEs</span>}
               </div>
               <div style={{ display:'flex', gap:8 }}>
@@ -618,7 +618,7 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
           (vuln.description||vuln.cve_description||vuln.cveDescription) ? (
             <>
               <div style={{ fontSize:12.5, color:C.text, lineHeight:1.6 }}>{vuln.description||vuln.cve_description||vuln.cveDescription}</div>
-              {cves.length>0 && <div style={{ marginTop:6, display:'flex', gap:5, flexWrap:'wrap' }}>{cves.map(c=><span key={c} style={{ fontFamily:'monospace', fontSize:11, color:C.navy, background:`${C.navy}0C`, borderRadius:5, padding:'2px 8px' }}>{c}</span>)}</div>}
+              {cves.length>0 && <div style={{ marginTop:6, display:'flex', gap:5, flexWrap:'wrap' }}>{cves.map(c=><span key={c} className="kpmg-code-badge" style={{ fontSize:11, color:C.navy, background:`${C.navy}0C`, borderRadius:5, padding:'2px 8px' }}>{c}</span>)}</div>}
             </>
           ) : <div style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>No description.</div>
         )}
@@ -649,7 +649,7 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
           <div style={{ border:`1px solid ${C.border}`, borderRadius:10, overflow:'hidden' }}>
             {controlRows.map((r,i)=>(
               <div key={r.zone+r.id+i} style={{ display:'grid', gridTemplateColumns:'70px 1fr 110px', gap:10, alignItems:'center', padding:'8px 12px', borderTop:i?`1px solid ${C.border}`:'none', background: r.met?'#fff':'#FFFBFB' }}>
-                <span style={{ fontFamily:'monospace', fontSize:11, color:C.muted }}>{r.id}</span>
+                <span className="kpmg-code-badge" style={{ fontSize:11, color:C.muted }}>{r.id}</span>
                 <span style={{ fontSize:12, color:C.text }}>{r.name}<span style={{ color:C.muted }}> · {r.zone}</span></span>
                 <span style={{ fontSize:10.5, fontWeight:700, textAlign:'right', color: r.met?'#067647':'#B42318' }}>{r.met?'✓ implemented':'✗ not implemented'}</span>
               </div>
@@ -666,7 +666,7 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
               {allSRs(fr).map(sr=>{ const on=form.srs.includes(sr.id); return (
                 <button key={sr.id} onClick={()=>toggleSr(sr.id)} style={{ display:'flex', width:'100%', textAlign:'left', gap:8, alignItems:'center', padding:'5px 6px', background:on?'#F4FBF7':'transparent', border:'none', borderRadius:6, cursor:'pointer', fontFamily:'inherit' }}>
                   <span style={{ width:16, height:16, borderRadius:4, flexShrink:0, border:`1.5px solid ${on?'#067647':C.border}`, background:on?'#067647':'#fff', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10 }}>{on?'✓':''}</span>
-                  <span style={{ fontFamily:'monospace', fontSize:11, color:C.muted, minWidth:78 }}>{sr.id}</span>
+                  <span className="kpmg-code-badge" style={{ fontSize:11, color:C.muted, minWidth:78 }}>{sr.id}</span>
                   <span style={{ fontSize:11.5, color:C.text }}>{sr.name}{sr.isRE && <span style={{ color:C.muted }}> (RE)</span>}</span>
                 </button>
               );})}
@@ -675,7 +675,7 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
           ) : (
             manualSrs.length ? (
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {manualSrs.map(id=><span key={id} style={{ fontFamily:'monospace', fontSize:11, color:C.navy, background:`${C.navy}0C`, border:`1px solid ${C.border}`, borderRadius:6, padding:'2px 8px' }}>{id}</span>)}
+                {manualSrs.map(id=><span key={id} className="kpmg-code-badge" style={{ fontSize:11, color:C.navy, background:`${C.navy}0C`, border:`1px solid ${C.border}`, borderRadius:6, padding:'2px 8px' }}>{id}</span>)}
               </div>
             ) : <div style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>None explicitly associated — the controls above are derived from the finding's FR and zones.</div>
           )}
@@ -1047,7 +1047,7 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
         <div key={c.id} style={{ display:'flex', alignItems:'flex-start', gap:10, padding:'11px 13px', border:`1px solid ${C.border}`, borderRadius:10, marginBottom:8 }}>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-              <span style={{ fontFamily:'monospace', fontSize:11, color:C.navy }}>{c.cve_id}</span>
+              <span className="kpmg-code-badge" style={{ fontSize:11, color:C.navy }}>{c.cve_id}</span>
               <span style={{ fontSize:12.5, fontWeight:600, color:C.text }}>{c.title}</span>
               {c.in_kev && <span style={{ fontSize:9, fontWeight:700, color:'#B42318', background:'#FEE4E2', padding:'1px 5px', borderRadius:4 }}>KEV</span>}
             </div>

@@ -96,18 +96,18 @@ export default function App() {
   };
 
   return (
-    <div style={{ display:'flex', height:'100vh', fontFamily:"'Segoe UI',-apple-system,sans-serif", background:'#F2F5FB', color:C.text, overflow:'hidden', fontSize:14 }}>
+    <div className="kpmg-app-layout">
 
       {/* ── Sidebar ──────────────────────────────────────────────────────── */}
       <div className="kpmg-sidebar">
         {/* Logo */}
         <div className="kpmg-sidebar-logo">
-          <div style={{ width:36, height:36, borderRadius:8, background:'#EFF6FF', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <div className="kpmg-logo-icon">
             <GearLogo/>
           </div>
           <div>
-            <div style={{ fontWeight:700, fontSize:14, color:'#101828', lineHeight:1.2 }}>OT Overview</div>
-            <div style={{ fontSize:11, color:'#667085', marginTop:2 }}>OT Security Platform</div>
+            <div className="kpmg-logo-title">OT Overview</div>
+            <div className="kpmg-logo-sub">OT Security Platform</div>
           </div>
         </div>
 
@@ -116,29 +116,29 @@ export default function App() {
           {NAV.map(sec => {
             const isOpen = expanded[sec.label] !== false;
             return (
-              <div key={sec.label} style={{ marginBottom:6 }}>
+              <div key={sec.label} className="kpmg-sidebar-group">
                 <div className="kpmg-sidebar-group-title" onClick={() => toggleGroup(sec.label)}>
-                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <div className="kpmg-sidebar-group-left">
                     <sec.GroupIcon />
                     <span>{sec.label}</span>
                   </div>
-                  <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2" strokeLinecap="round" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.15s ease' }}>
+                  <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2" strokeLinecap="round" className={`kpmg-sidebar-group-arrow ${isOpen ? 'open' : ''}`}>
                     <polyline points="6 9 12 15 18 9"/>
                   </svg>
                 </div>
                 {isOpen && (
-                  <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+                  <div className="kpmg-sidebar-sublist">
                     {sec.items.map(item => {
                       const active = tab === item.id;
                       const isLocked = locked(item.id);
                       return (
                         <div key={item.id} onClick={() => !isLocked && handleSetTab(item.id)}
                           className={`kpmg-sidebar-item ${active ? 'active' : ''} ${isLocked ? 'locked' : ''}`}>
-                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                          <div className="kpmg-sidebar-item-inner">
                             <item.Icon />
                             <span>{item.label}</span>
                           </div>
-                          {isLocked && <span style={{ fontSize:10, color:C.muted }}>🔒</span>}
+                          {isLocked && <span className="kpmg-sidebar-lock">🔒</span>}
                         </div>
                       );
                     })}
@@ -151,20 +151,20 @@ export default function App() {
 
         {/* User profile card at bottom */}
         <div className="kpmg-sidebar-user">
-          <div style={{ width:36, height:36, borderRadius:'50%', background:'#E0E7FF', color:'#3730A3', fontWeight:700, fontSize:13, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <div className="kpmg-user-avatar">
             JD
           </div>
-          <div style={{ overflow:'hidden' }}>
-            <div style={{ fontWeight:600, fontSize:13, color:'#101828', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>J. Davies</div>
-            <div style={{ fontSize:11, color:'#667085', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>Lead Analyst</div>
+          <div className="kpmg-user-info">
+            <div className="kpmg-user-name">J. Davies</div>
+            <div className="kpmg-user-role">Lead Analyst</div>
           </div>
         </div>
       </div>
 
       {/* ── Main area ─────────────────────────────────────────────────────── */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0, background:'#FAFAFC' }}>
+      <div className="kpmg-main-area">
         <header className="kpmg-header">
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%', gap:16 }}>
+          <div className="kpmg-header-row">
             <h1 className="kpmg-title">{TITLES[tab]}</h1>
             {headerActions}
           </div>
@@ -176,19 +176,19 @@ export default function App() {
             </div>
           )}
         </header>
-        <main style={{ flex:1, overflowY:'auto', padding:'22px 24px' }}>
-          <div style={{ maxWidth:1340, margin:'0 auto' }}>
+        <main className="kpmg-main-content">
+          <div className="kpmg-main-container">
             {locked(tab) ? (
-              <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:'48px 32px', textAlign:'center', maxWidth:560, margin:'40px auto' }}>
-                <div style={{ width:48, height:48, borderRadius:12, background:'#FEF0C7', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
+              <div className="kpmg-locked-card">
+                <div className="kpmg-locked-icon">
                   <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#B54708" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
-                <div style={{ fontSize:17, fontWeight:700, color:C.text, marginBottom:8 }}>Locked until the baseline is captured</div>
-                <p style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:20 }}>
+                <div className="kpmg-locked-title">Locked until the baseline is captured</div>
+                <p className="kpmg-locked-desc">
                   Finish setup in <strong>Model</strong> first: collect the client's evidence, derive the zone model, then capture the initial baseline. It's fine if some evidence is missing — a gap is recorded as a finding, not a blocker. Capturing the baseline records the as-is scores and unlocks the analysis and compliance work.
                 </p>
-                <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
-                  <button onClick={()=>setTab('model')} style={{ padding:'9px 18px', borderRadius:9, background:C.navy, border:'none', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Go to Model →</button>
+                <div className="kpmg-locked-actions">
+                  <button onClick={()=>setTab('model')} className="kpmg-locked-btn">Go to Model →</button>
                 </div>
               </div>
             ) : (

@@ -237,7 +237,7 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
               <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, margin:'8px 0 4px' }}>Associated CVEs ({sel.matches.length})</div>
               {sel.matches.slice(0,6).map(v=>(
                 <div key={v.vuln_id} style={{ fontSize:11.5, color:C.text, padding:'4px 0', borderTop:`1px solid ${C.border}` }}>
-                  <span style={{ fontFamily:'monospace', fontSize:10.5, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span> · {v.cvss}
+                  <span className="kpmg-code-badge" style={{ fontSize:10.5, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span> · {v.cvss}
                   <div style={{ fontSize:10.5, color:C.muted }}>{v.title}</div>
                 </div>
               ))}
@@ -493,7 +493,7 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
                   <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:7 }}>Enabling vulnerability</div>
                   <div style={{ border:`1px solid ${C.border}`, borderRadius:10, padding:'11px 13px', marginBottom:8 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
-                      <span style={{ fontFamily:'monospace', fontSize:11, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span>
+                      <span className="kpmg-code-badge" style={{ fontSize:11, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span>
                       <span style={{ fontSize:12.5, fontWeight:600, color:C.text }}>{v.title}</span>
                       <span style={{ marginLeft:'auto', fontSize:15, fontWeight:700, color:scoreColor(v.risk_score||v.cvss||0) }}>{(v.risk_score||v.cvss||0).toFixed?.(1)??v.risk_score}</span>
                     </div>
@@ -547,7 +547,7 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
           <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, margin:'16px 0 6px' }}>Supporting vulnerabilities ({whyOf.onPathVulns.length})</div>
           {whyOf.onPathVulns.slice(0,8).map(v=>(
             <div key={v.vuln_id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11.5, color:C.text, padding:'4px 0', borderTop:`1px solid ${C.border}` }}>
-              <span style={{ fontFamily:'monospace', fontSize:10.5, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span>
+              <span className="kpmg-code-badge" style={{ fontSize:10.5, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span>
               <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{v.title}</span>
               {v.in_kev && <span style={{ fontSize:9, fontWeight:700, color:'#B42318', background:'#FEE4E2', padding:'1px 5px', borderRadius:4 }}>KEV</span>}
               <span style={{ fontWeight:700, color:scoreColor(v.risk_score||v.cvss||0) }}>{(v.risk_score||v.cvss||0).toFixed?.(1)??''}</span>
