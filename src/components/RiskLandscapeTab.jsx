@@ -179,10 +179,10 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
 
   return (
     <Card>
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, flexWrap:'wrap', marginBottom:8 }}>
+      <div className="kpmg-card-header-flex">
         <div>
-          <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:2 }}>Assets across the Purdue model</div>
-          <div style={{ fontSize:11.5, color:C.muted }}>
+          <div className="kpmg-modal-title" style={{ fontSize:13, marginBottom:2 }}>Assets across the Purdue model</div>
+          <div className="kpmg-subtext">
             Showing <strong>{enriched.length}</strong> of {allEnriched.length} assets{zoneF!=='all'?` in ${zones.find(z=>z.id===zoneF)?.name||zoneF}`:''} — banded by Purdue level, coloured by zone. Node size scales with exposure; severe assets glow red. Click a node for its CVEs.
           </div>
         </div>
@@ -193,9 +193,9 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
             options={SEV_OPTS.map(([v,l])=>({value:v,label:l}))}/>
         </div>
       </div>
-      {enriched.length===0 && <div style={{ fontSize:12, color:C.muted, fontStyle:'italic', padding:'8px 0' }}>No assets match this zone/severity filter{hiddenCount>0?` (${hiddenCount} filtered out)`:''}.</div>}
+      {enriched.length===0 && <div className="kpmg-subtext" style={{ fontStyle:'italic', padding:'8px 0' }}>No assets match this zone/severity filter{hiddenCount>0?` (${hiddenCount} filtered out)`:''}.</div>}
       <div style={{ display:'flex', gap:14 }}>
-        <div style={{ flex:1, minWidth:0, background:'radial-gradient(120% 80% at 30% 0%, #F7FAFF 0%, #EEF3FB 100%)', borderRadius:16, border:`1px solid ${C.border}`, padding:'4px' }}>
+        <div className="kpmg-stage-wrapper">
           <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" style={{ display:'block' }}>
             <StageDefs/>
             <LevelBands/>
@@ -224,11 +224,11 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
             })}
           </svg>
         </div>
-        <div style={{ width:232, flexShrink:0 }}>
+        <div className="kpmg-asset-detail-sidebar">
           {sel ? (
-            <div style={{ border:`1px solid ${C.border}`, borderRadius:12, padding:'12px 14px', boxShadow:'0 4px 16px rgba(10,22,40,.06)' }}>
-              <div style={{ fontSize:13, fontWeight:600, color:C.text }}>{sel.name}</div>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:8 }}>{sel.deviceType} · L{sel.level} · {zones.find(z=>z.id===sel.zone)?.name}</div>
+            <div className="kpmg-asset-detail-card">
+              <div className="kpmg-modal-title">{sel.name}</div>
+              <div className="kpmg-subtext" style={{ marginBottom: 8 }}>{sel.deviceType} · L{sel.level} · {zones.find(z=>z.id===sel.zone)?.name}</div>
               {selEx && (
                 <div style={{ fontSize:11.5, marginBottom:8, padding:'7px 9px', borderRadius:8, background:selEx.level==='High'?'#FEE4E2':selEx.level==='Medium'?'#FEF0C7':'#DCFAE6', color:selEx.level==='High'?'#B42318':selEx.level==='Medium'?'#B54708':'#067647', lineHeight:1.5 }}>
                   <strong>Exploitable: {selEx.level}.</strong> {selEx.reason}
@@ -241,12 +241,12 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
                   <div style={{ fontSize:10.5, color:C.muted }}>{v.title}</div>
                 </div>
               ))}
-              {!sel.matches.length && <div style={{ fontSize:11.5, color:C.muted }}>No findings linked to this asset.</div>}
+              {!sel.matches.length && <div className="kpmg-subtext">No findings linked to this asset.</div>}
             </div>
-          ) : <div style={{ border:`1px dashed ${C.border}`, borderRadius:12, padding:'20px 14px', fontSize:12, color:C.muted, textAlign:'center' }}>Click an asset to see its CVEs and whether it's exploitable.</div>}
+          ) : <div className="kpmg-asset-detail-empty">Click an asset to see its CVEs and whether it's exploitable.</div>}
         </div>
       </div>
-      <div style={{ display:'flex', gap:14, marginTop:8, flexWrap:'wrap', fontSize:11, color:C.muted }}>
+      <div className="kpmg-legend-footer">
         {zones.map(z=>(<span key={z.id} style={{ display:'inline-flex', alignItems:'center', gap:6 }}><span style={{ width:10, height:10, borderRadius:'50%', background:nodeColor(z.id) }}/>{z.name}</span>))}
         <span style={{ display:'inline-flex', alignItems:'center', gap:6 }}><span style={{ width:12, height:12, borderRadius:'50%', background:'#E8284B' }}/>red glow = severe vulnerability</span>
       </div>
@@ -343,18 +343,18 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
 
   return (
     <Card>
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, flexWrap:'wrap', marginBottom:2 }}>
-        <div style={{ fontSize:13, fontWeight:600, color:C.text }}>Top business risks</div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+      <div className="kpmg-card-header-flex" style={{ marginBottom: 2 }}>
+        <div className="kpmg-modal-title" style={{ fontSize: 13 }}>Top business risks</div>
+        <div className="kpmg-flex-center-gap8">
           {dismissed.length>0 && <button onClick={()=>setShowDismissed(true)} style={{ background:'none', border:'none', color:C.navy, fontSize:11, cursor:'pointer', fontFamily:'inherit', textDecoration:'underline' }}>Dismissed ({dismissed.length})</button>}
         </div>
       </div>
-      <div style={{ fontSize:11.5, color:C.muted, marginBottom:10 }}>Up to 5 highest-consequence business risks — MITRE ATT&amp;CK for ICS impact techniques derived from each zone's own exposure and target security level, not a fixed 5-zone list. Left: pick a risk and see one plausible attack path on real assets. Right: the kill chain — the techniques and enabling vulnerabilities behind it.</div>
+      <div className="kpmg-subtext" style={{ marginBottom: 10 }}>Up to 5 highest-consequence business risks — MITRE ATT&amp;CK for ICS impact techniques derived from each zone's own exposure and target security level, not a fixed 5-zone list. Left: pick a risk and see one plausible attack path on real assets. Right: the kill chain — the techniques and enabling vulnerabilities behind it.</div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1.05fr) minmax(0,1fr)', gap:16, alignItems:'start' }}>
+      <div className="kpmg-grid-business-risk">
         {/* LEFT — business-risk picker + compact diagram */}
         <div>
-          <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:8 }}>
+          <div className="kpmg-flex-col-gap6">
             {allLeaves.map(leaf=>{
               const on = leaf.technique===sel.id;
               return (
