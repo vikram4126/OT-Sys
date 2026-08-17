@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { C, getScoreColor, getScoreClass } from '../theme';
 import { Card, Btn, Modal, Select, Input, FormField } from './UI';
 import { Network, AlertCircle, Brain } from './Icons';
@@ -147,13 +147,14 @@ function VisibilityPanel({ assets, zones }) {
   const tone = getScoreColor(v.score);
 
   const baseCards = byZone.length > 0 ? byZone : [];
-  let displayZoneCards = baseCards;
-  if (baseCards.length > 0 && baseCards.length < 10) {
-    displayZoneCards = [...baseCards, ...baseCards].slice(0, 10);
-  }
-  if (!showAllCards && displayZoneCards.length > 10) {
-    displayZoneCards = displayZoneCards.slice(0, 10);
-  }
+  const fullPool = baseCards.length > 0
+    ? Array.from({ length: 20 }, (_, i) => ({
+        ...baseCards[i % baseCards.length],
+        idKey: `zone-card-${i}`
+      }))
+    : [];
+
+  const displayZoneCards = showAllCards ? fullPool.slice(0, 20) : fullPool.slice(0, 10);
 
   // Generate 170 ticks (4px width, 1px gap) to span full row width dynamically
   const totalTicks = 170;
@@ -208,7 +209,7 @@ function VisibilityPanel({ assets, zones }) {
       {/* Zone Cards Grid */}
       <div className="kpmg-zone-grid">
         {displayZoneCards.map((z, idx) => (
-          <div key={idx} className="kpmg-zone-card" onClick={() => setZoneSel(z)}>
+          <div key={z.idKey || idx} className="kpmg-zone-card" onClick={() => setZoneSel(z)}>
             <div className="kpmg-zone-card-name">{z.name}</div>
             <div className={`kpmg-zone-card-score ${getScoreClass(z.score)}`}>
               {z.score}%
@@ -308,28 +309,74 @@ function ZoneVisibilityModal({ zone, assets, onClose }) {
 // the standard fields, otherwise the visibility score would improve without
 // the inventory getting any better.
 function RegisterShadowModal({ shadow, zones, onClose, onDone }) {
-  const [f, setF] = useState({ name: shadow.name || '', zone: shadow.zone || '', deviceType: shadow.deviceType || '', ip: shadow.ip || '' });
+  const extractedIp = shadow.ip || (shadow.name?.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)?.[0] || '');
+  const [f, setF] = useState({
+    name: shadow.name || '',
+    zone: shadow.zone || '',
+    deviceType: shadow.deviceType || '',
+    ip: extractedIp
+  });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const missing = missingAssetFields(f);
+
   return (
-    <Modal title="Add to register" subtitle={`${shadow.name} — seen in logs, not in any register`} onClose={onClose} maxWidth={480}>
-      <div className="kpmg-modal-subtext">
-        Complete the standard fields so this becomes a managed asset. Visibility recalculates once it's registered.
+    <Modal
+      title="Add to register"
+      subtitle={`${shadow.name} - seen in logs, not in any register`}
+      onClose={onClose}
+      maxWidth={520}
+      footer={
+        <>
+          <Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>
+            Cancel
+          </Btn>
+          <Btn
+            disabled={missing.length > 0}
+            onClick={() => { onDone(f); }}
+            style={{ background: '#1e49e2', color: '#fff', padding: '8px 22px', borderRadius: 8 }}
+          >
+            Add
+          </Btn>
+        </>
+      }
+    >
+      <div className="kpmg-modal-info-alert">
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <span>
+          Complete the standard fields so this becomes a managed asset. Visibility recalculates once it&apos;s registered.
+        </span>
       </div>
-      <FormField label="Asset name" required><Input value={f.name} onChange={e => set('name', e.target.value)} /></FormField>
-      <FormField label="Zone" required>
-        <Select value={f.zone} onChange={e => set('zone', e.target.value)} options={[{ value: '', label: 'Select zone…' }, ...zones.map(z => ({ value: z.id, label: z.name }))]} />
-      </FormField>
-      <FormField label="Device type" required><Input value={f.deviceType} onChange={e => set('deviceType', e.target.value)} placeholder="e.g. PLC, HMI, Switch" /></FormField>
-      <FormField label="IP address" required><Input value={f.ip} onChange={e => set('ip', e.target.value)} placeholder="10.30.1.55" /></FormField>
-      {missing.length > 0 && (
-        <div className="kpmg-modal-box-warning">
-          Still needed: {missing.join(' · ')}
-        </div>
-      )}
-      <div className="kpmg-modal-actions-right">
-        <Btn variant="outline" onClick={onClose}>Cancel</Btn>
-        <Btn disabled={missing.length > 0} onClick={() => { onDone(f); }}>Add to register</Btn>
+
+      <div style={{ marginTop: 16 }}>
+        <FormField label="Asset name" required>
+          <Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="Asset name" />
+        </FormField>
+
+        <FormField label="Zone" required>
+          <Select
+            value={f.zone}
+            onChange={e => set('zone', e.target.value)}
+            options={[{ value: '', label: 'Select zone…' }, ...zones.map(z => ({ value: z.id, label: z.name }))]}
+          />
+        </FormField>
+
+        <FormField label="Device type" required>
+          <Input value={f.deviceType} onChange={e => set('deviceType', e.target.value)} placeholder="e.g. Unknown workstation, PLC, HMI" />
+        </FormField>
+
+        <FormField label="IP address" required>
+          <Input value={f.ip} onChange={e => set('ip', e.target.value)} placeholder="e.g. 10.30.1.55" />
+        </FormField>
+
+        {missing.length > 0 && (
+          <div className="kpmg-modal-box-warning" style={{ marginTop: 12 }}>
+            Still needed: {missing.join(' · ')}
+          </div>
+        )}
       </div>
     </Modal>
   );
@@ -337,27 +384,55 @@ function RegisterShadowModal({ shadow, zones, onClose, onDone }) {
 
 function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
   const [reg, setReg] = useState(null);
+  const [isOpen, setIsOpen] = useState(true);
   const all = allShadowAssets();
   const shadows = zoneF === 'all' ? all : all.filter(s => s.zone === zoneF);
+
   return (
-    <div className="kpmg-card kpmg-shadow-banner">
-      <div className="kpmg-shadow-left-group">
-        <span className="kpmg-shadow-count">
-          {shadows.length < 10 ? `0${shadows.length}` : shadows.length}
-        </span>
-        <div>
-          <div className="kpmg-shadow-title-group">
-            <span className="kpmg-shadow-title">Shadow assets</span>
-            <span className="kpmg-shadow-desc">Seen in logs, not in the register</span>
-          </div>
-          <div className="kpmg-shadow-sub">
-            Register each one to clear it - a zone and the standard fields are required, so visibility only improves when the inventory really does.
+    <div className="kpmg-card kpmg-shadow-section-card">
+      <div className="kpmg-shadow-banner-top">
+        <div className="kpmg-shadow-left-group">
+          <span className="kpmg-shadow-count" style={{ color: '#D9251B' }}>
+            {shadows.length < 10 ? `0${shadows.length}` : shadows.length}
+          </span>
+          <div>
+            <div className="kpmg-shadow-title-group">
+              <span className="kpmg-shadow-title" style={{ color: '#D9251B' }}>Shadow assets</span>
+              <span className="kpmg-shadow-desc">Seen in logs, not in the register</span>
+            </div>
+            <div className="kpmg-shadow-sub">
+              Register each one to clear it - a zone and the standard fields are required, so visibility only improves when the inventory really does.
+            </div>
           </div>
         </div>
+        <button className="kpmg-btn-outline" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? 'Close' : 'Open'}
+        </button>
       </div>
-      <button className="kpmg-btn-cobalt" onClick={() => setReg(shadows[0] || null)}>
-        Open
-      </button>
+
+      {isOpen && shadows.length > 0 && (
+        <div className="kpmg-shadow-cards-grid">
+          {shadows.map(s => (
+            <div key={s.id} className="kpmg-shadow-item-card">
+              <div className="kpmg-shadow-item-main">
+                <div className="kpmg-shadow-item-name">{s.name}</div>
+                <div className="kpmg-shadow-item-meta">
+                  {s.deviceType} • {zName(s.zone)}
+                </div>
+                {s.seenAs && (
+                  <div className="kpmg-shadow-item-pill-wrapper">
+                    <span className="kpmg-shadow-item-pill">{s.seenAs}</span>
+                  </div>
+                )}
+              </div>
+              <button className="kpmg-btn-outline kpmg-shadow-item-btn" onClick={() => setReg(s)}>
+                Register
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {reg && (
         <RegisterShadowModal shadow={reg} zones={zones} onClose={() => setReg(null)}
           onDone={(f) => { addAsset({ ...f, level: 3, confidence: 70, source: 'shadow-registered', kind: 'hardware' }); promoteShadowAsset(reg.id); setReg(null); onChange(); }} />
@@ -397,36 +472,121 @@ function ProvenanceModal({ asset, zName, aName, onClose }) {
 
 function UploadModal({ zones, onClose, onDone }) {
   const [zone, setZone] = useState(zones[0]?.id || '');
-  const [filename, setFilename] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [result, setResult] = useState(null);
-  // simulated parse: a small set of rows, some of which may duplicate existing assets
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = e => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   const simulate = () => {
-    if (!filename.trim()) return;
+    const filename = selectedFile ? selectedFile.name : 'Control_Assets_v2.xlsx';
     const sampleRows = [
       { name: 'NEW-SENSOR-01', deviceType: 'Sensor', kind: 'hardware', level: 0, ip: '10.40.9.10', os: 'Embedded' },
-      { name: 'PLC-CTRL-01', deviceType: 'PLC', kind: 'hardware', level: 1 },          // duplicate of seed
+      { name: 'PLC-CTRL-01', deviceType: 'PLC', kind: 'hardware', level: 1 },
       { name: 'BACKUP-SRV-02', deviceType: 'Backup server', kind: 'hardware', level: 4, ip: '10.10.1.40', os: 'Windows Server 2022' },
       { name: 'Nozomi Guardian', deviceType: 'OT monitoring', kind: 'software', version: '23.4', host: 'A-OPS1' },
     ];
-    const r = ingestAssetFile(zone, filename.trim(), sampleRows);
-    setResult(r); onDone();
+    const r = ingestAssetFile(zone, filename, sampleRows);
+    setResult(r);
+    onDone();
   };
+
   return (
-    <Modal title="Upload asset data" subtitle="Add a register or scan export — duplicates are detected and skipped" onClose={onClose} maxWidth={520}
-      footer={result ? <Btn onClick={onClose}>Done</Btn> : <><Btn variant="outline" onClick={onClose}>Cancel</Btn><Btn onClick={simulate}>Ingest file</Btn></>}>
+    <Modal
+      title="Upload asset data"
+      subtitle="Add a register or scan export — duplicates are detected and skipped"
+      onClose={onClose}
+      maxWidth={520}
+      footer={
+        result ? (
+          <Btn onClick={onClose} style={{ background: '#1E49E2', color: '#fff', padding: '8px 24px', borderRadius: 8 }}>
+            Done
+          </Btn>
+        ) : (
+          <>
+            <Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>
+              Cancel
+            </Btn>
+            <Btn onClick={simulate} style={{ background: '#1E49E2', color: '#fff', padding: '8px 24px', borderRadius: 8 }}>
+              Upload
+            </Btn>
+          </>
+        )
+      }
+    >
       {!result ? (
         <>
-          <FormField label="Zone"><Select value={zone} onChange={e => setZone(e.target.value)} options={zones.map(z => ({ value: z.id, label: z.name }))} /></FormField>
-          <FormField label="File name"><Input value={filename} onChange={e => setFilename(e.target.value)} placeholder="e.g. Control_Assets_v2.xlsx" /></FormField>
-          <div className="kpmg-modal-box-note">
-            Illustrative: parses the file into asset rows and files it into the zone's <strong>_Asset data</strong> folder. Rows matching an existing asset (by name or IP) are skipped as duplicates.
+          <FormField label="Zone">
+            <Select
+              value={zone}
+              onChange={e => setZone(e.target.value)}
+              options={zones.map(z => ({ value: z.id, label: z.name }))}
+            />
+          </FormField>
+
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              background: '#FAFBFC',
+              border: '1px dashed #D0D5DD',
+              borderRadius: 12,
+              padding: '36px 24px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              marginTop: 16,
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                background: '#EFF6FF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 12px auto'
+              }}
+            >
+              <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#175CD3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+
+            <div>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#1E49E2' }}>Click to upload</span>
+              <span style={{ fontSize: 14, fontWeight: 500, color: '#344054' }}> or drag and drop</span>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', marginTop: 4 }}>
+              {selectedFile ? selectedFile.name : '(PDF, Excel, Spreadsheet)'}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              style={{ display: 'none' }}
+              accept=".xlsx,.xls,.csv,.pdf"
+              onChange={handleFileChange}
+            />
           </div>
         </>
       ) : (
-        <div style={{ fontSize: 13, color: C.text, lineHeight: 1.7 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#067647', marginBottom: 8 }}>✓ Ingested</div>
+        <div style={{ fontSize: 13, color: '#101828', lineHeight: 1.7, padding: '12px 0' }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#067647', marginBottom: 8 }}>✓ Ingested successfully</div>
           <div><strong>{result.added}</strong> new asset{result.added !== 1 ? 's' : ''} added.</div>
-          {result.duplicates.length > 0 && <div style={{ marginTop: 6, color: C.muted }}><strong>{result.duplicates.length}</strong> duplicate{result.duplicates.length !== 1 ? 's' : ''} skipped: {result.duplicates.join(', ')}</div>}
+          {result.duplicates.length > 0 && (
+            <div style={{ marginTop: 6, color: '#666666' }}>
+              <strong>{result.duplicates.length}</strong> duplicate{result.duplicates.length !== 1 ? 's' : ''} skipped: {result.duplicates.join(', ')}
+            </div>
+          )}
         </div>
       )}
     </Modal>
@@ -481,72 +641,243 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
   const [, refresh] = useState(0);
   const [adding, setAdding] = useState(false);
   const [to, setTo] = useState('');
-  const [proto, setProto] = useState('TCP');
-  const [edit, setEdit] = useState({ ip: asset.ip || '', os: asset.os || '', zone: asset.zone, level: asset.level, internetFacing: !!asset.internetFacing });
-  const conns = assetConnections(asset.id);
-  const isHw = assetKind(asset) === 'hardware';
+  const [proto, setProto] = useState('');
+  const [edit, setEdit] = useState({
+    name: asset.name || '',
+    deviceType: asset.deviceType || '',
+    ip: asset.ip || '',
+    os: asset.os || '',
+    zone: asset.zone || zones[0]?.id || '',
+    level: asset.level || 3,
+    internetFacing: !!asset.internetFacing
+  });
 
-  const add = () => { if (!to) return; addConnection({ from: asset.id, to, proto, source: 'manual' }); setAdding(false); setTo(''); setProto('TCP'); refresh(x => x + 1); };
+  const conns = assetConnections(asset.id);
+
+  const add = () => {
+    if (!to) return;
+    addConnection({ from: asset.id, to, proto: proto || 'TCP', source: 'manual' });
+    setAdding(false); setTo(''); setProto(''); refresh(x => x + 1);
+  };
   const del = id => { removeConnection(id); refresh(x => x + 1); };
   const setP = (id, p) => { updateConnection(id, { proto: p }); refresh(x => x + 1); };
   const saveEdit = () => {
-    updateAsset(asset.id, { ip: edit.ip, os: edit.os, zone: edit.zone, level: Number(edit.level), internetFacing: edit.internetFacing });
+    updateAsset(asset.id, {
+      name: edit.name,
+      deviceType: edit.deviceType,
+      ip: edit.ip,
+      os: edit.os,
+      zone: edit.zone,
+      level: Number(edit.level),
+      internetFacing: edit.internetFacing
+    });
     if (edit.zone !== asset.zone) setManualAssignment(asset.id, edit.zone);
+    onClose();
   };
 
   return (
-    <Modal title={asset.name} subtitle={`${asset.deviceType} · ${zName(asset.zone)} · Purdue L${asset.level}${asset.version ? ` · v${asset.version}` : ''}`} onClose={onClose} maxWidth={680}>
-      <div className={isHw ? "kpmg-asset-modal-grid-hw" : "kpmg-asset-modal-grid-sw"}>
-        {isHw && <FormField label="IP address"><Input value={edit.ip} onChange={e => setEdit(s => ({ ...s, ip: e.target.value }))} placeholder="optional" /></FormField>}
-        {isHw && <FormField label="OS / firmware"><Input value={edit.os} onChange={e => setEdit(s => ({ ...s, os: e.target.value }))} /></FormField>}
-        <FormField label="Zone"><Select value={edit.zone} onChange={e => setEdit(s => ({ ...s, zone: e.target.value }))} options={zones.map(z => ({ value: z.id, label: z.name }))} /></FormField>
-        <FormField label="Purdue"><Select value={edit.level} onChange={e => setEdit(s => ({ ...s, level: e.target.value }))} options={[0, 1, 2, 3, 4, 5].map(l => ({ value: l, label: `L${l}` }))} /></FormField>
-        <Btn size="sm" onClick={saveEdit}>Save</Btn>
-      </div>
-      {isHw && (
-        <div onClick={() => setEdit(s => ({ ...s, internetFacing: !s.internetFacing }))} className="kpmg-checkbox-row">
-          <div className={`kpmg-checkbox-box ${edit.internetFacing ? 'checked' : 'unchecked'}`}>{edit.internetFacing ? '✓' : ''}</div>
-          <span style={{ fontSize: 12.5, color: C.text }}>Internet-facing</span>
-          <span style={{ fontSize: 11, color: C.muted }}>reachable from outside the OT environment — save above to apply</span>
+    <Modal
+      title={asset.name}
+      subtitle={`${asset.deviceType || 'Asset'} · ${zName(asset.zone)}`}
+      onClose={onClose}
+      maxWidth={640}
+      footer={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <button onClick={() => { removeAsset(asset.id); onClose(); }} className="kpmg-btn-remove-link" style={{ color: '#D9251B', fontSize: 13 }}>
+            Remove this asset
+          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
+              Cancel
+            </Btn>
+            <Btn onClick={saveEdit} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>
+              Add
+            </Btn>
+          </div>
         </div>
-      )}
+      }
+    >
+      {/* 2x2 Form Fields Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+        <FormField label="Asset name" required>
+          <Input value={edit.name} onChange={e => setEdit(s => ({ ...s, name: e.target.value }))} placeholder="Asset name" />
+        </FormField>
 
-      <div className="kpmg-connections-header">
-        <span className="kpmg-connections-title">Connections</span>
-        <Btn size="sm" variant="outline" onClick={() => setAdding(a => !a)}>{adding ? 'Cancel' : '+ Add connection'}</Btn>
-      </div>
-      <div className="kpmg-modal-box-note">
-        Inferred from ~10 minutes of zone capture — a limited sample, not a complete picture. Edit, remove or add connections you know to be wrong or missing.
+        <FormField label="Zone" required>
+          <Select
+            value={edit.zone}
+            onChange={e => setEdit(s => ({ ...s, zone: e.target.value }))}
+            options={zones.map(z => ({ value: z.id, label: z.name }))}
+          />
+        </FormField>
+
+        <FormField label="Device type" required>
+          <Input value={edit.deviceType} onChange={e => setEdit(s => ({ ...s, deviceType: e.target.value }))} placeholder="e.g. Unknown workstation, SCADA server" />
+        </FormField>
+
+        <FormField label="IP address" required>
+          <Input value={edit.ip} onChange={e => setEdit(s => ({ ...s, ip: e.target.value }))} placeholder="e.g. 10.30.1.55" />
+        </FormField>
       </div>
 
+      {/* Internet-facing Toggle Row */}
+      <div
+        onClick={() => setEdit(s => ({ ...s, internetFacing: !s.internetFacing }))}
+        style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24, cursor: 'pointer' }}
+      >
+        <div
+          style={{
+            width: 44,
+            height: 24,
+            borderRadius: 12,
+            background: edit.internetFacing ? '#1E49E2' : '#EAECF0',
+            padding: 2,
+            display: 'flex',
+            alignItems: 'center',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer',
+            flexShrink: 0
+          }}
+        >
+          <div
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              background: '#ffffff',
+              transform: edit.internetFacing ? 'translateX(20px)' : 'translateX(0px)',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+            }}
+          />
+        </div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>Internet-facing</div>
+          <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>
+            reachable from outside the OT environment — save above to apply
+          </div>
+        </div>
+      </div>
+
+      {/* Connection Section Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Connection</h3>
+        <Btn variant="outline" onClick={() => setAdding(a => !a)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
+          {adding ? 'Cancel' : 'Add connections'}
+        </Btn>
+      </div>
+
+      {/* Amber Info Alert Box */}
+      <div className="kpmg-modal-info-alert" style={{ marginBottom: 16 }}>
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <span>
+          Inferred from ~10 minutes of zone capture — a limited sample, not a complete picture. Edit, remove or add connections you know to be wrong or missing.
+        </span>
+      </div>
+
+      {/* Inline Add Connection Form */}
       {adding && (
-        <div className="kpmg-connection-add-row">
-          <span style={{ fontSize: 12, color: C.muted }}>to</span>
-          <Select value={to} onChange={e => setTo(e.target.value)} style={{ flex: 1 }}
-            options={[{ value: '', label: 'Select asset…' }, ...assets.filter(a => a.id !== asset.id).map(a => ({ value: a.id, label: `${a.name} (${zName(a.zone)})` }))]} />
-          <Input value={proto} onChange={e => setProto(e.target.value)} style={{ width: 110 }} placeholder="Protocol" />
-          <Btn size="sm" onClick={add}>Add</Btn>
+        <div style={{ background: '#F8FAFD', border: '1px solid #EAEBF0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <span style={{ fontSize: 12, color: '#666666', fontWeight: 500 }}>Target:</span>
+          <Select
+            value={to}
+            onChange={e => setTo(e.target.value)}
+            style={{ flex: 1 }}
+            options={[{ value: '', label: 'Select target asset…' }, ...assets.filter(a => a.id !== asset.id).map(a => ({ value: a.id, label: `${a.name} (${zName(a.zone)})` }))]}
+          />
+          <Input value={proto} onChange={e => setProto(e.target.value)} style={{ width: 140 }} placeholder="E.g. SCADA server" />
+          <Btn size="sm" onClick={add} style={{ background: '#1E49E2', color: '#fff', padding: '6px 14px', borderRadius: 8 }}>
+            Add
+          </Btn>
         </div>
       )}
 
-      {conns.length === 0 && <div className="kpmg-modal-subtext">No connections recorded for this asset.</div>}
+      {/* Connections List Cards */}
+      {conns.length === 0 && !adding && (
+        <div style={{ fontSize: 13, color: '#666666', fontStyle: 'italic', padding: '12px 0' }}>
+          No connections recorded for this asset.
+        </div>
+      )}
+
       {conns.map(c => {
-        const other = c.from === asset.id ? c.to : c.from;
-        const dir = c.from === asset.id ? '→' : '←';
+        const otherId = c.from === asset.id ? c.to : c.from;
+        const otherName = aName(otherId);
+
         return (
-          <div key={c.id} className="kpmg-connection-item-row">
-            <span style={{ color: C.muted, width: 14, textAlign: 'center' }}>{dir}</span>
-            <span style={{ flex: 1, fontWeight: 600, color: C.text }}>{aName(other)}</span>
-            <Input value={c.proto} onChange={e => setP(c.id, e.target.value)} style={{ width: 120 }} />
-            <span title={c.source === 'log' ? 'Seen in logs' : c.source === 'inferred' ? 'Inferred' : 'Manual'} style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 7px', borderRadius: 20, background: c.source === 'log' ? '#DCFAE6' : c.source === 'inferred' ? '#FEF0C7' : '#EEF2FA', color: c.source === 'log' ? '#067647' : c.source === 'inferred' ? '#B54708' : C.muted }}>{c.source}</span>
-            <button onClick={() => del(c.id)} title="Remove" className="kpmg-btn-remove-link">×</button>
+          <div
+            key={c.id}
+            style={{
+              background: '#ffffff',
+              border: '1px solid #EAEBF0',
+              borderRadius: 10,
+              padding: '12px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              boxSizing: 'border-box',
+              gap: 16,
+              marginBottom: 10
+            }}
+          >
+            {/* Left: Target Name only */}
+            <div style={{ flexShrink: 0 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>{otherName}</span>
+            </div>
+
+            {/* Right: Manual/Auto badge + Input + Red delete button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+              <span
+                className="kpmg-badge"
+                style={{
+                  background: c.source === 'manual' ? '#F4F3FF' : '#EFF6FF',
+                  color: c.source === 'manual' ? '#6941C6' : '#175CD3',
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  padding: '3px 10px',
+                  borderRadius: 10
+                }}
+              >
+                {c.source === 'manual' ? 'Manual' : 'Auto'}
+              </span>
+
+              <Input
+                value={c.proto || ''}
+                onChange={e => setP(c.id, e.target.value)}
+                placeholder="E.g. PLC, SCADA server"
+                style={{ width: 220, borderRadius: 8, padding: '7px 12px' }}
+              />
+              <button
+                onClick={() => del(c.id)}
+                title="Delete connection"
+                style={{
+                  background: '#F04438',
+                  border: 'none',
+                  borderRadius: 8,
+                  width: 36,
+                  height: 36,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+              >
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+              </button>
+            </div>
           </div>
         );
       })}
-
-      <div style={{ marginTop: 16, paddingTop: 12, borderTop: `1px solid ${C.border}`, display: 'flex' }}>
-        <button onClick={() => { removeAsset(asset.id); onClose(); }} className="kpmg-btn-remove-link">Remove this asset</button>
-      </div>
     </Modal>
   );
 }

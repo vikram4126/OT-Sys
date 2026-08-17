@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { C } from '../theme';
-import { Tag, Btn, Modal, FormField, Input, Select, Pagination } from './UI';
+import { Card, Tag, Btn, Modal, FormField, Input, Select, Pagination } from './UI';
 import { getLogs, seedDemoLogs } from '../services/logService';
 import { getUsers, addUser, updateUser, deleteUser, suspendUser, restoreUser, ALL_PERMISSIONS, ROLES,
          getClients, addClient, updateClient, deleteClient } from '../services/userService';
@@ -144,95 +144,158 @@ function DeleteModal({user, onClose, onConfirm}) {
 }
 
 // ── Manage Users ──────────────────────────────────────────────────────────────
-function ManageUsersSection() {
-  const [users,      setUsers]      = useState([]);
-  const [clients,    setClients]    = useState([]);
-  const [showAdd,    setShowAdd]    = useState(false);
-  const [detailUser, setDetailUser] = useState(null);
-  const [editUser,   setEditUser]   = useState(null);
-  const [deleteUser_, setDeleteUser]= useState(null);
-  const [newUser,    setNewUser]    = useState({name:'',email:'',role:'Junior Analyst',permissions:['view'],clientId:''});
+function ManageUsersSection({ showAdd, setShowAdd }) {
+  const [users, setUsers] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [search, setSearch] = useState('');
+  const [companyF, setCompanyF] = useState('all');
+  const [roleF, setRoleF] = useState('all');
+  const [statusF, setStatusF] = useState('all');
+  const [page, setPage] = useState(1);
 
-  const CLIENT_INSTANCES = clients;
+  const [detailUser, setDetailUser] = useState(null);
+  const [editUser, setEditUser] = useState(null);
+  const [deleteUser_, setDeleteUser] = useState(null);
+  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'Junior Analyst', permissions: ['view'], clientId: '' });
+
   const reload = () => { setUsers(getUsers()); setClients(getClients()); };
-  useEffect(()=>{ reload(); },[]);
+  useEffect(() => { reload(); }, []);
 
   const handleAdd = () => {
-    if (!newUser.name||!newUser.email) return;
+    if (!newUser.name || !newUser.email) return;
     const u = addUser(newUser);
-    addLog(LOG_TYPES.USER_CREATED,`User created: ${u.name} (${u.role})`);
+    addLog(LOG_TYPES.USER_CREATED, `User created: ${u.name} (${u.role})`);
     reload(); setShowAdd(false);
-    setNewUser({name:'',email:'',role:'Junior Analyst',permissions:['view'],clientId:''});
+    setNewUser({ name: '', email: '', role: 'Junior Analyst', permissions: ['view'], clientId: '' });
   };
-  const handleSuspend = u => { suspendUser(u.id); addLog(LOG_TYPES.USER_SUSPENDED,`User suspended: ${u.name}`); reload(); };
-  const handleRestore = u => { restoreUser(u.id); addLog(LOG_TYPES.USER_RESTORED,`User restored: ${u.name}`); reload(); };
-  const handleDelete  = u => { deleteUser(u.id); addLog(LOG_TYPES.USER_DELETED,`User deleted: ${u.name}`); reload(); setDeleteUser(null); };
-  const handleSaveEdit= u => { updateUser(u.id,u); addLog(LOG_TYPES.PERMISSION_CHANGED,`Permissions updated: ${u.name}`); reload(); setEditUser(null); };
+  const handleSuspend = u => { suspendUser(u.id); addLog(LOG_TYPES.USER_SUSPENDED, `User suspended: ${u.name}`); reload(); };
+  const handleRestore = u => { restoreUser(u.id); addLog(LOG_TYPES.USER_RESTORED, `User restored: ${u.name}`); reload(); };
+  const handleDelete = u => { deleteUser(u.id); addLog(LOG_TYPES.USER_DELETED, `User deleted: ${u.name}`); reload(); setDeleteUser(null); };
+  const handleSaveEdit = u => { updateUser(u.id, u); addLog(LOG_TYPES.PERMISSION_CHANGED, `Permissions updated: ${u.name}`); reload(); setEditUser(null); };
+
+  const filtered = users.filter(u => {
+    const client = clients.find(c => c.id === u.clientId);
+    const companyName = client ? client.name : 'Acme Industrial Ltd';
+    if (companyF !== 'all' && companyName !== companyF) return false;
+    if (roleF !== 'all' && u.role !== roleF) return false;
+    if (statusF !== 'all' && u.status !== statusF) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!u.name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q) && !u.role.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const allRoles = [...new Set(users.map(u => u.role))];
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:16}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <div>
-          <div style={{fontSize:16,fontWeight:700,color:C.text}}>Manage Users</div>
-          <div style={{fontSize:12,color:C.muted,marginTop:2}}>{users.length} users · Click any row for full detail</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Main Members Table Card */}
+      <Card className="kpmg-inventory-card">
+        {/* Card Header Sub-row */}
+        <div style={{ padding: '20px 24px 16px 24px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #F2F4F7' }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Members</h2>
+          <span className="kpmg-badge" style={{ background: '#F4F3FF', color: '#6941C6', fontSize: 11.5, fontWeight: 600, padding: '2px 10px', borderRadius: 12 }}>
+            {users.length} users
+          </span>
         </div>
-        <Btn onClick={()=>setShowAdd(true)}>+ Add User</Btn>
-      </div>
 
-      {/* Client instance summary */}
-      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-        {CLIENT_INSTANCES.map(c=>{
-          const count = users.filter(u=>u.clientId===c.id).length;
+        {/* Search & Filter Controls */}
+        <div style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', borderBottom: '1px solid #F2F4F7' }}>
+          <div className="kpmg-search-box" style={{ width: 280 }}>
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search" className="kpmg-search-input" />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Select value={companyF} onChange={e => { setCompanyF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 140 }}
+              options={[{ value: 'all', label: 'Company' }, ...clients.map(c => ({ value: c.name, label: c.name }))]} />
+            <Select value={roleF} onChange={e => { setRoleF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+              options={[{ value: 'all', label: 'User' }, ...allRoles.map(r => ({ value: r, label: r }))]} />
+            <Select value={statusF} onChange={e => { setStatusF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+              options={[{ value: 'all', label: 'Status' }, { value: 'active', label: 'Active' }, { value: 'suspended', label: 'Suspended' }]} />
+          </div>
+        </div>
+
+        {/* Table Header */}
+        <div className="kpmg-table-header kpmg-table-grid-users">
+          <span>User</span>
+          <span>Role</span>
+          <span>Company</span>
+          <span>Date added</span>
+          <span>Date added</span>
+          <span>Status</span>
+          <span className="kpmg-text-right">Action</span>
+        </div>
+
+        {paged.length === 0 && <div className="kpmg-table-empty">No users match the current filter.</div>}
+
+        {paged.map(u => {
+          const client = clients.find(c => c.id === u.clientId);
+          const companyName = client ? client.name : 'Acme Industrial Ltd';
+          const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+          const dateAdded = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '01 July 2025';
+          const isActive = u.status === 'active';
+
           return (
-            <div key={c.id} style={{padding:'7px 12px',borderRadius:8,background:'#fff',border:`1px solid ${C.border}`,display:'flex',gap:8,alignItems:'center'}}>
-              <div style={{width:7,height:7,borderRadius:'50%',background:C.navy,flexShrink:0}}/>
+            <div key={u.id} className="kpmg-table-row kpmg-table-grid-users" onClick={() => setDetailUser(u)} style={{ cursor: 'pointer' }}>
+              {/* User Avatar + Name + Email */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EFF6FF', color: '#175CD3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                  {initials}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{u.name}</div>
+                  <div style={{ fontSize: 11.5, color: '#666666' }}>{u.email}</div>
+                </div>
+              </div>
+
+              {/* Role */}
+              <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{u.role}</span>
+
+              {/* Company */}
+              <span style={{ color: '#475467', fontSize: 13 }}>{companyName}</span>
+
+              {/* Date added */}
+              <span style={{ color: '#101828', fontSize: 13 }}>{dateAdded}</span>
+
+              {/* Date added / Last active */}
+              <span style={{ color: '#101828', fontSize: 13 }}>{dateAdded}</span>
+
+              {/* Status Dot Badge */}
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:C.text}}>{c.name}</div>
-                <div style={{fontSize:11,color:C.muted}}>{c.site} · {count} user{count!==1?'s':''}</div>
+                {isActive ? (
+                  <span className="kpmg-badge" style={{ background: '#ECFDF5', color: '#027A48', fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#12B76A' }} /> Active
+                  </span>
+                ) : (
+                  <span className="kpmg-badge" style={{ background: '#FEF3F2', color: '#B42318', fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F04438' }} /> Suspended
+                  </span>
+                )}
+              </div>
+
+              {/* Action 3-dots */}
+              <div className="kpmg-text-right" onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={() => setEditUser(u)}
+                  title="User actions"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667085', padding: 4, borderRadius: 4 }}
+                >
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <circle cx="12" cy="5" r="1" />
+                    <circle cx="12" cy="12" r="1" />
+                    <circle cx="12" cy="19" r="1" />
+                  </svg>
+                </button>
               </div>
             </div>
           );
         })}
-      </div>
 
-      {/* User table */}
-      <div style={{background:'#fff',borderRadius:12,border:`1px solid ${C.border}`,overflow:'hidden'}}>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 160px 140px 100px 90px',gap:10,padding:'9px 16px',background:'#F5F8FD',borderBottom:`1px solid ${C.border}`}}>
-          {['User','Client Instance','Role','Status','Actions'].map(h=>(
-            <div key={h} style={{fontSize:10,fontWeight:600,color:C.muted,textTransform:'uppercase',letterSpacing:.8}}>{h}</div>
-          ))}
-        </div>
-        {users.length===0
-          ? <div style={{padding:'28px 16px',textAlign:'center',color:C.muted,fontSize:13}}>No users yet. Add one to get started.</div>
-          : users.map((u,i)=>{
-            const client = CLIENT_INSTANCES.find(c=>c.id===u.clientId);
-            const ss = u.status==='active' ? {color:'#059669',bg:'#DCFAE6'} : {color:'#B54708',bg:'#FEF0C7'};
-            return (
-              <div key={u.id}
-                onClick={()=>setDetailUser(u)}
-                style={{display:'grid',gridTemplateColumns:'1fr 160px 140px 100px 90px',gap:10,padding:'11px 16px',alignItems:'center',background:i%2===0?'#FAFBFF':'#fff',borderBottom:`1px solid ${C.border}`,cursor:'pointer',transition:'background .1s'}}
-                onMouseEnter={e=>e.currentTarget.style.background='#F0F4FC'}
-                onMouseLeave={e=>e.currentTarget.style.background=i%2===0?'#FAFBFF':'#fff'}>
-                <div>
-                  <div style={{fontSize:13,fontWeight:500,color:C.text}}>{u.name}</div>
-                  <div style={{fontSize:11,color:C.muted}}>{u.email}</div>
-                </div>
-                <div style={{fontSize:12,color:C.text}}>{client?client.name:<span style={{color:C.muted}}>Unassigned</span>}</div>
-                <div style={{fontSize:12,color:C.text}}>{u.role}</div>
-                <span style={{padding:'2px 8px',borderRadius:4,fontSize:11,fontWeight:500,color:ss.color,background:ss.bg,width:'fit-content'}}>{u.status}</span>
-                <div style={{display:'flex',gap:4}} onClick={e=>e.stopPropagation()}>
-                  <button onClick={()=>setEditUser(u)}
-                    style={{padding:'3px 7px',borderRadius:4,fontSize:11,cursor:'pointer',background:'#F1F5F9',color:C.navy,border:`1px solid ${C.border}`,fontFamily:'inherit'}}>Edit</button>
-                  {u.status==='active'
-                    ?<button onClick={()=>handleSuspend(u)} style={{padding:'3px 7px',borderRadius:4,fontSize:11,cursor:'pointer',background:'#FEF0C7',color:'#B54708',border:'1px solid #FED7AA',fontFamily:'inherit'}}>Suspend</button>
-                    :<button onClick={()=>handleRestore(u)} style={{padding:'3px 7px',borderRadius:4,fontSize:11,cursor:'pointer',background:'#DCFAE6',color:'#059669',border:'1px solid #A7F3D0',fontFamily:'inherit'}}>Restore</button>
-                  }
-                </div>
-              </div>
-            );
-          })
-        }
-      </div>
+        <Pagination page={page} total={filtered.length} perPage={PER_PAGE} onChange={p => setPage(p)} />
+      </Card>
 
       {/* Add user modal */}
       {showAdd&&(
@@ -271,92 +334,235 @@ function ManageUsersSection() {
 
 // ── All Logs ──────────────────────────────────────────────────────────────────
 function AllLogsSection() {
-  const [search,setSearch] = useState('');
-  const [sev,setSev]       = useState('All');
-  const [page,setPage]     = useState(1);
-  useEffect(()=>{ seedDemoLogs(); },[]);
+  const [search, setSearch] = useState('');
+  const [companyF, setCompanyF] = useState('all');
+  const [userF, setUserF] = useState('all');
+  const [sevF, setSevF] = useState('all');
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { seedDemoLogs(); }, []);
+
   const allLogs = getLogs();
-  const filtered = allLogs.filter(l=>{
-    if (sev!=='All'&&l.severity!==sev) return false;
-    if (search&&!l.description.toLowerCase().includes(search.toLowerCase())&&!l.user.toLowerCase().includes(search.toLowerCase())) return false;
+  const clients = getClients();
+
+  const filtered = allLogs.filter(l => {
+    if (sevF !== 'all' && l.severity !== sevF) return false;
+    if (userF !== 'all' && l.user !== userF) return false;
+    if (companyF !== 'all' && (l.company || 'Acme Industrial Ltd') !== companyF) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!l.description.toLowerCase().includes(q) && !l.user.toLowerCase().includes(q)) return false;
+    }
     return true;
   });
-  const paged = filtered.slice((page-1)*PER_PAGE,page*PER_PAGE);
-  const formatTime = iso=>{ const d=new Date(iso),now=new Date(),min=Math.floor((now-d)/60000); if(min<1)return'just now'; if(min<60)return`${min}m ago`; const hr=Math.floor(min/60); if(hr<24)return`${hr}h ago`; return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); };
+
+  const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  const totalChanges = allLogs.length;
+  const criticalCount = allLogs.filter(l => l.severity === 'critical').length;
+  const warningCount = allLogs.filter(l => l.severity === 'warning').length;
+  const loginsToday = allLogs.filter(l => l.category === 'Access' && new Date(l.timestamp).toDateString() === new Date().toDateString()).length || 3;
+
+  const areaBadgeStyle = cat => {
+    if (cat === 'Upload') return { bg: '#F4F3FF', fg: '#5925DC' };
+    if (cat === 'Vulnerability') return { bg: '#EFF6FF', fg: '#175CD3' };
+    if (cat === 'Mitigation') return { bg: '#F4F3FF', fg: '#6941C6' };
+    if (cat === 'General') return { bg: '#EFF6FF', fg: '#00B8F5' };
+    return { bg: '#F2F4F7', fg: '#344054' };
+  };
+
+  const sevBadgeStyle = sev => {
+    if (sev === 'critical') return { bg: '#FEF3F2', fg: '#B42318', label: 'Critical' };
+    if (sev === 'warning') return { bg: '#FEF6EE', fg: '#B54708', label: 'Warning' };
+    return { bg: '#F4F3FF', fg: '#6941C6', label: 'Info' };
+  };
+
+  const allUsers = [...new Set(allLogs.map(l => l.user))];
+
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:14}}>
-      <div>
-        <div style={{fontSize:16,fontWeight:700,color:C.text}}>All Audit Logs</div>
-        <div style={{fontSize:12,color:C.muted,marginTop:2}}>Full log including access sessions — admin only</div>
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}}>
-        {[{label:'Total',value:allLogs.length},{label:'Critical',value:allLogs.filter(l=>l.severity==='critical').length},{label:'Warnings',value:allLogs.filter(l=>l.severity==='warning').length},{label:'Logins today',value:allLogs.filter(l=>l.category==='Access'&&new Date(l.timestamp).toDateString()===new Date().toDateString()).length}].map(({label,value})=>(
-          <div key={label} style={{background:'#fff',borderRadius:10,padding:'12px 16px',border:`1px solid ${C.border}`}}>
-            <div style={{fontSize:22,fontWeight:600,color:C.text,letterSpacing:-.5}}>{value}</div>
-            <div style={{fontSize:12,color:C.muted,marginTop:2}}>{label}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',padding:'10px 14px',background:'#fff',borderRadius:10,border:`1px solid ${C.border}`}}>
-        <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Search logs…" style={{flex:1,minWidth:180,padding:'7px 10px',borderRadius:7,border:`1px solid ${C.border}`,fontSize:12,outline:'none',fontFamily:'inherit',color:C.text}}/>
-        <div style={{display:'flex',gap:5}}>
-          {['All','info','warning','critical'].map(s=>(
-            <button key={s} onClick={()=>{setSev(s);setPage(1);}} style={{padding:'4px 10px',borderRadius:5,fontSize:12,fontWeight:500,cursor:'pointer',background:sev===s?(SEV_STYLE[s]?.color||C.navy):'#fff',color:sev===s?'#fff':C.muted,border:sev===s?'none':`1px solid ${C.border}`,textTransform:'capitalize',fontFamily:'inherit'}}>{s}</button>
-          ))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* KPI Cards Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+        <div className="kpmg-card" style={{ padding: '18px 20px' }}>
+          <div style={{ fontSize: 30, fontWeight: 700, color: '#00338D', lineHeight: 1, marginBottom: 6 }}>{totalChanges}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Total Changes</div>
+          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Text here</div>
+        </div>
+        <div className="kpmg-card" style={{ padding: '18px 20px' }}>
+          <div style={{ fontSize: 30, fontWeight: 700, color: '#D9251B', lineHeight: 1, marginBottom: 6 }}>{criticalCount < 10 ? `0${criticalCount}` : criticalCount}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Critical</div>
+          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Text here</div>
+        </div>
+        <div className="kpmg-card" style={{ padding: '18px 20px' }}>
+          <div style={{ fontSize: 30, fontWeight: 700, color: '#101828', lineHeight: 1, marginBottom: 6 }}>{warningCount}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Warnings</div>
+          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Text here</div>
+        </div>
+        <div className="kpmg-card" style={{ padding: '18px 20px' }}>
+          <div style={{ fontSize: 30, fontWeight: 700, color: '#101828', lineHeight: 1, marginBottom: 6 }}>{loginsToday < 10 ? `0${loginsToday}` : loginsToday}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Logins today</div>
+          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Text here</div>
         </div>
       </div>
-      <div style={{background:'#fff',borderRadius:12,border:`1px solid ${C.border}`,overflow:'hidden'}}>
-        <div style={{display:'grid',gridTemplateColumns:'36px 130px 90px 1fr 130px 80px',gap:10,padding:'9px 16px',background:'#F5F8FD',borderBottom:`1px solid ${C.border}`}}>
-          {['','Time','Category','Description','User','Severity'].map(h=>(<div key={h} style={{fontSize:10,fontWeight:600,color:C.muted,textTransform:'uppercase',letterSpacing:.8}}>{h}</div>))}
+
+      {/* Filter / Search Bar */}
+      <div className="kpmg-card" style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div className="kpmg-search-box" style={{ width: 280 }}>
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+          <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search" className="kpmg-search-input" />
         </div>
-        {paged.length===0?<div style={{padding:'32px 16px',textAlign:'center',color:C.muted,fontSize:13}}>No logs match filter.</div>
-          :paged.map((log,i)=>{const ss=SEV_STYLE[log.severity]||SEV_STYLE.info;return(
-            <div key={log.id} style={{display:'grid',gridTemplateColumns:'36px 130px 90px 1fr 130px 80px',gap:10,padding:'9px 16px',alignItems:'center',background:i%2===0?'#FAFBFF':'#fff',borderBottom:`1px solid ${C.border}`}}>
-              <SevIcon severity={log.severity}/>
-              <div><div style={{fontSize:12,fontWeight:500,color:C.text}}>{formatTime(log.timestamp)}</div><div style={{fontSize:10,color:C.muted}}>{new Date(log.timestamp).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div></div>
-              <span style={{padding:'2px 7px',borderRadius:4,background:`${C.navy}0C`,color:C.navy,fontSize:11,fontWeight:500}}>{log.category}</span>
-              <span style={{fontSize:12,color:C.text,lineHeight:1.5}}>{log.description}</span>
-              <div style={{display:'flex',alignItems:'center',gap:6}}><div style={{width:20,height:20,borderRadius:'50%',background:`${C.navy}10`,color:C.navy,display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:700,flexShrink:0}}>{log.user.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)}</div><span style={{fontSize:11,color:C.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{log.user}</span></div>
-              <span style={{padding:'2px 7px',borderRadius:4,fontSize:11,fontWeight:500,color:ss.color,background:ss.bg,textTransform:'capitalize'}}>{log.severity}</span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Select value={companyF} onChange={e => { setCompanyF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 140 }}
+            options={[{ value: 'all', label: 'Company' }, ...clients.map(c => ({ value: c.name, label: c.name }))]} />
+          <Select value={userF} onChange={e => { setUserF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+            options={[{ value: 'all', label: 'User' }, ...allUsers.map(u => ({ value: u, label: u }))]} />
+          <Select value={sevF} onChange={e => { setSevF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+            options={[{ value: 'all', label: 'Severity' }, { value: 'info', label: 'Info' }, { value: 'warning', label: 'Warning' }, { value: 'critical', label: 'Critical' }]} />
+        </div>
+      </div>
+
+      {/* Table Card */}
+      <Card className="kpmg-inventory-card">
+        <div className="kpmg-table-header kpmg-table-grid-logs">
+          <span>Date</span>
+          <span>Time</span>
+          <span>Area</span>
+          <span>Description</span>
+          <span>Company</span>
+          <span>Changed by</span>
+          <span className="kpmg-text-right">Severity</span>
+        </div>
+
+        {paged.length === 0 && <div className="kpmg-table-empty">No logs match the selected filters.</div>}
+
+        {paged.map(log => {
+          const d = new Date(log.timestamp);
+          const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+          const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          const area = areaBadgeStyle(log.category);
+          const sev = sevBadgeStyle(log.severity);
+          const initials = log.user.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+          return (
+            <div key={log.id} className="kpmg-table-row kpmg-table-grid-logs">
+              <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{dateStr}</span>
+              <span style={{ color: '#475467', fontSize: 13 }}>{timeStr}</span>
+              <span>
+                <span className="kpmg-badge" style={{ background: area.bg, color: area.fg, fontSize: 11.5, fontWeight: 600, padding: '3px 10px' }}>
+                  {log.category}
+                </span>
+              </span>
+              <span style={{ color: '#101828', fontSize: 13 }}>{log.description}</span>
+              <span style={{ color: '#475467', fontSize: 13 }}>{log.company || 'Acme Industrial Ltd'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#EFF6FF', color: '#175CD3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                  {initials}
+                </div>
+                <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{log.user}</span>
+              </div>
+              <div className="kpmg-text-right">
+                <span className="kpmg-badge" style={{ background: sev.bg, color: sev.fg, fontSize: 11.5, fontWeight: 600, padding: '3px 10px' }}>
+                  {sev.label}
+                </span>
+              </div>
             </div>
-          );})}
-        <Pagination page={page} total={filtered.length} perPage={PER_PAGE} onChange={p=>setPage(p)}/>
-      </div>
+          );
+        })}
+
+        <Pagination page={page} total={filtered.length} perPage={PER_PAGE} onChange={p => setPage(p)} />
+      </Card>
     </div>
   );
 }
 
+const GridFourIcon = ({ color = "#175CD3", size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+  </svg>
+);
+
 // ── System Health ─────────────────────────────────────────────────────────────
 function SystemHealthSection() {
+  const services = [
+    { label: 'Asset inventory', note: 'Responding normally' },
+    { label: 'Database', note: 'SQLite — read/write healthy' },
+    { label: 'File upload storage', note: 'Write permissions confirmed' },
+    { label: 'Session store', note: 'Active · 8hr TTL' },
+    { label: 'CSRF protection', note: 'Enabled on all mutating endpoints' },
+    { label: 'Rate limiting', note: '120/min anon · 300/min authenticated' },
+    { label: 'CORS policy', note: 'localhost:3000 only' },
+    { label: 'Audit logging', note: 'All actions captured' },
+  ];
+
+  const legends = [
+    { label: 'Maintenance' },
+    { label: 'No Issues' },
+    { label: 'Notice' },
+    { label: 'Incident' },
+    { label: 'Outage' },
+  ];
+
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:14}}>
-      <div><div style={{fontSize:16,fontWeight:700,color:C.text}}>System Health</div><div style={{fontSize:12,color:C.muted,marginTop:2}}>Security controls and service status</div></div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-        {[
-          {label:'Backend API',          note:'Responding normally'},
-          {label:'Database',             note:'SQLite — read/write healthy'},
-          {label:'File upload storage',  note:'Write permissions confirmed'},
-          {label:'Session store',        note:'Active · 8hr TTL'},
-          {label:'CSRF protection',      note:'Enabled on all mutating endpoints'},
-          {label:'Rate limiting',        note:'120/min anon · 300/min authenticated'},
-          {label:'CORS policy',          note:'localhost:3000 only'},
-          {label:'Audit logging',        note:'All actions captured'},
-        ].map(c=>(
-          <div key={c.label} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',background:'#fff',borderRadius:10,border:`1px solid ${C.border}`}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#22C55E',flexShrink:0}}/>
-            <div><div style={{fontSize:13,fontWeight:500,color:C.text}}>{c.label}</div><div style={{fontSize:11,color:C.muted}}>{c.note}</div></div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <Card className="kpmg-inventory-card">
+        {/* Card Header Sub-row with legend */}
+        <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F2F4F7', flexWrap: 'wrap', gap: 12 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Current status by feature</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+            {legends.map(l => (
+              <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#475467', fontWeight: 500 }}>
+                <GridFourIcon size={14} color="#175CD3" />
+                <span>{l.label}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+
+        {/* 2-Column Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+          {services.map((s, i) => {
+            const isLeftCol = i % 2 === 0;
+            const isLastRow = i >= services.length - 2;
+
+            return (
+              <div
+                key={s.label}
+                style={{
+                  padding: '20px 24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justify: 'space-between',
+                  gap: 16,
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  borderBottom: isLastRow ? 'none' : '1px solid #F2F4F7',
+                  borderRight: isLeftCol ? '1px solid #F2F4F7' : 'none',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>{s.label}</div>
+                  <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>{s.note}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                  <GridFourIcon size={16} color="#175CD3" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
     </div>
   );
 }
 
 // ── Client Instances ────────────────────────────────────────────────────────
-function ClientsSection() {
+function ClientsSection({ showAdd, setShowAdd }) {
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
-  const [showAdd, setShowAdd] = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
   const [form, setForm] = useState({ name:'', site:'', industry:'Energy & Utilities', size:'Medium' });
 
@@ -380,36 +586,65 @@ function ClientsSection() {
   const SIZES = ['Small','Medium','Large','Enterprise'];
 
   return (
-    <div>
-      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:12,marginBottom:6,flexWrap:'wrap'}}>
-        <div style={{fontSize:13,color:C.muted,maxWidth:620,lineHeight:1.6}}>
-          One instance per client keeps each engagement&#39;s users and (in future) assessment data separate. Create an instance here, then assign users to it under Manage Users.
-        </div>
-        <Btn onClick={()=>setShowAdd(true)}>+ New client instance</Btn>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:12,marginTop:14}}>
-        {clients.map(c=>{
-          const userCount = users.filter(u=>u.clientId===c.id).length;
+      {/* Grid of Client Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+        {clients.map(c => {
+          const userCount = users.filter(u => u.clientId === c.id).length;
+          const formattedDate = new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
           return (
-            <div key={c.id} style={{background:'#fff',border:`1px solid ${C.border}`,borderRadius:12,padding:'16px 18px'}}>
-              <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8}}>
-                <div style={{fontSize:14,fontWeight:700,color:C.text}}>{c.name}</div>
-                <button onClick={()=>setConfirmDel(c)} title="Delete instance" style={{background:'none',border:'none',cursor:'pointer',color:C.muted,fontSize:15,lineHeight:1}}>×</button>
+            <div key={c.id} className="kpmg-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                {/* Header Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>{c.name}</div>
+                  <button
+                    onClick={() => setConfirmDel(c)}
+                    title="Delete instance"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667085', padding: 2, display: 'flex', alignItems: 'center', borderRadius: 4 }}
+                  >
+                    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <circle cx="12" cy="5" r="1" />
+                      <circle cx="12" cy="12" r="1" />
+                      <circle cx="12" cy="19" r="1" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Subtitle / Site */}
+                <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>{c.site || 'North Plant'}</div>
+
+                {/* Badges */}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                  {c.industry && (
+                    <span className="kpmg-badge" style={{ background: '#EFF6FF', color: '#175CD3', fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 12 }}>
+                      {c.industry}
+                    </span>
+                  )}
+                  {c.size && (
+                    <span className="kpmg-badge" style={{ background: '#F4F3FF', color: '#6941C6', fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 12 }}>
+                      {c.size}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div style={{fontSize:12,color:C.muted,marginTop:2}}>{c.site||'—'}</div>
-              <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:10}}>
-                {c.industry && <Tag>{c.industry}</Tag>}
-                {c.size && <Tag>{c.size}</Tag>}
-              </div>
-              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:12,paddingTop:10,borderTop:`1px solid ${C.border}`}}>
-                <span style={{fontSize:11.5,color:C.muted}}>{userCount} user{userCount!==1?'s':''} assigned</span>
-                <span style={{fontSize:10.5,color:C.muted}}>Created {new Date(c.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</span>
+
+              {/* Card Footer */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F2F4F7' }}>
+                <span style={{ fontSize: 11.5, color: '#666666' }}>{userCount} users assigned</span>
+                <span style={{ fontSize: 11.5, color: '#666666' }}>Created {formattedDate}</span>
               </div>
             </div>
           );
         })}
-        {clients.length===0 && <div style={{fontSize:13,color:C.muted,fontStyle:'italic',padding:'20px 0'}}>No client instances yet — create the first one.</div>}
+
+        {clients.length === 0 && (
+          <div style={{ fontSize: 13, color: '#666666', fontStyle: 'italic', padding: '20px 0' }}>
+            No client instances yet — create the first one.
+          </div>
+        )}
       </div>
 
       {showAdd && (
@@ -439,42 +674,121 @@ const NAV = [
   {id:'health', label:'System Health', Icon:HealthIcon},
 ];
 
-export default function AdminPortal({onExit}) {
-  const [tab,setTab] = useState('users');
+const SUBTITLES = {
+  clients: 'One instance per client keeps each engagement\'s users and (in future) assessment data separate. Create an Instance here, then assign users to it under Manage Users.',
+  users: 'Manage users, assigned client instances, roles, and permissions',
+  logs: 'Full log including access sessions — admin only',
+  health: 'Security controls and service status',
+};
+
+export default function AdminPortal({ onExit }) {
+  const [tab, setTab] = useState('users');
+  const [isGroupOpen, setIsGroupOpen] = useState(true);
+  const [showAddClient, setShowAddClient] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
+
   return (
     <div className="kpmg-app-layout">
-      <div style={{width:228,background:'#fff',display:'flex',flexDirection:'column',flexShrink:0,borderRight:`1px solid ${C.border}`,boxShadow:'2px 0 8px rgba(0,0,0,.04)'}}>
-        <div style={{padding:'18px 16px 14px',display:'flex',alignItems:'center',gap:10,borderBottom:`1px solid ${C.border}`}}>
-          <div style={{width:35,height:35,borderRadius:9,background:`${C.navy}0E`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><GearIcon/></div>
-          <div><div style={{fontWeight:700,fontSize:14,color:C.navy,letterSpacing:-.3}}>Admin Portal</div><div style={{fontSize:10,color:C.muted,marginTop:1}}>AI Doctor</div></div>
+      {/* Sidebar matching updated design */}
+      <div className="kpmg-sidebar">
+        {/* Logo */}
+        <div className="kpmg-sidebar-logo">
+          <div className="kpmg-logo-icon">
+            <GearIcon />
+          </div>
+          <div>
+            <div className="kpmg-logo-title">Admin Portal</div>
+            <div className="kpmg-logo-sub">AI Doctor</div>
+          </div>
         </div>
-        <nav style={{flex:1,padding:'10px 8px'}}>
-          <div style={{fontSize:9,fontWeight:700,color:'#B0BCCE',letterSpacing:1.5,textTransform:'uppercase',padding:'8px 10px 4px'}}>Administration</div>
-          {NAV.map(n=>{const active=tab===n.id;return(
-            <div key={n.id} onClick={()=>setTab(n.id)}
-              style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,cursor:'pointer',marginBottom:1,background:active?`${C.navy}0E`:'transparent',color:active?C.navy:C.muted,fontWeight:active?600:400,fontSize:13,transition:'all .12s',borderLeft:active?`3px solid ${C.navy}`:'3px solid transparent'}}>
-              <n.Icon/><span>{n.label}</span>
-            </div>);
-          })}
+
+        {/* Sidebar Nav */}
+        <nav className="kpmg-sidebar-nav">
+          <div className="kpmg-sidebar-group">
+            <div className="kpmg-sidebar-group-title" onClick={() => setIsGroupOpen(!isGroupOpen)}>
+              <div className="kpmg-sidebar-group-left">
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#475467" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>Administration</span>
+              </div>
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2" strokeLinecap="round" className={`kpmg-sidebar-group-arrow ${isGroupOpen ? 'open' : ''}`}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            {isGroupOpen && (
+              <div className="kpmg-sidebar-sublist">
+                {NAV.map(n => {
+                  const active = tab === n.id;
+                  return (
+                    <div key={n.id} onClick={() => setTab(n.id)} className={`kpmg-sidebar-item ${active ? 'active' : ''}`}>
+                      <div className="kpmg-sidebar-item-inner">
+                        <n.Icon />
+                        <span>{n.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </nav>
-        <div style={{padding:'10px 8px 14px',borderTop:`1px solid ${C.border}`}}>
-          <button onClick={onExit} style={{width:'100%',padding:'8px 10px',borderRadius:7,background:`${C.navy}07`,border:`1px solid ${C.border}`,color:C.muted,fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>← Back to Main Portal</button>
+
+        {/* Footer — Back to Main Portal */}
+        <div style={{ paddingTop: 12, borderTop: '1px solid #EAEBF0' }}>
+          <button className="kpmg-btn-outline" onClick={onExit} style={{ width: '100%', justifyContent: 'center' }}>
+            ← Back to Main Portal
+          </button>
         </div>
       </div>
-      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minWidth:0}}>
-        <header style={{background:'#fff',borderBottom:`1px solid ${C.border}`,padding:'0 24px',height:54,display:'flex',alignItems:'center',gap:14,flexShrink:0}}>
-          <div style={{fontWeight:700,fontSize:17,color:C.text,letterSpacing:-.3}}>{NAV.find(n=>n.id===tab)?.label}</div>
-          <span title="This portal has no real access control — anyone with the app open can reach it, and the user/role data below lives in browser localStorage, editable via devtools. It is UI scaffolding for the demo, not a security boundary. A production build must gate this behind real backend authentication/authorization before use."
-            style={{fontSize:10.5,fontWeight:700,color:'#B54708',background:'#FEF0C7',border:'1px solid #FCD9A6',padding:'3px 10px',borderRadius:20,letterSpacing:.2,cursor:'help'}}>
-            DEMO ONLY — NOT REAL ACCESS CONTROL
-          </span>
+
+      {/* Main Area */}
+      <div className="kpmg-main-area">
+        <header className="kpmg-header">
+          <div className="kpmg-header-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <h1 className="kpmg-title">{NAV.find(n => n.id === tab)?.label}</h1>
+
+            {/* Right side action container with floating DEMO text */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', position: 'relative', marginTop: 4 }}>
+              <span
+                title="This portal has no real access control — demo UI scaffolding"
+                className="kpmg-tag-illustrative"
+                style={{
+                  position: 'absolute',
+                  top: -24,
+                  right: 0,
+                  background: '#FEF0C7',
+                  color: '#B54708',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                DEMO ONLY — NOT REAL ACCESS CONTROL
+              </span>
+
+              {tab === 'clients' && (
+                <Btn onClick={() => setShowAddClient(true)} style={{ background: '#1E49E2', color: '#fff', padding: '8px 18px', borderRadius: 8, fontWeight: 500 }}>
+                  + New client instance
+                </Btn>
+              )}
+              {tab === 'users' && (
+                <Btn onClick={() => setShowAddUser(true)} style={{ background: '#1E49E2', color: '#fff', padding: '8px 18px', borderRadius: 8, fontWeight: 500 }}>
+                  + Add User
+                </Btn>
+              )}
+            </div>
+          </div>
+          <div className="kpmg-subtitle" style={{ marginTop: 4 }}>
+            {SUBTITLES[tab] || 'Manage system instances, users, audit logs, and service health'}
+          </div>
         </header>
-        <main style={{flex:1,overflowY:'auto',padding:'22px 24px'}}>
-          <div style={{maxWidth:1100,margin:'0 auto'}}>
-            {tab==='clients'&& <ClientsSection/>}
-            {tab==='users'  && <ManageUsersSection/>}
-            {tab==='logs'   && <AllLogsSection/>}
-            {tab==='health' && <SystemHealthSection/>}
+        <main className="kpmg-main-content">
+          <div className="kpmg-main-container">
+            {tab === 'clients' && <ClientsSection showAdd={showAddClient} setShowAdd={setShowAddClient} />}
+            {tab === 'users' && <ManageUsersSection showAdd={showAddUser} setShowAdd={setShowAddUser} />}
+            {tab === 'logs' && <AllLogsSection />}
+            {tab === 'health' && <SystemHealthSection />}
           </div>
         </main>
       </div>
