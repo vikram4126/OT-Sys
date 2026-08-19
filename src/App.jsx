@@ -72,7 +72,7 @@ const TITLES = {
 
 const SUBTITLES = {
   dashboard: 'Executive summary and key assessment metrics',
-  model: 'Upload evidence files and build the OT zone model',
+  model: 'Configure site scope, architecture parameters, and tooling integrations.',
   assets: 'Comprehensive inventory of OT devices, networks, and shadow assets',
   compliance: 'IEC 62443 security level targets and gap analysis',
   vulns: 'Discovered vulnerabilities, risk scores, and overrides',

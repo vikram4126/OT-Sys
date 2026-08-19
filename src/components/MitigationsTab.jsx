@@ -424,13 +424,14 @@ const LightningIcon = ({ color = C.navy, size = 11 }) => (
 );
 
 // ── Step modal ────────────────────────────────────────────────────────────────
-function StepModal({ step, plan, onClose, onSave }) {
+function StepModal({ plan, step, onClose, onSave }) {
   const [title, setTitle] = useState(step?.title || '');
   const [desc, setDesc] = useState(step?.description || '');
   const [cat, setCat] = useState(step?.category || CATEGORIES[0].id);
   const [reason, setReason] = useState('');
   const [err, setErr] = useState('');
   const isEdit = !!step?.id;
+
   const save = () => {
     if (!title.trim()) {
       setErr('Title is required.');
@@ -449,61 +450,109 @@ function StepModal({ step, plan, onClose, onSave }) {
       manual: true,
     });
   };
+
   return (
     <Modal
       title={isEdit ? 'Edit Step' : 'Add Step'}
-      subtitle={
-        plan === 'critical'
-          ? 'Critical · close highest vulnerabilities'
-          : 'Compliance · reach target security levels'
-      }
+      subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
       onClose={onClose}
+      maxWidth={580}
       footer={
-        <>
-          <Btn variant="outline" onClick={onClose}>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: '#ffffff',
+              border: '1px solid #D0D5DD',
+              borderRadius: 8,
+              padding: '9px 18px',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#344054',
+              cursor: 'pointer',
+              fontFamily: 'inherit'
+            }}
+          >
             Cancel
-          </Btn>
-          <Btn onClick={save}>{isEdit ? 'Save' : 'Add'}</Btn>
-        </>
+          </button>
+          <button
+            onClick={save}
+            style={{
+              background: '#1E49E2',
+              border: 'none',
+              borderRadius: 8,
+              padding: '9px 22px',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#ffffff',
+              cursor: 'pointer',
+              fontFamily: 'inherit'
+            }}
+          >
+            {isEdit ? 'Save' : 'Add'}
+          </button>
+        </div>
       }
     >
-      <FormField label="Title" required>
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Brief action title…"
-        />
-      </FormField>
-      <FormField label="Category">
-        <Select
-          value={cat}
-          onChange={(e) => setCat(e.target.value)}
-          options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
-        />
-      </FormField>
-      <FormField label="Description">
-        <Textarea
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-          rows={3}
-          placeholder="What needs to be done and why?"
-        />
-      </FormField>
-      {isEdit && (
-        <FormField label="Reason for Change" required>
-          <Textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            rows={2}
-            placeholder="Why is this step being modified?"
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0 10px' }}>
+        <div>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
+            Title <span style={{ color: '#D9251B' }}>*</span>
+          </label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="E.g. Acme Industrial Ltd"
+            style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
           />
-        </FormField>
-      )}
-      {err && (
-        <div style={{ color: C.critical, fontSize: 12, marginTop: 4 }}>
-          {err}
         </div>
-      )}
+
+        <div>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
+            Category
+          </label>
+          <Select
+            value={cat}
+            onChange={(e) => setCat(e.target.value)}
+            options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
+            style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
+            Description
+          </label>
+          <Textarea
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            rows={4}
+            placeholder="Enter a description..."
+            style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
+          />
+        </div>
+
+        {isEdit && (
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
+              Reason for Change <span style={{ color: '#D9251B' }}>*</span>
+            </label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3.5}
+              placeholder="Why is this step being modified?"
+              style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
+            />
+          </div>
+        )}
+
+        {err && (
+          <div style={{ color: '#D9251B', fontSize: 12, fontWeight: 500 }}>
+            {err}
+          </div>
+        )}
+      </div>
     </Modal>
   );
 }
@@ -516,13 +565,26 @@ function RemoveModal({ step, onClose, onConfirm }) {
       title="Remove Step"
       subtitle="This will be logged in the audit trail"
       onClose={onClose}
+      maxWidth={580}
       footer={
-        <>
-          <Btn variant="outline" onClick={onClose}>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: '#ffffff',
+              border: '1px solid #D0D5DD',
+              borderRadius: 8,
+              padding: '9px 18px',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#344054',
+              cursor: 'pointer',
+              fontFamily: 'inherit'
+            }}
+          >
             Cancel
-          </Btn>
-          <Btn
-            variant="danger"
+          </button>
+          <button
             onClick={() => {
               if (!reason.trim()) {
                 setErr('Reason required.');
@@ -530,35 +592,48 @@ function RemoveModal({ step, onClose, onConfirm }) {
               }
               onConfirm(reason);
             }}
+            style={{
+              background: '#D9251B',
+              border: 'none',
+              borderRadius: 8,
+              padding: '9px 22px',
+              fontSize: 13,
+              fontWeight: 600,
+              color: '#ffffff',
+              cursor: 'pointer',
+              fontFamily: 'inherit'
+            }}
           >
             Remove
-          </Btn>
-        </>
+          </button>
+        </div>
       }
     >
-      <p
-        style={{
-          fontSize: 13,
-          color: C.text,
-          lineHeight: 1.7,
-          marginBottom: 12,
-        }}
-      >
-        Removing: <strong style={{ fontWeight: 500 }}>{step.title}</strong>
-      </p>
-      <FormField label="Reason" required>
-        <Textarea
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          rows={2}
-          placeholder="e.g. Already implemented, covered by another control…"
-        />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0 10px' }}>
+        <div>
+          <div style={{ fontSize: 12, color: '#475467', marginBottom: 4 }}>Removing</div>
+          <div style={{ fontSize: 13.5, fontWeight: 400, color: '#101828' }}>{step?.title}</div>
+        </div>
+
+        <div>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
+            Reason <span style={{ color: '#D9251B' }}>*</span>
+          </label>
+          <Textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={4}
+            placeholder="Why is this step being removed?"
+            style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
+          />
+        </div>
+
         {err && (
-          <div style={{ color: C.critical, fontSize: 12, marginTop: 4 }}>
+          <div style={{ color: '#D9251B', fontSize: 12, fontWeight: 500 }}>
             {err}
           </div>
         )}
-      </FormField>
+      </div>
     </Modal>
   );
 }

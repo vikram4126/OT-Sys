@@ -34,7 +34,7 @@ const ul = items => `<ul>${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
 const CSS = `
 :root{--navy:#00338D;--deep:#0A1F4D;--muted:#5F5E5A;--line:#D9E1EF;--ice:#F2F6FC;--crit:#B42318;--high:#C2410C;--med:#B54708;--low:#067647;--violet:#534AB7}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.65 -apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1A1A1A;background:#F4F6FB}
+body{margin:0;font:15px/1.65 'Inter',-apple-system,'Segoe UI',Roboto,Helvetica,sans-serif;color:#1A1A1A;background:#F4F6FB}
 .wrap{max-width:980px;margin:0 auto;background:#fff;box-shadow:0 1px 4px rgba(16,24,40,.07)}
 .cover{background:var(--deep);color:#fff;padding:54px 56px}
 .cover .eyebrow{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#9FB4DD;font-weight:700}

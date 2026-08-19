@@ -451,7 +451,7 @@ const SHADOW_SEED = [
   { id:'SH-DMZ1', zone:'Z-DMZ',  name:'vendor-laptop-01',               deviceType:'Transient device',    seenAs:'Outbound HTTPS + RDP inbound', level:3, evidence:'log' },
   { id:'SH-ENT1', zone:'Z-ENT',  name:'10.10.5.22 (unregistered host)', deviceType:'Unknown server',      seenAs:'SMB shares + LDAP to domain controller', level:4, evidence:'log' },
 ];
-const SHKEY = 'ot_shadow_assets_v2';
+const SHKEY = 'ot_shadow_assets_v3';
 const SHADOW_PROMOTED = 'ot_shadow_promoted_v2';
 function readShadow() { return read(SHKEY, SHADOW_SEED); }
 function readPromoted() { try { return JSON.parse(localStorage.getItem(SHADOW_PROMOTED)||'[]'); } catch { return []; } }
@@ -2093,7 +2093,7 @@ export const EVIDENCE_CATALOGUE = [
     gives:'Entry points for attack-path analysis — these are the paths that start real incidents.',
     fallback:'The interview is the real source here; it routinely surfaces the modem nobody listed.',
     finding:'Uncontrolled remote access into OT (FR1/FR2).', evidences:['FR1','FR2'] },
-  { id:'identity', group:'access', name:'AD / account overview for OT — shared accounts, domain structure', owner:'IT', effort:'20 min',
+  { id:'identity', group:'access', name:'AD / account overview for OT — shared accounts, domain structure', owner:'IT', effort:'20 min', core:true,
     why:'A shared IT/OT domain is a major attack path, and shared local accounts on HMIs are near-universal.',
     gives:'FR1 evidence directly, plus lateral-movement context.',
     fallback:'Derive from the walkthrough — show the user list on a sample HMI or server.',
@@ -2120,7 +2120,26 @@ export const EVIDENCE_CATALOGUE = [
 ];
 
 const EVKEY = 'ot_evidence_collection_v1';
-export function getEvidenceState() { try { return JSON.parse(localStorage.getItem(EVKEY) || '{}'); } catch { return {}; } }
+export function getEvidenceState() {
+  try {
+    const raw = localStorage.getItem(EVKEY);
+    if (raw && Object.keys(JSON.parse(raw)).length > 0) return JSON.parse(raw);
+  } catch {}
+  // Default realistic dummy evidence so tiles show received items & live colors immediately
+  const seed = {
+    'net-diagram': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.COMPLETE },
+    'asset-register': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.COMPLETE },
+    'software-inv': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.PARTIAL },
+    'configs': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.COMPLETE },
+    'neighbours': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.PARTIAL },
+    'remote-access': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.COMPLETE },
+    'identity': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.COMPLETE },
+    'backup-policy': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.COMPLETE },
+    'interview': { status: EVIDENCE_STATUS.RECEIVED, quality: RECEIVED_QUALITY.COMPLETE },
+  };
+  localStorage.setItem(EVKEY, JSON.stringify(seed));
+  return seed;
+}
 export function setEvidenceStatus(id, status, note) {
   const s = getEvidenceState();
   s[id] = { ...(s[id]||{}), status, ...(note !== undefined ? { note } : {}) };
@@ -2640,7 +2659,7 @@ export function assetVisibility(assets) {
     registerOnly: registerOnly.length,
     logOnly: shadows.length,
     registerOnlyAssets: registerOnly.map(a => ({ id:a.id, name:a.name, zone:a.zone, deviceType:a.deviceType })),
-    shadowAssets: shadows.map(s => ({ id:s.id, name:s.name, zone:s.zone, deviceType:s.deviceType })),
+    shadowAssets: shadows.map(s => ({ id:s.id, name:s.name, zone:s.zone, deviceType:s.deviceType, seenAs:s.seenAs })),
   };
 }
 

@@ -1038,24 +1038,111 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
 // is ever added silently.
 function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
   return (
-    <Modal title="Additional CVEs found via complementary lookup" subtitle="Matched from the asset/software inventory — not present in the client-provided vulnerability scan" onClose={onClose} maxWidth={620}>
-      {candidates.length===0 ? (
-        <div style={{ fontSize:12.5, color:C.muted }}>Nothing left to review.</div>
-      ) : candidates.map(c => (
-        <div key={c.id} style={{ display:'flex', alignItems:'flex-start', gap:10, padding:'11px 13px', border:`1px solid ${C.border}`, borderRadius:10, marginBottom:8 }}>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-              <span className="kpmg-code-badge" style={{ fontSize:11, color:C.navy }}>{c.cve_id}</span>
-              <span style={{ fontSize:12.5, fontWeight:600, color:C.text }}>{c.title}</span>
-              {c.in_kev && <span style={{ fontSize:9, fontWeight:700, color:'#B42318', background:'#FEE4E2', padding:'1px 5px', borderRadius:4 }}>KEV</span>}
+    <Modal
+      title="Additional CVEs found via complementary lookup"
+      subtitle="Matched from asset/software inventory – not present in the client-triggered vulnerability scan"
+      onClose={onClose}
+      maxWidth={640}
+    >
+      {/* Top Blue Alert Banner */}
+      <div className="kpmg-modal-box-info" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, background: '#F0F5FF', border: '1px solid #D0E1FF', borderRadius: 8, padding: '10px 14px' }}>
+        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#1E49E2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <span style={{ fontSize: 12, color: '#1E49E2', fontWeight: 500, lineHeight: 1.4 }}>
+          Accepted findings are tagged as complementary (not from the client&apos;s own scan) so the report can list them separately.
+        </span>
+      </div>
+
+      {/* List Container */}
+      <div className="kpmg-vis-list-scroll" style={{ maxHeight: 380 }}>
+        {candidates.length === 0 ? (
+          <div style={{ fontSize: 12.5, color: C.muted, padding: '12px 0' }}>Nothing left to review.</div>
+        ) : (
+          candidates.map(c => (
+            <div
+              key={c.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justify: 'space-between',
+                gap: 12,
+                padding: '12px 16px',
+                border: `1px solid ${C.border}`,
+                borderRadius: 10,
+                marginBottom: 10,
+                background: '#ffffff'
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {/* CVE Pink Badge */}
+                <div style={{ marginBottom: 4 }}>
+                  <span
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      color: '#D9251B',
+                      background: '#FEF3F2',
+                      border: '1px solid #FECDCA',
+                      borderRadius: 12,
+                      padding: '2px 8px',
+                      display: 'inline-block'
+                    }}
+                  >
+                    {c.cve_id}
+                  </span>
+                </div>
+                {/* Title */}
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#101828', marginBottom: 3 }}>
+                  {c.title}
+                </div>
+                {/* Details Subtext */}
+                <div style={{ fontSize: 11.5, color: '#475467' }}>
+                  {c.asset_label} · CVSS {c.cvss} · matched on &quot;{c.matchedOn}&quot;
+                </div>
+              </div>
+
+              {/* Action Buttons: Red Decline & Green Accept */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <button
+                  onClick={() => onDismiss(c.id)}
+                  style={{
+                    background: '#D9251B',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '7px 16px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  Decline
+                </button>
+                <button
+                  onClick={() => onAccept(c)}
+                  style={{
+                    background: '#039855',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '7px 16px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  Accept
+                </button>
+              </div>
             </div>
-            <div style={{ fontSize:11, color:C.muted, marginTop:3 }}>{c.asset_label} · CVSS {c.cvss} · matched on "{c.matchedOn}"</div>
-          </div>
-          <button onClick={()=>onAccept(c)} style={{ background:C.navy, color:'#fff', border:'none', borderRadius:7, padding:'5px 12px', fontSize:11.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit', flexShrink:0 }}>Accept</button>
-          <button onClick={()=>onDismiss(c.id)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:7, padding:'5px 12px', fontSize:11.5, color:C.muted, cursor:'pointer', fontFamily:'inherit', flexShrink:0 }}>Dismiss</button>
-        </div>
-      ))}
-      <div style={{ fontSize:10.5, color:C.muted, marginTop:6, fontStyle:'italic' }}>Accepted findings are tagged as complementary (not from the client's own scan) so the report can list them separately.</div>
+          ))
+        )}
+      </div>
     </Modal>
   );
 }
@@ -1074,14 +1161,14 @@ function AddVulnModal({onClose,onAdded}) {
   };
   return(
     <Modal title="Add Finding" subtitle="Manually document a vulnerability" onClose={onClose}
-      footer={<><Btn variant="outline" onClick={onClose}>Cancel</Btn><Btn onClick={save} disabled={saving}>{saving?'Saving…':'Add'}</Btn></>}>
+      footer={<><Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>Cancel</Btn><Btn onClick={save} disabled={saving} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>{saving?'Saving…':'Add'}</Btn></>}>
       <FormField label="Title" required><Input value={form.title} onChange={e=>set('title',e.target.value)} placeholder="Brief description"/></FormField>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
         <FormField label="Asset"><Input value={form.asset_label} onChange={e=>set('asset_label',e.target.value)} placeholder="e.g. HMI-OPS-01"/></FormField>
         <FormField label="CVE (if applicable)"><Input value={form.cve} onChange={e=>set('cve',e.target.value)} placeholder="e.g. CVE-2022-38765"/></FormField>
         <FormField label="Foundational Requirement"><Select value={form.domain} onChange={e=>set('domain',e.target.value)} options={DOMAINS}/></FormField>
         <FormField label="Severity"><Select value={form.criticality} onChange={e=>set('criticality',e.target.value)} options={['Critical','High','Medium','Low']}/></FormField>
-        <FormField label="CVSS (0–10)" required><Input value={form.cvss} onChange={e=>set('cvss',e.target.value)}/></FormField>
+        <FormField label="Risk score" required><Input value={form.cvss} onChange={e=>set('cvss',e.target.value)}/></FormField>
         <FormField label="Status"><Select value={form.status} onChange={e=>set('status',e.target.value)} options={['Open','In Progress','Resolved','Accepted Risk']}/></FormField>
       </div>
       <FormField label="Notes / Evidence"><Textarea value={form.justification} onChange={e=>set('justification',e.target.value)} rows={3} placeholder="How was this identified?"/></FormField>

@@ -21,6 +21,124 @@ import {
 const slColor = sl => ['#B42318','#B54708','#CA8A04','#16A34A','#2563EB'][sl] ?? '#B42318';
 const confColor = c => c>=75?'#059669':c>=50?'#B54708':'#B42318';
 
+import ReactFlow, { Background, Controls, Handle, Position } from 'reactflow';
+import 'reactflow/dist/style.css';
+
+// ── Custom React Flow Node Component for Zones ──────────────────────────────
+const ReactFlowNode = ({ data }) => {
+  const { sla, rangeLabel, name, active, slColor } = data;
+  return (
+    <div style={{
+      textAlign: 'center',
+      cursor: 'pointer',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      userSelect: 'none'
+    }}>
+      <Handle type="target" position={Position.Left} style={{ background: '#555', opacity: 0 }} />
+      <div style={{
+        width: 50,
+        height: 50,
+        borderRadius: '50%',
+        background: active ? '#fff' : '#FBFCFE',
+        border: `3px solid ${active ? '#00338D' : slColor}`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justify: 'center',
+        boxShadow: active ? '0 0 10px rgba(0,51,141,0.3)' : '0 2px 4px rgba(0,0,0,0.06)'
+      }}>
+        <span style={{ fontSize: 11, fontWeight: '700', color: slColor, marginTop: 7 }}>SL{sla}</span>
+        <span style={{ fontSize: 8, color: '#5F5E5A', marginTop: -2 }}>{rangeLabel}</span>
+      </div>
+      <div style={{ fontSize: 11, fontWeight: '600', color: '#1A1A1A', marginTop: 6, whiteSpace: 'nowrap' }}>
+        {name}
+      </div>
+      <Handle type="source" position={Position.Right} style={{ background: '#555', opacity: 0 }} />
+    </div>
+  );
+};
+
+const nodeTypes = { zoneNode: ReactFlowNode };
+
+// ── ReactFlow implementation of ZoneDiagram ─────────────────────────────────
+function ReactFlowZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelConduit }) {
+  const ordered = [...zones].sort((a, b) => zoneTopLevel(assets, b.id) - zoneTopLevel(assets, a.id));
+  const n = Math.max(ordered.length, 1);
+  const W = 820;
+
+  const nodes = ordered.map((z, i) => {
+    const sla = slaForZone(srSeed, z);
+    const active = sel?.type === 'zone' && sel.id === z.id;
+    const range = zoneLevelRange(assets, z.id);
+    const rangeLabel = zoneRangeLabel(range);
+
+    const x = 40 + i * ((W - 120) / Math.max(n - 1, 1));
+    const y = 50 + (i % 2 === 0 ? -20 : 20);
+
+    return {
+      id: z.id,
+      type: 'zoneNode',
+      position: { x, y },
+      data: {
+        sla,
+        rangeLabel,
+        name: z.name,
+        active,
+        slColor: slColor(sla),
+        zone: z
+      }
+    };
+  });
+
+  const edges = conduits.map(c => {
+    const active = sel?.type === 'conduit' && sel.id === c.id;
+    const open = ['missing', 'partial'].includes(itemStatus(srSeed, c.to, 'SR5.2')) || ['missing', 'partial'].includes(itemStatus(srSeed, c.from, 'SR5.2'));
+
+    return {
+      id: c.id,
+      source: c.from,
+      target: c.to,
+      type: 'smoothstep',
+      animated: open,
+      style: {
+        stroke: active ? '#534AB7' : (open ? '#B4231899' : '#B9C6DE'),
+        strokeWidth: active ? 3 : 2,
+        strokeDasharray: open ? '5 4' : undefined,
+        cursor: 'pointer'
+      },
+      data: { conduit: c }
+    };
+  });
+
+  return (
+    <Card style={{ padding: '12px', marginTop: 12 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#00338D', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ background: '#E0E7FF', padding: '2px 8px', borderRadius: 4 }}>ReactFlow Test Implementation</span>
+        <span style={{ fontSize: 11, color: '#5F5E5A', fontWeight: 400 }}>(Interactive Test Diagram)</span>
+      </div>
+      <div style={{ width: '100%', height: 210 }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodeClick={(evt, node) => onSelZone(node.data.zone)}
+          onEdgeClick={(evt, edge) => onSelConduit(edge.data.conduit)}
+          fitView
+          proOptions={{ hideAttribution: true }}
+        >
+          <Background color="#E2E8F0" gap={16} />
+          <Controls showInteractive={false} />
+        </ReactFlow>
+      </div>
+      <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 6 }}>
+        Click any node (Zone) or edge (Conduit) in this ReactFlow graph to trigger interactive state updates below
+      </div>
+    </Card>
+  );
+}
+
 // ── Zone + conduit diagram ───────────────────────────────────────────────────
 function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelConduit }) {
   // Horizontal node graph: zones flow left→right (ordered by Purdue level, edge →
@@ -351,6 +469,9 @@ export default function Compliance62443Tab() {
       </div>
 
       <ZoneDiagram zones={zones} conduits={conduits} srSeed={srSeed} assets={assets} sel={sel}
+        onSelZone={z=>setSel({type:'zone',id:z.id})} onSelConduit={c=>setSel({type:'conduit',id:c.id})}/>
+
+      <ReactFlowZoneDiagram zones={zones} conduits={conduits} srSeed={srSeed} assets={assets} sel={sel}
         onSelZone={z=>setSel({type:'zone',id:z.id})} onSelConduit={c=>setSel({type:'conduit',id:c.id})}/>
 
       {selZone && renderZoneReqs(selZone)}

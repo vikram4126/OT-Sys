@@ -48,11 +48,12 @@ export default function AssetsTab() {
             </div>
             <div className="kpmg-inventory-actions">
               <button className="kpmg-btn-outline" onClick={() => setUploading(true)}>
-                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /><path d="M12 12v9" /><path d="m16 16-4-4-4 4" /></svg>
-                Upload data
+                <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#344054" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /><path d="M12 12v9" /><path d="m16 16-4-4-4 4" /></svg>
+                <span>Upload data</span>
               </button>
               <button className="kpmg-btn-cobalt" onClick={() => setAdding(true)}>
-                + Add Asset
+                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                <span>Add Asset</span>
               </button>
             </div>
           </div>
@@ -92,33 +93,39 @@ export default function AssetsTab() {
           const conns = assetConnections(a.id);
           return kind === 'hardware' ? (
             <div key={a.id} className="kpmg-table-row kpmg-table-grid-hardware">
-              <span onClick={() => setSel(a)} className="kpmg-asset-name-clickable">
+              <span>
                 {a.name}
                 {a.internetFacing && <span className="kpmg-badge-internet">Internet-facing</span>}
               </span>
-              <span onClick={() => setSel(a)} className="kpmg-asset-type-clickable">{a.deviceType}</span>
+              <span>{a.deviceType}</span>
               <span className="kpmg-text-code-val">{a.ip || '10.10.1.20'}</span>
               <span className="kpmg-text-os">{a.os || 'Windows Server 2019'}</span>
               <span className="kpmg-text-purdue">L{a.level}</span>
               <span className="kpmg-conns-text">
                 <span className="kpmg-conns-arrow">↑</span> {conns.length}
               </span>
-              <div className="kpmg-text-right">
+              <div className="kpmg-text-right" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                <button onClick={() => setSel(a)} title="Edit asset" className="kpmg-btn-icon">
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                </button>
                 <button onClick={() => setProv(a)} title="How was this classified?" className="kpmg-btn-icon">
-                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
                 </button>
               </div>
             </div>
           ) : (
             <div key={a.id} className="kpmg-table-row kpmg-table-grid-software">
-              <span onClick={() => setSel(a)} className="kpmg-asset-name-clickable">{a.name}</span>
-              <span onClick={() => setSel(a)} className="kpmg-asset-type-clickable">{a.deviceType}</span>
+              <span>{a.name}</span>
+              <span>{a.deviceType}</span>
               <span className="kpmg-text-code-val">{a.version || '—'}</span>
               <span className="kpmg-text-os">{a.host ? aName(a.host) : '—'}</span>
               <span>{zName(a.zone)}</span>
-              <div className="kpmg-text-right">
+              <div className="kpmg-text-right" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+                <button onClick={() => setSel(a)} title="Edit asset" className="kpmg-btn-icon">
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                </button>
                 <button onClick={() => setProv(a)} title="How was this classified?" className="kpmg-btn-icon">
-                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
                 </button>
               </div>
             </div>
@@ -231,75 +238,231 @@ function VisibilityPanel({ assets, zones }) {
       </div>
 
       {how && (
-        <Modal title="How asset visibility is calculated" subtitle="A direct comparison — no scoring model involved" onClose={() => setHow(false)} maxWidth={560}>
-          <div className="kpmg-modal-subtext">
-            We compare two independent sources: the client&apos;s <strong>asset register</strong> and the devices actually
-            <strong> observed in logs and traffic</strong>. Agreement between them is visibility; every disagreement is a gap.
-          </div>
-          <div className="kpmg-modal-box-info">
-            <div><strong style={{ color: C.low }}>{v.matched}</strong> in the register and seen in logs</div>
-            <div><strong style={{ color: '#B54708' }}>{v.registerOnly}</strong> in the register but never observed</div>
-            <div><strong style={{ color: C.critical }}>{v.logOnly}</strong> observed but in no register (shadow)</div>
-            <div className="kpmg-formula-box">
-              {v.matched} ÷ ({v.matched} + {v.registerOnly} + {v.logOnly}) = <strong style={{ color: tone }}>{v.score}%</strong>
-            </div>
-          </div>
-          {v.registerOnlyAssets.length > 0 && <>
-            <div className="kpmg-modal-section-title-warning">In register, never observed</div>
-            {v.registerOnlyAssets.map(a => (
-              <div key={a.id} className="kpmg-modal-item-row">{a.name} <span className="kpmg-muted-text">· {a.deviceType}</span></div>
-            ))}
-            <div className="kpmg-modal-item-muted">Either decommissioned and never removed, or powered down during collection. Both are worth confirming.</div>
-          </>}
-          {v.shadowAssets.length > 0 && <>
-            <div className="kpmg-modal-section-title-danger">Observed but unregistered (shadow)</div>
-            {v.shadowAssets.map(a => (
-              <div key={a.id} className="kpmg-modal-item-row">{a.name} <span className="kpmg-muted-text">· {a.deviceType || 'unclassified'}</span></div>
-            ))}
-            <div className="kpmg-modal-item-muted">Clear these by assigning a zone and completing the standard fields — visibility recalculates as you do.</div>
-          </>}
-        </Modal>
+        <HowAssetVisibilityModal v={v} tone={tone} onClose={() => setHow(false)} />
       )}
       {zoneSel && <ZoneVisibilityModal zone={zoneSel} assets={assets} onClose={() => setZoneSel(null)} />}
     </Card>
   );
 }
 
-// Zone drill-down: same matched/register-only/shadow arithmetic as the
-// overall score, scoped to one zone, plus the actual assets behind each count.
+// Global How Asset Visibility Modal
+function HowAssetVisibilityModal({ v, tone, onClose }) {
+  const [activeTab, setActiveTab] = useState('shadow'); // 'shadow' | 'register'
+  const is100 = v.score === 100;
+
+  return (
+    <Modal title="How asset visibility is calculated" subtitle="A direct comparison — no scoring model involved" onClose={onClose} maxWidth={580}>
+      <div className="kpmg-modal-subtext">
+        We compare two independent sources: the client&apos;s <strong>asset register</strong> and the devices actually <strong>observed in logs and traffic</strong>. Agreement between them is visibility; every disagreement is a gap.
+      </div>
+
+      {/* Calculation Box: 3 Cards + Formula wrapped */}
+      <div className="kpmg-vis-calc-box">
+        <div className="kpmg-vis-calc-cards">
+          <div className="kpmg-vis-calc-card">
+            <div className="kpmg-vis-calc-card-num" style={{ color: C.low }}>{v.matched}</div>
+            <div className="kpmg-vis-calc-card-label">in the register and seen in logs</div>
+          </div>
+          <div className="kpmg-vis-calc-card">
+            <div className="kpmg-vis-calc-card-num" style={{ color: '#B54708' }}>{v.registerOnly}</div>
+            <div className="kpmg-vis-calc-card-label">in the register but never observed</div>
+          </div>
+          <div className="kpmg-vis-calc-card">
+            <div className="kpmg-vis-calc-card-num" style={{ color: C.critical }}>{v.logOnly}</div>
+            <div className="kpmg-vis-calc-card-label">observed but in no register</div>
+          </div>
+        </div>
+
+        <div className="kpmg-vis-calc-formula">
+          {v.matched} ÷ ({v.matched} + {v.registerOnly} + {v.logOnly}) = <span style={{ color: tone }}>{v.score}%</span>
+        </div>
+      </div>
+
+      {/* 100% case: No discrepancies message */}
+      {is100 ? (
+        <div style={{ fontSize: 12.5, color: '#475467', paddingTop: 2, paddingBottom: 10 }}>
+          No discrepancies — register and logs fully agree.
+        </div>
+      ) : (
+        /* < 100% case: Tabbed discrepancy lists */
+        <div>
+          <div className="kpmg-vis-tabs-header">
+            <button
+              className={`kpmg-vis-tab-btn ${activeTab === 'shadow' ? 'active' : ''}`}
+              onClick={() => setActiveTab('shadow')}
+            >
+              Observed but unregistered (shadow)
+            </button>
+            <button
+              className={`kpmg-vis-tab-btn ${activeTab === 'register' ? 'active' : ''}`}
+              onClick={() => setActiveTab('register')}
+            >
+              In register, never observed
+            </button>
+          </div>
+
+          {activeTab === 'shadow' ? (
+            <div>
+              <div className="kpmg-vis-tab-desc">
+                Clear these by assigning a zone and completing the standard fields — visibility recalculates as you do.
+              </div>
+              <div className="kpmg-vis-list-scroll">
+                {v.shadowAssets && v.shadowAssets.length > 0 ? (
+                  v.shadowAssets.map(a => {
+                    const zoneNames = { 'Z-OPS': 'Operations', 'Z-CTRL': 'Control', 'Z-DMZ': 'OT DMZ', 'Z-ENT': 'Enterprise', 'Z-SAF': 'Safety (SIS)' };
+                    const zoneLabel = zoneNames[a.zone] || a.zone || 'Operations';
+                    return (
+                      <div key={a.id} className="kpmg-vis-item-card">
+                        <div>
+                          <div className="kpmg-vis-item-title">{a.name}</div>
+                          <div className="kpmg-vis-item-sub">{a.deviceType || 'Unknown workstation'} • {zoneLabel}</div>
+                        </div>
+                        <div className="kpmg-vis-action-tag">
+                          {a.seenAs || 'Observed in logs'}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ fontSize: 12, color: C.muted, padding: '8px 0' }}>No shadow assets observed.</div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="kpmg-vis-tab-desc">
+                Either decommissioned and never removed, or powered down during collection. Both are worth confirming.
+              </div>
+              <div className="kpmg-vis-list-scroll">
+                {v.registerOnlyAssets && v.registerOnlyAssets.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    {v.registerOnlyAssets.map(a => (
+                      <div key={a.id} className="kpmg-vis-item-card" style={{ marginBottom: 0 }}>
+                        <div>
+                          <div className="kpmg-vis-item-title">{a.name}</div>
+                          <div className="kpmg-vis-item-sub">{a.deviceType || 'File server'}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: C.muted, padding: '8px 0' }}>All registered assets observed in logs.</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+// Zone drill-down Modal
 function ZoneVisibilityModal({ zone, assets, onClose }) {
+  const [activeTab, setActiveTab] = useState('shadow');
   const registerOnlyAssets = assets.filter(a => a.zone === zone.zone && isRegisterOnly(a));
   const shadows = shadowAssetsForZone(zone.zone);
   const tone = getScoreColor(zone.score);
+  const is100 = zone.score === 100;
+
   return (
-    <Modal title={zone.name} subtitle="Zone asset visibility — how the score is calculated" onClose={onClose} maxWidth={560}>
-      <div className="kpmg-modal-box-info">
-        <div><strong style={{ color: C.low }}>{zone.matched}</strong> in the register and seen in logs</div>
-        <div><strong style={{ color: '#B54708' }}>{zone.registerOnly}</strong> in the register but never observed</div>
-        <div><strong style={{ color: C.critical }}>{zone.logOnly}</strong> observed but in no register (shadow)</div>
-        <div className="kpmg-formula-box">
-          {zone.matched} ÷ ({zone.matched} + {zone.registerOnly} + {zone.logOnly}) = <strong style={{ color: tone }}>{zone.score}%</strong>
+    <Modal title={zone.name} subtitle="Zone asset visibility — how the score is calculated" onClose={onClose} maxWidth={580}>
+      {/* Calculation Box: 3 Cards + Formula wrapped */}
+      <div className="kpmg-vis-calc-box">
+        <div className="kpmg-vis-calc-cards">
+          <div className="kpmg-vis-calc-card">
+            <div className="kpmg-vis-calc-card-num" style={{ color: C.low }}>{zone.matched}</div>
+            <div className="kpmg-vis-calc-card-label">in the register and seen in logs</div>
+          </div>
+          <div className="kpmg-vis-calc-card">
+            <div className="kpmg-vis-calc-card-num" style={{ color: '#B54708' }}>{zone.registerOnly}</div>
+            <div className="kpmg-vis-calc-card-label">in the register but never observed</div>
+          </div>
+          <div className="kpmg-vis-calc-card">
+            <div className="kpmg-vis-calc-card-num" style={{ color: C.critical }}>{zone.logOnly}</div>
+            <div className="kpmg-vis-calc-card-label">observed but in no register</div>
+          </div>
+        </div>
+
+        <div className="kpmg-vis-calc-formula">
+          {zone.matched} ÷ ({zone.matched} + {zone.registerOnly} + {zone.logOnly}) = <span style={{ color: tone }}>{zone.score}%</span>
         </div>
       </div>
-      {registerOnlyAssets.length > 0 && <>
-        <div className="kpmg-modal-section-title-warning">In register, never observed</div>
-        {registerOnlyAssets.map(a => (
-          <div key={a.id} className="kpmg-modal-item-row">{a.name} <span className="kpmg-muted-text">· {a.deviceType}</span></div>
-        ))}
-        <div className="kpmg-modal-item-muted">Either decommissioned and never removed, or powered down during collection. Both are worth confirming.</div>
-      </>}
-      {shadows.length > 0 && <>
-        <div className="kpmg-modal-section-title-danger">Observed but unregistered (shadow)</div>
-        {shadows.map(s => (
-          <div key={s.id} className="kpmg-modal-item-row">
-            <div className="kpmg-modal-item-row">{s.name} <span className="kpmg-muted-text">· {s.deviceType || 'unclassified'}</span></div>
-            <div className="kpmg-text-danger">{s.seenAs}</div>
+
+      {/* 100% case */}
+      {is100 ? (
+        <div style={{ fontSize: 12.5, color: '#475467', paddingTop: 2, paddingBottom: 10 }}>
+          No discrepancies in this zone — register and logs fully agree.
+        </div>
+      ) : (
+        /* < 100% case */
+        <div>
+          <div className="kpmg-vis-tabs-header">
+            <button
+              className={`kpmg-vis-tab-btn ${activeTab === 'shadow' ? 'active' : ''}`}
+              onClick={() => setActiveTab('shadow')}
+            >
+              Observed but unregistered (shadow)
+            </button>
+            <button
+              className={`kpmg-vis-tab-btn ${activeTab === 'register' ? 'active' : ''}`}
+              onClick={() => setActiveTab('register')}
+            >
+              In register, never observed
+            </button>
           </div>
-        ))}
-        <div className="kpmg-modal-item-muted">Clear these from the Shadow assets panel below — a zone and the standard fields are required, so visibility only improves when the inventory really does.</div>
-      </>}
-      {registerOnlyAssets.length === 0 && shadows.length === 0 && (
-        <div className="kpmg-modal-subtext">No discrepancies in this zone — register and logs fully agree.</div>
+
+          {activeTab === 'shadow' ? (
+            <div>
+              <div className="kpmg-vis-tab-desc">
+                Clear these from the Shadow assets panel below — a zone and the standard fields are required.
+              </div>
+              <div className="kpmg-vis-list-scroll">
+                {shadows.length > 0 ? (
+                  shadows.map(s => {
+                    const zoneNames = { 'Z-OPS': 'Operations', 'Z-CTRL': 'Control', 'Z-DMZ': 'OT DMZ', 'Z-ENT': 'Enterprise', 'Z-SAF': 'Safety (SIS)' };
+                    const zoneLabel = zoneNames[s.zone] || s.zone || 'Operations';
+                    return (
+                      <div key={s.id} className="kpmg-vis-item-card">
+                        <div>
+                          <div className="kpmg-vis-item-title">{s.name}</div>
+                          <div className="kpmg-vis-item-sub">{s.deviceType || 'unclassified'} • {zoneLabel}</div>
+                        </div>
+                        <div className="kpmg-vis-action-tag">
+                          {s.seenAs || 'Observed in logs'}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ fontSize: 12, color: C.muted, padding: '8px 0' }}>No shadow assets in this zone.</div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="kpmg-vis-tab-desc">
+                Either decommissioned and never removed, or powered down during collection. Both are worth confirming.
+              </div>
+              <div className="kpmg-vis-list-scroll">
+                {registerOnlyAssets.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    {registerOnlyAssets.map(a => (
+                      <div key={a.id} className="kpmg-vis-item-card" style={{ marginBottom: 0 }}>
+                        <div>
+                          <div className="kpmg-vis-item-title">{a.name}</div>
+                          <div className="kpmg-vis-item-sub">{a.deviceType}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: C.muted, padding: '8px 0' }}>All registered assets observed in logs.</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </Modal>
   );
@@ -384,7 +547,7 @@ function RegisterShadowModal({ shadow, zones, onClose, onDone }) {
 
 function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
   const [reg, setReg] = useState(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const all = allShadowAssets();
   const shadows = zoneF === 'all' ? all : all.filter(s => s.zone === zoneF);
 
@@ -405,7 +568,10 @@ function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
             </div>
           </div>
         </div>
-        <button className="kpmg-btn-outline" onClick={() => setIsOpen(!isOpen)}>
+        <button
+          className={isOpen ? 'kpmg-btn-outline' : 'kpmg-btn-cobalt'}
+          onClick={() => setIsOpen(!isOpen)}
+        >
           {isOpen ? 'Close' : 'Open'}
         </button>
       </div>
@@ -528,54 +694,59 @@ function UploadModal({ zones, onClose, onDone }) {
             />
           </FormField>
 
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            style={{
-              background: '#FAFBFC',
-              border: '1px dashed #D0D5DD',
-              borderRadius: 12,
-              padding: '36px 24px',
-              textAlign: 'center',
-              cursor: 'pointer',
-              marginTop: 16,
-              transition: 'all 0.2s ease'
-            }}
-          >
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#344054', marginBottom: 6 }}>
+              File upload
+            </div>
             <div
+              onClick={() => fileInputRef.current?.click()}
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: '#EFF6FF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 12px auto'
+                background: '#ffffff',
+                border: '1px dashed #EAECF0',
+                borderRadius: 12,
+                padding: '32px 20px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
               }}
             >
-              <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#175CD3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-            </div>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  border: '1px solid #EAECF0',
+                  background: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justify: 'center',
+                  margin: '0 auto 10px auto'
+                }}
+              >
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#475467" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
 
-            <div>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#1E49E2' }}>Click to upload</span>
-              <span style={{ fontSize: 14, fontWeight: 500, color: '#344054' }}> or drag and drop</span>
-            </div>
+              <div>
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: '#00338D', textDecoration: 'underline' }}>Click to upload</span>
+                <span style={{ fontSize: 12.5, fontWeight: 400, color: '#475467' }}> or drag and drop</span>
+              </div>
 
-            <div style={{ fontSize: 12, color: '#667085', marginTop: 4 }}>
-              {selectedFile ? selectedFile.name : '(PDF, Excel, Spreadsheet)'}
-            </div>
+              <div style={{ fontSize: 11, color: '#667085', marginTop: 4 }}>
+                {selectedFile ? selectedFile.name : 'XLSX (max. 50 MB)'}
+              </div>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              style={{ display: 'none' }}
-              accept=".xlsx,.xls,.csv,.pdf"
-              onChange={handleFileChange}
-            />
+              <input
+                ref={fileInputRef}
+                type="file"
+                style={{ display: 'none' }}
+                accept=".xlsx,.xls,.csv,.pdf"
+                onChange={handleFileChange}
+              />
+            </div>
           </div>
         </>
       ) : (
@@ -594,29 +765,52 @@ function UploadModal({ zones, onClose, onDone }) {
 }
 
 function AddAssetModal({ zones, kind, onClose, addAsset }) {
-  const [f, setF] = useState({ name: '', deviceType: '', ip: '', os: '', version: '', zone: zones[0]?.id || '', level: 3, kind });
+  const [f, setF] = useState({ name: '', deviceType: '', ip: '', os: '', version: '', zone: zones[0]?.id || '', level: 3, kind, internetFacing: false });
+  const [conns, setConns] = useState([
+    { id: 'c1', name: 'SCADA-SRV-01', source: 'manual', proto: '' },
+    { id: 'c2', name: 'FILE-SRV-01', source: 'auto', proto: '' }
+  ]);
+  const [addingConn, setAddingConn] = useState(false);
+  const [newConnTarget, setNewConnTarget] = useState('');
+  const [newConnProto, setNewConnProto] = useState('');
+
   const set = (k, v) => setF(s => ({ ...s, [k]: v }));
   const save = () => { if (!f.name.trim()) return; addAsset(f.zone, { ...f, name: f.name.trim(), level: Number(f.level) }); onClose(); };
+
   return (
-    <Modal title="Add asset" subtitle="Manually add an asset — also filed into the connected directory" onClose={onClose} maxWidth={540}
-      footer={<><Btn variant="outline" onClick={onClose}>Cancel</Btn><Btn onClick={save}>Add asset</Btn></>}>
+    <Modal
+      title="Add asset"
+      subtitle="Manually add an asset — also filed into the connected directory"
+      onClose={onClose}
+      maxWidth={640}
+      footer={
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, width: '100%' }}>
+          <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
+            Cancel
+          </Btn>
+          <Btn onClick={save} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>
+            Add
+          </Btn>
+        </div>
+      }
+    >
       <div className="kpmg-add-asset-form">
         {/* Row 1: Name in single row */}
-        <div className="kpmg-form-full-row">
-          <FormField label="Name" required><Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="e.g. PLC-LINE2-01" /></FormField>
+        <div className="kpmg-form-full-row" style={{ marginBottom: 16 }}>
+          <FormField label="Name" required><Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="E.g. PLC-LINE2-01" /></FormField>
         </div>
 
         {/* Row 2: Type and Kind in one row */}
-        <div className="kpmg-form-grid-2col">
-          <FormField label="Type"><Input value={f.deviceType} onChange={e => set('deviceType', e.target.value)} placeholder="e.g. PLC, SCADA server" /></FormField>
+        <div className="kpmg-form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <FormField label="Type"><Input value={f.deviceType} onChange={e => set('deviceType', e.target.value)} placeholder="E.g. PLC, SCADA server" /></FormField>
           <FormField label="Kind"><Select value={f.kind} onChange={e => set('kind', e.target.value)} options={[{ value: 'hardware', label: 'Hardware' }, { value: 'software', label: 'Software / firmware' }]} /></FormField>
         </div>
 
         {/* Row 3: IP Address and OS / firmware in one row */}
-        <div className="kpmg-form-grid-2col">
+        <div className="kpmg-form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           {f.kind === 'hardware' ? (
             <>
-              <FormField label="IP Address"><Input value={f.ip} onChange={e => set('ip', e.target.value)} placeholder="Optional" /></FormField>
+              <FormField label="IP Address"><Input value={f.ip} onChange={e => set('ip', e.target.value)} placeholder="optional" /></FormField>
               <FormField label="OS / firmware"><Input value={f.os} onChange={e => set('os', e.target.value)} placeholder="e.g. Windows Server 2019" /></FormField>
             </>
           ) : (
@@ -628,9 +822,162 @@ function AddAssetModal({ zones, kind, onClose, addAsset }) {
         </div>
 
         {/* Row 4: Zone and Purdue level in one row */}
-        <div className="kpmg-form-grid-2col">
+        <div className="kpmg-form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
           <FormField label="Zone"><Select value={f.zone} onChange={e => set('zone', e.target.value)} options={zones.map(z => ({ value: z.id, label: z.name }))} /></FormField>
           <FormField label="Purdue level"><Select value={f.level} onChange={e => set('level', e.target.value)} options={[0, 1, 2, 3, 4, 5].map(l => ({ value: l, label: `L${l}` }))} /></FormField>
+        </div>
+
+        {/* Internet-facing Toggle Row */}
+        <div
+          onClick={() => set('internetFacing', !f.internetFacing)}
+          style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24, cursor: 'pointer' }}
+        >
+          <div
+            style={{
+              width: 44,
+              height: 24,
+              borderRadius: 12,
+              background: f.internetFacing ? '#1E49E2' : '#EAECF0',
+              padding: 2,
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer',
+              flexShrink: 0
+            }}
+          >
+            <div
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                background: '#ffffff',
+                transform: f.internetFacing ? 'translateX(20px)' : 'translateX(0px)',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+              }}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>Internet-facing</div>
+            <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>
+              reachable from outside the OT environment — save above to apply
+            </div>
+          </div>
+        </div>
+
+        {/* Connection Header & List */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Connection</h3>
+          <Btn variant="outline" onClick={() => setAddingConn(!addingConn)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
+            {addingConn ? 'Cancel' : '+ Add connections'}
+          </Btn>
+        </div>
+
+        {/* Amber Info Alert Box */}
+        <div className="kpmg-modal-info-alert" style={{ marginBottom: 16 }}>
+          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          <span>
+            Inferred from ~10 minutes of zone capture — a limited sample, not a complete picture. Edit, remove or add connections you know to be wrong or missing.
+          </span>
+        </div>
+
+        {/* Inline Add Connection Form */}
+        {addingConn && (
+          <div style={{ background: '#F8FAFD', border: '1px solid #EAEBF0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <span style={{ fontSize: 12, color: '#666666', fontWeight: 500 }}>Target:</span>
+            <Select
+              value={newConnTarget}
+              onChange={e => setNewConnTarget(e.target.value)}
+              style={{ flex: 1 }}
+              options={[{ value: '', label: 'Select target asset…' }, ...zones.map(z => ({ value: z.name, label: `${z.name} zone` }))] }
+            />
+            <Input value={newConnProto} onChange={e => setNewConnProto(e.target.value)} style={{ width: 140 }} placeholder="E.g. SCADA server" />
+            <Btn size="sm" onClick={() => {
+              if (!newConnTarget) return;
+              setConns(list => [...list, { id: `c-${Date.now()}`, name: newConnTarget, source: 'manual', proto: newConnProto }]);
+              setNewConnTarget('');
+              setNewConnProto('');
+              setAddingConn(false);
+            }} style={{ background: '#1E49E2', color: '#fff', padding: '6px 14px', borderRadius: 8 }}>
+              Add
+            </Btn>
+          </div>
+        )}
+
+        {/* Scrollable Connections List Container */}
+        <div style={{ maxHeight: 220, overflowY: 'auto', paddingRight: 4 }}>
+          {conns.map(c => (
+            <div
+              key={c.id}
+              style={{
+                background: '#ffffff',
+                border: '1px solid #EAEBF0',
+                borderRadius: 10,
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                boxSizing: 'border-box',
+                gap: 16,
+                marginBottom: 10
+              }}
+            >
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#101828', flex: 1 }}>{c.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginLeft: 'auto' }}>
+                <span
+                  className="kpmg-badge"
+                  style={{
+                    background: c.source === 'manual' ? '#F4F3FF' : '#EFF6FF',
+                    color: c.source === 'manual' ? '#6941C6' : '#175CD3',
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    padding: '3px 10px',
+                    borderRadius: 10
+                  }}
+                >
+                  {c.source === 'manual' ? 'Manual' : 'Auto'}
+                </span>
+                <Input
+                  value={c.proto || ''}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setConns(list => list.map(item => item.id === c.id ? { ...item, proto: val } : item));
+                  }}
+                  placeholder="E.g. PLC, SCADA server"
+                  style={{ width: 220, height: 42, borderRadius: 8, padding: '0 12px' }}
+                />
+                <button
+                  onClick={() => setConns(list => list.filter(item => item.id !== c.id))}
+                  title="Delete connection"
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #D0D5DD',
+                    borderRadius: 8,
+                    width: 42,
+                    height: 42,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                >
+                  <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#F04438" strokeWidth="2" strokeLinecap="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </Modal>
@@ -677,21 +1024,33 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
 
   return (
     <Modal
-      title={asset.name}
-      subtitle={`${asset.deviceType || 'Asset'} · ${zName(asset.zone)}`}
+      title="Edit asset"
+      subtitle="Manually edit an asset — also filed into the connected directory"
       onClose={onClose}
       maxWidth={640}
       footer={
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <button onClick={() => { removeAsset(asset.id); onClose(); }} className="kpmg-btn-remove-link" style={{ color: '#D9251B', fontSize: 13 }}>
-            Remove this asset
+          <button
+            onClick={() => { removeAsset(asset.id); onClose(); }}
+            style={{
+              background: '#ffffff',
+              border: '1px solid #FDA29B',
+              color: '#D9251B',
+              fontSize: 13,
+              fontWeight: 500,
+              padding: '8px 16px',
+              borderRadius: 8,
+              cursor: 'pointer'
+            }}
+          >
+            Delete asset
           </button>
           <div style={{ display: 'flex', gap: 10 }}>
             <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
               Cancel
             </Btn>
             <Btn onClick={saveEdit} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>
-              Add
+              Save
             </Btn>
           </div>
         </div>
@@ -803,81 +1162,84 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
         </div>
       )}
 
-      {conns.map(c => {
-        const otherId = c.from === asset.id ? c.to : c.from;
-        const otherName = aName(otherId);
+      {/* Scrollable Connections List Container */}
+      <div style={{ maxHeight: 220, overflowY: 'auto', paddingRight: 4 }}>
+        {conns.map(c => {
+          const otherId = c.from === asset.id ? c.to : c.from;
+          const otherName = aName(otherId);
 
-        return (
-          <div
-            key={c.id}
-            style={{
-              background: '#ffffff',
-              border: '1px solid #EAEBF0',
-              borderRadius: 10,
-              padding: '12px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              boxSizing: 'border-box',
-              gap: 16,
-              marginBottom: 10
-            }}
-          >
-            {/* Left: Target Name only */}
-            <div style={{ flexShrink: 0 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>{otherName}</span>
+          return (
+            <div
+              key={c.id}
+              style={{
+                background: '#ffffff',
+                border: '1px solid #EAEBF0',
+                borderRadius: 10,
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justify: 'space-between',
+                width: '100%',
+                boxSizing: 'border-box',
+                gap: 16,
+                marginBottom: 10
+              }}
+            >
+              {/* Left: Target Name only */}
+              <div style={{ flexShrink: 0 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>{otherName}</span>
+              </div>
+
+              {/* Right: Manual/Auto badge + Input + Red delete button */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginLeft: 'auto' }}>
+                <span
+                  className="kpmg-badge"
+                  style={{
+                    background: c.source === 'manual' ? '#F4F3FF' : '#EFF6FF',
+                    color: c.source === 'manual' ? '#6941C6' : '#175CD3',
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    padding: '3px 10px',
+                    borderRadius: 10
+                  }}
+                >
+                  {c.source === 'manual' ? 'Manual' : 'Auto'}
+                </span>
+
+                <Input
+                  value={c.proto || ''}
+                  onChange={e => setP(c.id, e.target.value)}
+                  placeholder="E.g. PLC, SCADA server"
+                  style={{ width: 220, height: 42, borderRadius: 8, padding: '0 12px' }}
+                />
+                <button
+                  onClick={() => del(c.id)}
+                  title="Delete connection"
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #D0D5DD',
+                    borderRadius: 8,
+                    width: 42,
+                    height: 42,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                >
+                  <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#F04438" strokeWidth="2" strokeLinecap="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </button>
+              </div>
             </div>
-
-            {/* Right: Manual/Auto badge + Input + Red delete button */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-              <span
-                className="kpmg-badge"
-                style={{
-                  background: c.source === 'manual' ? '#F4F3FF' : '#EFF6FF',
-                  color: c.source === 'manual' ? '#6941C6' : '#175CD3',
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  padding: '3px 10px',
-                  borderRadius: 10
-                }}
-              >
-                {c.source === 'manual' ? 'Manual' : 'Auto'}
-              </span>
-
-              <Input
-                value={c.proto || ''}
-                onChange={e => setP(c.id, e.target.value)}
-                placeholder="E.g. PLC, SCADA server"
-                style={{ width: 220, borderRadius: 8, padding: '7px 12px' }}
-              />
-              <button
-                onClick={() => del(c.id)}
-                title="Delete connection"
-                style={{
-                  background: '#F04438',
-                  border: 'none',
-                  borderRadius: 8,
-                  width: 36,
-                  height: 36,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  flexShrink: 0
-                }}
-              >
-                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  <line x1="10" y1="11" x2="10" y2="17" />
-                  <line x1="14" y1="11" x2="14" y2="17" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </Modal>
   );
 }

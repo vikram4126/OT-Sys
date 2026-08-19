@@ -9,6 +9,8 @@
 //     right. Reviewable like every other suggestion in this app: add/edit/
 //     dismiss a risk, all layered on top of the live derivation.
 import React, { useState, useEffect } from 'react';
+import ReactFlow, { Background, Controls, Handle, Position } from 'reactflow';
+import 'reactflow/dist/style.css';
 import { C } from '../theme';
 import { Card, Loading, Modal, Btn, Select, FormField, Input } from './UI';
 import { addLog, LOG_TYPES } from '../services/logService';
@@ -249,6 +251,239 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
       <div className="kpmg-legend-footer">
         {zones.map(z=>(<span key={z.id} style={{ display:'inline-flex', alignItems:'center', gap:6 }}><span style={{ width:10, height:10, borderRadius:'50%', background:nodeColor(z.id) }}/>{z.name}</span>))}
         <span style={{ display:'inline-flex', alignItems:'center', gap:6 }}><span style={{ width:12, height:12, borderRadius:'50%', background:'#E8284B' }}/>red glow = severe vulnerability</span>
+      </div>
+    </Card>
+  );
+}
+
+// ── ReactFlow implementation of Purdue model ─────────────────────────────────
+const ReactFlowAssetNode = ({ data }) => {
+  const { name, color, active, dim, isRisky, r, scoreLabel } = data;
+  const size = Math.max(16, (r || 10) * 2);
+
+  return (
+    <div style={{
+      textAlign: 'center',
+      cursor: 'pointer',
+      opacity: dim ? 0.3 : 1,
+      userSelect: 'none',
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }}>
+      <Handle type="target" position={Position.Top} style={{ background: 'transparent', border: 'none' }} />
+      <Handle type="target" position={Position.Left} style={{ background: 'transparent', border: 'none' }} />
+      
+      {/* Outer pulsing ring if severe/risky */}
+      {isRisky && (
+        <div style={{
+          position: 'absolute',
+          top: -4,
+          left: `calc(50% - ${size / 2 + 4}px)`,
+          width: size + 8,
+          height: size + 8,
+          borderRadius: '50%',
+          border: '1.5px solid #E8284B',
+          boxSizing: 'border-box',
+          animation: 'pulse 2.6s infinite'
+        }} />
+      )}
+
+      {/* Main Orb Circle */}
+      <div style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: isRisky ? '#E8284B' : color,
+        border: `1.5px solid ${active ? '#0A1628' : '#FFFFFF'}`,
+        boxShadow: active ? '0 0 0 2px #0A1628' : 'none',
+        boxSizing: 'border-box'
+      }} />
+
+      {/* Asset Name Label */}
+      {(active || size > 24) && (
+        <div style={{
+          fontSize: 8,
+          color: '#101828',
+          marginTop: 4,
+          whiteSpace: 'nowrap',
+          opacity: dim ? 0.4 : 0.9,
+          fontWeight: active ? 700 : 400
+        }}>
+          {name}
+        </div>
+      )}
+
+      <Handle type="source" position={Position.Bottom} style={{ background: 'transparent', border: 'none' }} />
+      <Handle type="source" position={Position.Right} style={{ background: 'transparent', border: 'none' }} />
+    </div>
+  );
+};
+
+const purdueNodeTypes = { assetNode: ReactFlowAssetNode };
+
+function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
+  const [selId, setSelId] = useState(highlightAssetId || null);
+  const [zoneF, setZoneF] = useState('all');
+  const [sevF, setSevF] = useState('med');
+
+  const allEnriched = assets.map(a => ({ ...a, ...assetRisk(a, vulns) }));
+  const SEV = { all: 0, med: 4.0, high: 6.5, crit: 8.5 };
+  const thr = SEV[sevF] ?? 4.0;
+  const enriched = allEnriched.filter(a =>
+    a.score >= thr && (zoneF === 'all' || a.zone === zoneF)
+  );
+
+  const hiddenCount = allEnriched.length - enriched.length;
+  const maxScore = Math.max(1, ...allEnriched.map(a => a.score));
+
+  const byLevel = {};
+  enriched.forEach(a => { (byLevel[a.level] = byLevel[a.level] || []).push(a); });
+
+  // Calculate organic positions matching STAGE geometry (860 x 480)
+  const pos = {};
+  const nodes = [];
+
+  [5, 4, 3, 2, 1, 0].forEach(lvl => {
+    const list = byLevel[lvl] || [];
+    const n = list.length || 1;
+    list.forEach((a, j) => {
+      const t = (j + 0.5) / n;
+      const x = STAGE.leftGutter + 34 + (STAGE.W - STAGE.leftGutter - 86) * t;
+      const scatter = (Math.sin(j * 2.3) * 0.5) * (STAGE.bandH * 0.32);
+      const y = bandY(lvl) + STAGE.bandH / 2 + scatter;
+      pos[a.id] = { x, y };
+    });
+  });
+
+  const sel = enriched.find(a => a.id === selId);
+  const selEx = sel && sel.matches.length
+    ? vulnExploitability(sel.matches.reduce((best, v) => (v.risk_score || 0) > (best.risk_score || 0) ? v : best))
+    : null;
+
+  const byZone = {};
+  enriched.forEach(a => { (byZone[a.zone] = byZone[a.zone] || []).push(a); });
+  const edgesList = [];
+  Object.entries(byZone).forEach(([zid, list]) => {
+    for (let i = 0; i < list.length; i++) {
+      for (let k = i + 1; k < list.length; k++) {
+        if (k - i <= 2) edgesList.push({ a: list[i].id, b: list[k].id, zid });
+      }
+    }
+  });
+
+  const connectedToSel = sel ? new Set(edgesList.filter(e => e.a === selId || e.b === selId).flatMap(e => [e.a, e.b])) : null;
+
+  enriched.forEach(a => {
+    const p = pos[a.id];
+    if (!p) return;
+    const r = 7 + (a.score / maxScore) * 11;
+    const dim = sel && connectedToSel && !connectedToSel.has(a.id) && a.id !== selId;
+
+    nodes.push({
+      id: a.id,
+      type: 'assetNode',
+      position: { x: p.x - r, y: p.y - r },
+      data: {
+        name: a.name,
+        color: nodeColor(a.zone),
+        active: a.id === selId,
+        dim,
+        isRisky: a.crit > 0,
+        r,
+        asset: a
+      }
+    });
+  });
+
+  const rfEdges = edgesList.map((e, i) => {
+    const lit = sel && (e.a === selId || e.b === selId);
+    return {
+      id: `rf-edge-${i}`,
+      source: e.a,
+      target: e.b,
+      type: 'default', // Curved bezier line
+      style: {
+        stroke: nodeColor(e.zid),
+        strokeWidth: lit ? 1.6 : 0.9,
+        opacity: sel ? (lit ? 0.85 : 0.10) : 0.28
+      }
+    };
+  });
+
+  const SEV_OPTS = [['all', 'All severities'], ['med', 'Medium +'], ['high', 'High +'], ['crit', 'Critical only']];
+
+  return (
+    <Card style={{ marginTop: 16 }}>
+      <div className="kpmg-card-header-flex">
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#00338D', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ background: '#E0E7FF', padding: '2px 8px', borderRadius: 4 }}>ReactFlow Implementation</span>
+          </div>
+          <div className="kpmg-text-title-sm" style={{ marginBottom: 2 }}>Assets across the Purdue model (ReactFlow)</div>
+          <div className="kpmg-subtext">
+            Showing <strong>{enriched.length}</strong> of {allEnriched.length} assets{zoneF !== 'all' ? ` in ${zones.find(z => z.id === zoneF)?.name || zoneF}` : ''} — banded by Purdue level, coloured by zone. Click a node for its CVEs.
+          </div>
+        </div>
+        <div className="kpmg-flex-row" style={{ flexShrink: 0 }}>
+          <Select value={zoneF} onChange={e => { setZoneF(e.target.value); setSelId(null); }} className="kpmg-w-150"
+            options={[{ value: 'all', label: 'All zones' }, ...zones.map(z => ({ value: z.id, label: z.name }))]} />
+          <Select value={sevF} onChange={e => { setSevF(e.target.value); setSelId(null); }} className="kpmg-w-150"
+            options={SEV_OPTS.map(([v, l]) => ({ value: v, label: l }))} />
+        </div>
+      </div>
+
+      {enriched.length === 0 && <div className="kpmg-subtext" style={{ fontStyle: 'italic', padding: '8px 0' }}>No assets match this zone/severity filter{hiddenCount > 0 ? ` (${hiddenCount} filtered out)` : ''}.</div>}
+
+      <div style={{ display: 'flex', gap: 14 }}>
+        <div className="kpmg-stage-wrapper" style={{ position: 'relative', width: STAGE.W, height: STAGE_H }}>
+          {/* Level Bands SVG background identical to original */}
+          <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
+            <LevelBands />
+          </svg>
+
+          {/* React Flow Container */}
+          <ReactFlow
+            nodes={nodes}
+            edges={rfEdges}
+            nodeTypes={purdueNodeTypes}
+            onNodeClick={(evt, node) => setSelId(node.id === selId ? null : node.id)}
+            onPaneClick={() => setSelId(null)}
+            fitView={false}
+            style={{ width: '100%', height: '100%', background: 'transparent' }}
+            proOptions={{ hideAttribution: true }}
+          >
+          </ReactFlow>
+        </div>
+
+        {/* Right Details Sidebar matching exact design & CVEs */}
+        <div className="kpmg-asset-detail-sidebar">
+          {sel ? (
+            <div className="kpmg-asset-detail-card">
+              <div className="kpmg-modal-title">{sel.name}</div>
+              <div className="kpmg-subtext" style={{ marginBottom: 8 }}>{sel.deviceType} · L{sel.level} · {zones.find(z => z.id === sel.zone)?.name}</div>
+              {selEx && (
+                <div style={{ fontSize: 11.5, marginBottom: 8, padding: '7px 9px', borderRadius: 8, background: selEx.level === 'High' ? '#FEE4E2' : selEx.level === 'Medium' ? '#FEF0C7' : '#DCFAE6', color: selEx.level === 'High' ? '#B42318' : selEx.level === 'Medium' ? '#B54708' : '#067647', lineHeight: 1.5 }}>
+                  <strong>Exploitable: {selEx.level}.</strong> {selEx.reason}
+                </div>
+              )}
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: .5, margin: '8px 0 4px' }}>Associated CVEs ({sel.matches.length})</div>
+              {sel.matches.slice(0, 6).map(v => (
+                <div key={v.vuln_id} style={{ fontSize: 11.5, color: C.text, padding: '4px 0', borderTop: `1px solid ${C.border}` }}>
+                  <span className="kpmg-code-badge" style={{ fontSize: 10.5, color: C.navy }}>{v.cve_id || v.cve || v.vuln_id}</span> · {v.cvss}
+                  <div style={{ fontSize: 10.5, color: C.muted }}>{v.title}</div>
+                </div>
+              ))}
+              {!sel.matches.length && <div className="kpmg-subtext">No findings linked to this asset.</div>}
+            </div>
+          ) : <div className="kpmg-asset-detail-empty">Click an asset to see its CVEs and whether it's exploitable.</div>}
+        </div>
+      </div>
+
+      <div className="kpmg-legend-footer">
+        {zones.map(z => (<span key={z.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: nodeColor(z.id) }} />{z.name}</span>))}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#B42318', boxShadow: '0 0 6px #B42318' }} />red glow = severe vulnerability</span>
       </div>
     </Card>
   );
@@ -790,7 +1025,12 @@ export default function RiskLandscapeTab({ onNavigate }) {
           <button key={v} onClick={()=>setView(v)} style={{ padding:'5px 16px', borderRadius:6, fontSize:12, fontWeight:view===v?600:400, cursor:'pointer', background:view===v?'#fff':'transparent', color:view===v?C.navy:C.muted, border:'none', boxShadow:view===v?'0 1px 3px rgba(0,0,0,.08)':'none', fontFamily:'inherit' }}>{l}</button>
         ))}
       </div>
-      {view==='purdue'  && <PurdueGraph zones={zones} assets={assets} vulns={vulns} highlightAssetId={jumpAssetId}/>}
+      {view==='purdue'  && (
+        <>
+          <PurdueGraph zones={zones} assets={assets} vulns={vulns} highlightAssetId={jumpAssetId}/>
+          <ReactFlowPurdueGraph zones={zones} assets={assets} vulns={vulns} highlightAssetId={jumpAssetId}/>
+        </>
+      )}
       {view==='paths'   && <BusinessRiskView zones={zones} srSeed={srSeed} assets={assets} vulns={vulns} onJumpAsset={(id)=>{ setJumpAssetId(id); setView('purdue'); }}/>}
     </div>
   );
