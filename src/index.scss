@@ -1416,6 +1416,37 @@ h3 {
   font-size: 13px;
   line-height: 1.5;
   margin-bottom: 16px;
+  transition: all 0.2s ease;
+
+  &.blue {
+    background: #EFF6FF;
+    border-color: #B2DDFF;
+    color: #175CD3;
+
+    svg {
+      stroke: #175CD3;
+    }
+  }
+
+  &.amber {
+    background: #FFF7ED;
+    border-color: #FCD9A6;
+    color: #B54708;
+
+    svg {
+      stroke: #D97706;
+    }
+  }
+
+  &.red {
+    background: #FEF3F2;
+    border-color: #FECDCA;
+    color: #B42318;
+
+    svg {
+      stroke: #D9251B;
+    }
+  }
 }
 
 .kpmg-modal-box-warning {
@@ -1796,7 +1827,7 @@ h3 {
   background: #ffffff;
   border-radius: 14px;
   width: 100%;
-  max-height: 88vh;
+  max-height: 96vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 64px rgba(0, 51, 141, 0.2);
@@ -1828,6 +1859,7 @@ h3 {
 .kpmg-modal-body {
   padding: 20px 24px 8px 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
 }
 
@@ -1962,6 +1994,37 @@ h3 {
 
 .kpmg-form-field {
   margin-bottom: 16px;
+}
+
+/* Form Row Layout Utilities (Consistent 16px bottom margin across 1, 2, or 3 field rows) */
+.kpmg-form-row {
+  margin-bottom: 16px;
+
+  .kpmg-form-field {
+    margin-bottom: 0;
+  }
+}
+
+.kpmg-form-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .kpmg-form-field {
+    margin-bottom: 0;
+  }
+}
+
+.kpmg-form-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .kpmg-form-field {
+    margin-bottom: 0;
+  }
 }
 
 .kpmg-form-label {

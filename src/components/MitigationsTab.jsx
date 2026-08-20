@@ -428,6 +428,7 @@ function StepModal({ plan, step, onClose, onSave }) {
   const [title, setTitle] = useState(step?.title || '');
   const [desc, setDesc] = useState(step?.description || '');
   const [cat, setCat] = useState(step?.category || CATEGORIES[0].id);
+  const [textHere, setTextHere] = useState(step?.subCategory || 'Text here');
   const [reason, setReason] = useState('');
   const [err, setErr] = useState('');
   const isEdit = !!step?.id;
@@ -446,6 +447,7 @@ function StepModal({ plan, step, onClose, onSave }) {
       title,
       description: desc,
       category: cat,
+      subCategory: textHere,
       reason,
       manual: true,
     });
@@ -515,6 +517,22 @@ function StepModal({ plan, step, onClose, onSave }) {
             value={cat}
             onChange={(e) => setCat(e.target.value)}
             options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
+            style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
+            Text here
+          </label>
+          <Select
+            value={textHere}
+            onChange={(e) => setTextHere(e.target.value)}
+            options={[
+              { value: 'Text here', label: 'Text here' },
+              { value: 'Option 1', label: 'Option 1' },
+              { value: 'Option 2', label: 'Option 2' },
+            ]}
             style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
           />
         </div>

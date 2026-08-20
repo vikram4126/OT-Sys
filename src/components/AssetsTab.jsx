@@ -503,13 +503,13 @@ function RegisterShadowModal({ shadow, zones, onClose, onDone }) {
         </>
       }
     >
-      <div className="kpmg-modal-info-alert">
-        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <div className="kpmg-modal-info-alert" style={{ background: '#EFF6FF', border: '1px solid #B2DDFF', color: '#175CD3' }}>
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#175CD3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
           <circle cx="12" cy="12" r="10" />
           <line x1="12" y1="16" x2="12" y2="12" />
           <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
-        <span>
+        <span style={{ fontWeight: 600 }}>
           Complete the standard fields so this becomes a managed asset. Visibility recalculates once it&apos;s registered.
         </span>
       </div>
@@ -796,18 +796,18 @@ function AddAssetModal({ zones, kind, onClose, addAsset }) {
     >
       <div className="kpmg-add-asset-form">
         {/* Row 1: Name in single row */}
-        <div className="kpmg-form-full-row" style={{ marginBottom: 16 }}>
+        <div className="kpmg-form-row">
           <FormField label="Name" required><Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="E.g. PLC-LINE2-01" /></FormField>
         </div>
 
         {/* Row 2: Type and Kind in one row */}
-        <div className="kpmg-form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div className="kpmg-form-grid-2col">
           <FormField label="Type"><Input value={f.deviceType} onChange={e => set('deviceType', e.target.value)} placeholder="E.g. PLC, SCADA server" /></FormField>
           <FormField label="Kind"><Select value={f.kind} onChange={e => set('kind', e.target.value)} options={[{ value: 'hardware', label: 'Hardware' }, { value: 'software', label: 'Software / firmware' }]} /></FormField>
         </div>
 
         {/* Row 3: IP Address and OS / firmware in one row */}
-        <div className="kpmg-form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div className="kpmg-form-grid-2col">
           {f.kind === 'hardware' ? (
             <>
               <FormField label="IP Address"><Input value={f.ip} onChange={e => set('ip', e.target.value)} placeholder="optional" /></FormField>
@@ -822,7 +822,7 @@ function AddAssetModal({ zones, kind, onClose, addAsset }) {
         </div>
 
         {/* Row 4: Zone and Purdue level in one row */}
-        <div className="kpmg-form-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+        <div className="kpmg-form-grid-2col">
           <FormField label="Zone"><Select value={f.zone} onChange={e => set('zone', e.target.value)} options={zones.map(z => ({ value: z.id, label: z.name }))} /></FormField>
           <FormField label="Purdue level"><Select value={f.level} onChange={e => set('level', e.target.value)} options={[0, 1, 2, 3, 4, 5].map(l => ({ value: l, label: `L${l}` }))} /></FormField>
         </div>
@@ -830,7 +830,7 @@ function AddAssetModal({ zones, kind, onClose, addAsset }) {
         {/* Internet-facing Toggle Row */}
         <div
           onClick={() => set('internetFacing', !f.internetFacing)}
-          style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, cursor: 'pointer' }}
         >
           <div
             style={{
@@ -867,28 +867,28 @@ function AddAssetModal({ zones, kind, onClose, addAsset }) {
         </div>
 
         {/* Connection Header & List */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Connection</h3>
           <Btn variant="outline" onClick={() => setAddingConn(!addingConn)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
             {addingConn ? 'Cancel' : '+ Add connections'}
           </Btn>
         </div>
 
-        {/* Amber Info Alert Box */}
-        <div className="kpmg-modal-info-alert" style={{ marginBottom: 16 }}>
-          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        {/* Blue Info Alert Box */}
+        <div className="kpmg-modal-info-alert blue" style={{ marginBottom: 12 }}>
+          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          <span>
+          <span style={{ fontWeight: 600 }}>
             Inferred from ~10 minutes of zone capture — a limited sample, not a complete picture. Edit, remove or add connections you know to be wrong or missing.
           </span>
         </div>
 
         {/* Inline Add Connection Form */}
         {addingConn && (
-          <div style={{ background: '#F8FAFD', border: '1px solid #EAEBF0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{ background: '#F8FAFD', border: '1px solid #EAEBF0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <span style={{ fontSize: 12, color: '#666666', fontWeight: 500 }}>Target:</span>
             <Select
               value={newConnTarget}
@@ -910,7 +910,7 @@ function AddAssetModal({ zones, kind, onClose, addAsset }) {
         )}
 
         {/* Scrollable Connections List Container */}
-        <div style={{ maxHeight: 220, overflowY: 'auto', paddingRight: 4 }}>
+        <div style={{ maxHeight: 125, overflowY: 'auto', paddingRight: 4 }}>
           {conns.map(c => (
             <div
               key={c.id}
@@ -1056,87 +1056,128 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
         </div>
       }
     >
-      {/* 2x2 Form Fields Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-        <FormField label="Asset name" required>
-          <Input value={edit.name} onChange={e => setEdit(s => ({ ...s, name: e.target.value }))} placeholder="Asset name" />
-        </FormField>
+      {/* Form Fields Grid */}
+      <div className="kpmg-edit-asset-form">
+        {/* Row 1: Name in single row */}
+        <div className="kpmg-form-row">
+          <FormField label="Name" required>
+            <Input value={edit.name} onChange={e => setEdit(s => ({ ...s, name: e.target.value }))} placeholder="E.g. PLC-LINE2-01" />
+          </FormField>
+        </div>
 
-        <FormField label="Zone" required>
-          <Select
-            value={edit.zone}
-            onChange={e => setEdit(s => ({ ...s, zone: e.target.value }))}
-            options={zones.map(z => ({ value: z.id, label: z.name }))}
-          />
-        </FormField>
+        {/* Row 2: Type and Kind in one row */}
+        <div className="kpmg-form-grid-2col">
+          <FormField label="Type">
+            <Input value={edit.deviceType} onChange={e => setEdit(s => ({ ...s, deviceType: e.target.value }))} placeholder="E.g. PLC, SCADA server" />
+          </FormField>
+          <FormField label="Kind">
+            <Select
+              value={edit.kind || 'hardware'}
+              onChange={e => setEdit(s => ({ ...s, kind: e.target.value }))}
+              options={[{ value: 'hardware', label: 'Hardware' }, { value: 'software', label: 'Software / firmware' }]}
+            />
+          </FormField>
+        </div>
 
-        <FormField label="Device type" required>
-          <Input value={edit.deviceType} onChange={e => setEdit(s => ({ ...s, deviceType: e.target.value }))} placeholder="e.g. Unknown workstation, SCADA server" />
-        </FormField>
+        {/* Row 3: IP Address and OS / firmware in one row */}
+        <div className="kpmg-form-grid-2col">
+          {edit.kind !== 'software' ? (
+            <>
+              <FormField label="IP Address">
+                <Input value={edit.ip || ''} onChange={e => setEdit(s => ({ ...s, ip: e.target.value }))} placeholder="optional" />
+              </FormField>
+              <FormField label="OS / firmware">
+                <Input value={edit.os || ''} onChange={e => setEdit(s => ({ ...s, os: e.target.value }))} placeholder="e.g. Windows Server 2019" />
+              </FormField>
+            </>
+          ) : (
+            <>
+              <FormField label="Version">
+                <Input value={edit.version || ''} onChange={e => setEdit(s => ({ ...s, version: e.target.value }))} placeholder="e.g. 7.16" />
+              </FormField>
+              <FormField label="Host asset">
+                <Input value={edit.host || ''} onChange={e => setEdit(s => ({ ...s, host: e.target.value }))} placeholder="Optional host asset ID" />
+              </FormField>
+            </>
+          )}
+        </div>
 
-        <FormField label="IP address" required>
-          <Input value={edit.ip} onChange={e => setEdit(s => ({ ...s, ip: e.target.value }))} placeholder="e.g. 10.30.1.55" />
-        </FormField>
-      </div>
+        {/* Row 4: Zone and Purdue level in one row */}
+        <div className="kpmg-form-grid-2col">
+          <FormField label="Zone">
+            <Select
+              value={edit.zone}
+              onChange={e => setEdit(s => ({ ...s, zone: e.target.value }))}
+              options={zones.map(z => ({ value: z.id, label: z.name }))}
+            />
+          </FormField>
+          <FormField label="Purdue level">
+            <Select
+              value={edit.level ?? 3}
+              onChange={e => setEdit(s => ({ ...s, level: Number(e.target.value) }))}
+              options={[0, 1, 2, 3, 4, 5].map(l => ({ value: l, label: `L${l}` }))}
+            />
+          </FormField>
+        </div>
 
-      {/* Internet-facing Toggle Row */}
-      <div
-        onClick={() => setEdit(s => ({ ...s, internetFacing: !s.internetFacing }))}
-        style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24, cursor: 'pointer' }}
-      >
+        {/* Internet-facing Toggle Row */}
         <div
-          style={{
-            width: 44,
-            height: 24,
-            borderRadius: 12,
-            background: edit.internetFacing ? '#1E49E2' : '#EAECF0',
-            padding: 2,
-            display: 'flex',
-            alignItems: 'center',
-            transition: 'all 0.2s ease',
-            cursor: 'pointer',
-            flexShrink: 0
-          }}
+          onClick={() => setEdit(s => ({ ...s, internetFacing: !s.internetFacing }))}
+          style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, cursor: 'pointer' }}
         >
           <div
             style={{
-              width: 20,
-              height: 20,
-              borderRadius: '50%',
-              background: '#ffffff',
-              transform: edit.internetFacing ? 'translateX(20px)' : 'translateX(0px)',
+              width: 44,
+              height: 24,
+              borderRadius: 12,
+              background: edit.internetFacing ? '#1E49E2' : '#EAECF0',
+              padding: 2,
+              display: 'flex',
+              alignItems: 'center',
               transition: 'all 0.2s ease',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+              cursor: 'pointer',
+              flexShrink: 0
             }}
-          />
-        </div>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>Internet-facing</div>
-          <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>
-            reachable from outside the OT environment — save above to apply
+          >
+            <div
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                background: '#ffffff',
+                transform: edit.internetFacing ? 'translateX(20px)' : 'translateX(0px)',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+              }}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>Internet-facing</div>
+            <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>
+              reachable from outside the OT environment — save above to apply
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Connection Section Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Connection</h3>
-        <Btn variant="outline" onClick={() => setAdding(a => !a)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
-          {adding ? 'Cancel' : 'Add connections'}
-        </Btn>
-      </div>
+        {/* Connection Section Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Connection</h3>
+          <Btn variant="outline" onClick={() => setAdding(a => !a)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
+            {adding ? 'Cancel' : '+ Add connections'}
+          </Btn>
+        </div>
 
-      {/* Amber Info Alert Box */}
-      <div className="kpmg-modal-info-alert" style={{ marginBottom: 16 }}>
-        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="16" x2="12" y2="12" />
-          <line x1="12" y1="8" x2="12.01" y2="8" />
-        </svg>
-        <span>
-          Inferred from ~10 minutes of zone capture — a limited sample, not a complete picture. Edit, remove or add connections you know to be wrong or missing.
-        </span>
-      </div>
+        {/* Blue Info Alert Box */}
+        <div className="kpmg-modal-info-alert blue" style={{ marginBottom: 12 }}>
+          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          <span style={{ fontWeight: 600 }}>
+            Inferred from ~10 minutes of zone capture — a limited sample, not a complete picture. Edit, remove or add connections you know to be wrong or missing.
+          </span>
+        </div>
 
       {/* Inline Add Connection Form */}
       {adding && (
@@ -1163,7 +1204,7 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
       )}
 
       {/* Scrollable Connections List Container */}
-      <div style={{ maxHeight: 220, overflowY: 'auto', paddingRight: 4 }}>
+      <div style={{ maxHeight: 125, overflowY: 'auto', paddingRight: 4 }}>
         {conns.map(c => {
           const otherId = c.from === asset.id ? c.to : c.from;
           const otherName = aName(otherId);
@@ -1240,6 +1281,7 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
           );
         })}
       </div>
-    </Modal>
-  );
+    </div>
+  </Modal>
+);
 }
