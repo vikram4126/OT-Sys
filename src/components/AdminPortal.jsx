@@ -110,20 +110,25 @@ function EditUserModal({user, onClose, onSave}) {
       </FormField>
       <FormField label="Client Instance">
         <Select value={editUser.clientId||''} onChange={e=>setEditUser(u=>({...u,clientId:e.target.value}))}
-          options={['',  ...CLIENT_INSTANCES.map(c=>c.id)]}
-          labels={Object.fromEntries([['','No client assigned'],...CLIENT_INSTANCES.map(c=>[c.id,`${c.name} — ${c.site}`])])}/>
+          options={['',  ...getClients().map(c=>c.id)]}
+          labels={Object.fromEntries([['','No client assigned'],...getClients().map(c=>[c.id,`${c.name} — ${c.site}`])])}/>
       </FormField>
       <FormField label="Permissions">
         <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4}}>
-          {(ALL_PERMISSIONS||['view','override','delete','admin']).map(p=>(
-            <button key={p} onClick={()=>togglePerm(p)}
-              style={{padding:'4px 10px',borderRadius:5,fontSize:12,cursor:'pointer',
-                background:(editUser.permissions||[]).includes(p)?C.navy:'#fff',
-                color:(editUser.permissions||[]).includes(p)?'#fff':C.muted,
-                border:`1px solid ${(editUser.permissions||[]).includes(p)?C.navy:C.border}`,fontFamily:'inherit'}}>
-              {p}
-            </button>
-          ))}
+          {(ALL_PERMISSIONS||[]).map(item=>{
+            const pKey = typeof item === 'string' ? item : item.key;
+            const pLabel = typeof item === 'string' ? item : item.label;
+            const isSel = (editUser.permissions||[]).includes(pKey);
+            return (
+              <button key={pKey} onClick={()=>togglePerm(pKey)}
+                style={{padding:'4px 10px',borderRadius:5,fontSize:12,cursor:'pointer',
+                  background:isSel?C.navy:'#fff',
+                  color:isSel?'#fff':C.muted,
+                  border:`1px solid ${isSel?C.navy:C.border}`,fontFamily:'inherit'}}>
+                {pLabel}
+              </button>
+            );
+          })}
         </div>
       </FormField>
     </Modal>
@@ -307,18 +312,23 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
             <FormField label="Role"><Select value={newUser.role} onChange={e=>setNewUser(u=>({...u,role:e.target.value}))} options={ROLES||['Junior Analyst','Senior Analyst','Lead Analyst','Admin']}/></FormField>
             <FormField label="Client Instance">
               <Select value={newUser.clientId} onChange={e=>setNewUser(u=>({...u,clientId:e.target.value}))}
-                options={['',...CLIENT_INSTANCES.map(c=>c.id)]}
-                labels={Object.fromEntries([['','No client assigned'],...CLIENT_INSTANCES.map(c=>[c.id,`${c.name} — ${c.site}`])])}/>
+                options={['',...clients.map(c=>c.id)]}
+                labels={Object.fromEntries([['','No client assigned'],...clients.map(c=>[c.id,`${c.name} — ${c.site}`])])}/>
             </FormField>
           </div>
           <FormField label="Permissions">
             <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4}}>
-              {(ALL_PERMISSIONS||['view','override','delete','admin']).map(p=>(
-                <button key={p} onClick={()=>setNewUser(u=>({...u,permissions:u.permissions.includes(p)?u.permissions.filter(x=>x!==p):[...u.permissions,p]}))}
-                  style={{padding:'4px 10px',borderRadius:5,fontSize:12,cursor:'pointer',background:newUser.permissions.includes(p)?C.navy:'#fff',color:newUser.permissions.includes(p)?'#fff':C.muted,border:`1px solid ${newUser.permissions.includes(p)?C.navy:C.border}`,fontFamily:'inherit'}}>
-                  {p}
-                </button>
-              ))}
+              {(ALL_PERMISSIONS||[]).map(item=>{
+                const pKey = typeof item === 'string' ? item : item.key;
+                const pLabel = typeof item === 'string' ? item : item.label;
+                const isSel = newUser.permissions.includes(pKey);
+                return (
+                  <button key={pKey} onClick={()=>setNewUser(u=>({...u,permissions:u.permissions.includes(pKey)?u.permissions.filter(x=>x!==pKey):[...u.permissions,pKey]}))}
+                    style={{padding:'4px 10px',borderRadius:5,fontSize:12,cursor:'pointer',background:isSel?C.navy:'#fff',color:isSel?'#fff':C.muted,border:`1px solid ${isSel?C.navy:C.border}`,fontFamily:'inherit'}}>
+                    {pLabel}
+                  </button>
+                );
+              })}
             </div>
           </FormField>
         </Modal>
