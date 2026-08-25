@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { C } from '../theme';
 import { Card, Btn, FormField, Select, Input, Textarea, Tag, Modal, Bar2 } from './UI';
 import { Network, AlertCircle, Refresh } from './Icons';
+import { DynamicSegmentedBar } from './AssetsTab';
 import {
   useAssessment, SL_META, INDUSTRIES,
   SITE_SCALES, TOOLING_OPTIONS,
@@ -594,19 +595,13 @@ function EvidenceTile({ g, bump }) {
           {g.received}/{g.total}
         </div>
 
-        {/* Segmented Ticks Bar — exact component from Asset Visibility */}
-        <div className="kpmg-segmented-bar" style={{ margin: '12px 0 14px' }}>
-          {Array.from({ length: 50 }).map((_, idx) => {
-            const filled = ratio > 0 ? idx < Math.round(ratio * 50) : false;
-            return (
-              <div
-                key={idx}
-                className="kpmg-bar-tick"
-                style={{ background: filled ? activeColor : '#E9EAEF' }}
-              />
-            );
-          })}
-        </div>
+        {/* Dynamic Segmented Ticks Bar */}
+        <DynamicSegmentedBar
+          matchedRatio={ratio}
+          registerRatio={0}
+          shadowRatio={1 - ratio}
+          style={{ margin: '12px 0 14px' }}
+        />
 
         {/* Toggle items side drawer */}
         <button

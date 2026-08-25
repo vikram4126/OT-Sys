@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { C, getScoreColor, getScoreClass } from '../theme';
 import { Card, Btn, Modal, Select, Input, FormField } from './UI';
 import { Network, AlertCircle, Brain } from './Icons';
@@ -145,6 +145,43 @@ export default function AssetsTab() {
 /* ── Asset visibility ─────────────────────────────────────────────────────
    Plain arithmetic, no model: how far the client's records agree with what
    we observed. Every number is clickable back to its assets.              */
+export function DynamicSegmentedBar({ matchedRatio, registerRatio, shadowRatio, style, fillCard }) {
+  const containerRef = useRef(null);
+  const [ticksCount, setTicksCount] = useState(40);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        // Each tick unit = 5px width + 5px gap = 10px.
+        const computedTicks = Math.max(5, Math.floor((width + 5) / 10));
+        setTicksCount(computedTicks);
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const matched = Math.round((matchedRatio || 0) * ticksCount);
+  const register = Math.round((registerRatio || 0) * ticksCount);
+  const shadow = Math.max(0, ticksCount - matched - register);
+
+  return (
+    <div ref={containerRef} className="kpmg-segmented-bar" style={style}>
+      {Array.from({ length: matched }).map((_, i) => (
+        <div key={`m-${i}`} className="kpmg-bar-tick kpmg-bar-tick-matched" />
+      ))}
+      {Array.from({ length: register }).map((_, i) => (
+        <div key={`r-${i}`} className="kpmg-bar-tick kpmg-bar-tick-register" />
+      ))}
+      {Array.from({ length: shadow }).map((_, i) => (
+        <div key={`s-${i}`} className="kpmg-bar-tick kpmg-bar-tick-shadow" />
+      ))}
+    </div>
+  );
+}
+
 function VisibilityPanel({ assets, zones }) {
   const [how, setHow] = useState(false);
   const [zoneSel, setZoneSel] = useState(null);
@@ -163,11 +200,10 @@ function VisibilityPanel({ assets, zones }) {
 
   const displayZoneCards = showAllCards ? fullPool.slice(0, 20) : fullPool.slice(0, 10);
 
-  // Generate 170 ticks (4px width, 1px gap) to span full row width dynamically
-  const totalTicks = 170;
-  const matchedTicks = Math.round((v.matched / (v.total || 1)) * totalTicks) || 136;
-  const registerTicks = Math.round((v.registerOnly / (v.total || 1)) * totalTicks) || 17;
-  const shadowTicks = totalTicks - matchedTicks - registerTicks;
+  const tot = v.total || 1;
+  const matchedRatio = v.matched / tot;
+  const registerRatio = v.registerOnly / tot;
+  const shadowRatio = (tot - v.matched - v.registerOnly) / tot;
 
   return (
     <Card>
@@ -184,18 +220,12 @@ function VisibilityPanel({ assets, zones }) {
         </div>
       </div>
 
-      {/* Segmented Ticks Bar */}
-      <div className="kpmg-segmented-bar">
-        {Array.from({ length: matchedTicks }).map((_, i) => (
-          <div key={`m-${i}`} className="kpmg-bar-tick kpmg-bar-tick-matched" />
-        ))}
-        {Array.from({ length: Math.max(0, registerTicks) }).map((_, i) => (
-          <div key={`r-${i}`} className="kpmg-bar-tick kpmg-bar-tick-register" />
-        ))}
-        {Array.from({ length: Math.max(0, shadowTicks) }).map((_, i) => (
-          <div key={`s-${i}`} className="kpmg-bar-tick kpmg-bar-tick-shadow" />
-        ))}
-      </div>
+      {/* Dynamic Segmented Ticks Bar */}
+      <DynamicSegmentedBar
+        matchedRatio={matchedRatio}
+        registerRatio={registerRatio}
+        shadowRatio={shadowRatio}
+      />
 
       {/* Legend */}
       <div className="kpmg-legend-row">
