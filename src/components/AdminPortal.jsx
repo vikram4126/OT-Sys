@@ -113,7 +113,7 @@ function EditUserModal({user, onClose, onSave}) {
           options={['',  ...getClients().map(c=>c.id)]}
           labels={Object.fromEntries([['','No client assigned'],...getClients().map(c=>[c.id,`${c.name} — ${c.site}`])])}/>
       </FormField>
-      <FormField label="Permissions">
+      <FormField label="Permissions"> 
         <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4}}>
           {(ALL_PERMISSIONS||[]).map(item=>{
             const pKey = typeof item === 'string' ? item : item.key;

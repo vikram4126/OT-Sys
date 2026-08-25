@@ -3073,3 +3073,36 @@ h3 {
   font-weight: 700;
   line-height: 1;
 }
+
+/* ── Slide Drawer / Side Panel ────────────────────────────────────────── */
+.kpmg-slide-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 22, 40, 0.4);
+  z-index: 999;
+  display: flex;
+  justify-content: flex-end;
+  backdrop-filter: blur(2px);
+  animation: kpmgFadeIn 0.2s ease-out;
+}
+
+.kpmg-slide-drawer {
+  width: 440px;
+  max-width: 90vw;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -8px 0 32px rgba(0, 51, 141, 0.15);
+  display: flex;
+  flex-direction: column;
+  animation: kpmgSlideInRight 0.25s ease-out;
+}
+
+@keyframes kpmgFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes kpmgSlideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}

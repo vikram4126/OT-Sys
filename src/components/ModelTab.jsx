@@ -416,125 +416,225 @@ const MISSING_MARK = [
   { k:EVIDENCE_STATUS.NA,          label:'N/A here',      color:C.muted, bg:'#F1F1EF' },
 ];
 
-function EvidenceLine({ item, marks, current, onMark, showFallback }) {
+function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderTop:`1px solid ${C.border}`, padding:'10px 0' }}>
-      <div style={{ display:'flex', gap:10, alignItems:'flex-start', flexWrap:'wrap' }}>
-        <div style={{ flex:1, minWidth:230 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
-            <span style={{ fontSize:13, fontWeight:600, color:C.text }}>{item.name}</span>
-            {item.core && <Tag label="Core" color={C.navy} bg="#E7EEFB"/>}
-          </div>
-          <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{item.owner}</div>
-        </div>
-        <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-          {marks.map(m => {
-            const on = current === m.k;
-            return (
-              <button key={m.k} onClick={() => onMark(m.k)} style={{
-                background:on ? m.bg : 'none', border:`1px solid ${on ? m.color : C.border}`, color:on ? m.color : C.muted,
-                borderRadius:20, padding:'4px 11px', fontSize:11, fontWeight:on ? 700 : 500, cursor:'pointer', fontFamily:'inherit',
-              }}>{m.label}</button>
-            );
-          })}
-        </div>
+    <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
+      {/* Top row: Tags */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+        <span style={{ fontSize: 11, color: '#667085', fontWeight: 500 }}>Controls</span>
+        {item.core && (
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: '#B54708', background: '#FFFAEB', border: '1px solid #FEDF89', borderRadius: 12, padding: '1px 8px' }}>
+            Core
+          </span>
+        )}
       </div>
-      <button onClick={() => setOpen(o => !o)} style={{ background:'none', border:'none', color:C.navy, fontSize:11.5, fontWeight:600, cursor:'pointer', padding:'6px 0 0', fontFamily:'inherit' }}>
-        {open ? 'Hide' : 'Why it matters'}
-      </button>
+
+      {/* Item title */}
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#101828', lineHeight: 1.4, marginBottom: 12 }}>
+        {item.name}
+      </div>
+
+      {/* Status Buttons Row */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: open ? 12 : 0 }}>
+        {marks.map(m => {
+          const on = current === m.k;
+          return (
+            <button
+              key={m.k}
+              onClick={() => onMark(m.k)}
+              style={{
+                background: on ? (m.bg === '#E7F7EF' ? '#ECFDF5' : m.bg) : '#ffffff',
+                border: `1px solid ${on ? (m.color === C.low ? '#12B76A' : m.color) : '#D0D5DD'}`,
+                color: on ? (m.color === C.low ? '#027A48' : m.color) : '#344054',
+                borderRadius: 8,
+                padding: '6px 14px',
+                fontSize: 12,
+                fontWeight: on ? 700 : 500,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {m.label}
+            </button>
+          );
+        })}
+
+        {/* Chevron expand accordion button */}
+        <button
+          onClick={() => setOpen(o => !o)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#667085',
+            cursor: 'pointer',
+            padding: 4,
+            marginLeft: 'auto',
+            display: 'flex',
+            alignItems: 'center'
+          }}
+          title={open ? 'Collapse details' : 'Expand details'}
+        >
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Expanded Accordion Details */}
       {open && (
-        <div style={{ fontSize:12, color:C.muted, lineHeight:1.6, paddingTop:3 }}>
-          {item.why}
-          {showFallback && <div style={{ marginTop:6, color:C.high }}><strong>Fallback.</strong> {item.fallback}</div>}
-          {showFallback && item.finding && <div style={{ marginTop:4, color:C.critical, fontWeight:600 }}>Raises a finding: {item.finding}</div>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid #F2F4F7', paddingTop: 12, marginTop: 12 }}>
+          {item.why && (
+            <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Why it matters</div>
+              <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5 }}>{item.why}</div>
+            </div>
+          )}
+
+          {showFallback && item.fallback && (
+            <div style={{ background: '#FFFAEB', border: '1px solid #FEDF89', borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#B54708', marginBottom: 4 }}>Fallback</div>
+              <div style={{ fontSize: 12, color: '#B54708', lineHeight: 1.5 }}>{item.fallback}</div>
+            </div>
+          )}
+
+          {showFallback && item.finding && (
+            <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#B42318', marginBottom: 4 }}>Raises a finding</div>
+              <div style={{ fontSize: 12, color: '#B42318', lineHeight: 1.5 }}>{item.finding}</div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function EvidenceTile({ g, onScan, bump }) {
-  const [open, setOpen] = useState(false);
+function EvidenceSlideDrawer({ g, onClose, bump }) {
   const { received, missing } = evidenceSplit();
   const groupReceived = received.filter(it => it.group === g.id);
   const groupMissing = missing.filter(it => it.group === g.id);
+
+  return (
+    <div className="kpmg-slide-overlay" onClick={onClose}>
+      <div className="kpmg-slide-drawer" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid #EAECF0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0, lineHeight: 1.3 }}>{g.name}</h3>
+            <div style={{ fontSize: 12, color: '#475467', marginTop: 4, fontWeight: 500 }}>{g.owner}</div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: '#667085', fontSize: 18, cursor: 'pointer', padding: 4, lineHeight: 1, borderRadius: 4 }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Scrollable Items Container */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: '#F8FAFC' }}>
+          {groupReceived.map(it => (
+            <EvidenceSlideItem
+              key={it.id}
+              item={it}
+              marks={QUALITY}
+              current={it.quality}
+              onMark={q => { setEvidenceQuality(it.id, q); bump(); }}
+            />
+          ))}
+          {groupMissing.map(it => (
+            <EvidenceSlideItem
+              key={it.id}
+              item={it}
+              marks={MISSING_MARK}
+              current={it.status}
+              showFallback
+              onMark={m => { setEvidenceStatus(it.id, m); bump(); }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EvidenceTile({ g, bump }) {
+  const [openDrawer, setOpenDrawer] = useState(false);
 
   const ratio = g.total > 0 ? g.received / g.total : 0;
   const activeColor = ratio === 1 ? '#039855' : ratio > 0 ? '#F76808' : '#D9251B';
 
   return (
-    <Card style={{ padding: 18, borderRadius: 12, border: `1px solid ${g.changed ? '#FCD9A6' : '#EAECF0'}`, background: g.changed ? '#FFFBF2' : '#ffffff' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div>
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: '#101828' }}>{g.name}</span>
-          <span style={{ fontSize: 11, color: '#475467', marginLeft: 8 }}>{g.owner}</span>
+    <>
+      <Card style={{ padding: 18, borderRadius: 12, border: `1px solid ${g.changed ? '#FCD9A6' : '#EAECF0'}`, background: g.changed ? '#FFFBF2' : '#ffffff' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: '#101828' }}>{g.name}</span>
+            <span style={{ fontSize: 11, color: '#475467', marginLeft: 8 }}>{g.owner}</span>
+          </div>
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 600,
+              color: '#1E49E2',
+              background: '#F0F5FF',
+              border: '1px solid #D0E1FF',
+              borderRadius: 10,
+              padding: '2px 8px'
+            }}
+          >
+            Priority
+          </span>
         </div>
-        <span
+
+        {/* Big Score Fraction */}
+        <div style={{ fontSize: 24, fontWeight: 800, color: activeColor, marginBottom: 12, lineHeight: 1 }}>
+          {g.received}/{g.total}
+        </div>
+
+        {/* Segmented Ticks Bar — exact component from Asset Visibility */}
+        <div className="kpmg-segmented-bar" style={{ margin: '12px 0 14px' }}>
+          {Array.from({ length: 50 }).map((_, idx) => {
+            const filled = ratio > 0 ? idx < Math.round(ratio * 50) : false;
+            return (
+              <div
+                key={idx}
+                className="kpmg-bar-tick"
+                style={{ background: filled ? activeColor : '#E9EAEF' }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Toggle items side drawer */}
+        <button
+          onClick={() => setOpenDrawer(true)}
           style={{
-            fontSize: 10.5,
-            fontWeight: 600,
+            background: 'none',
+            border: 'none',
             color: '#1E49E2',
-            background: '#F0F5FF',
-            border: '1px solid #D0E1FF',
-            borderRadius: 10,
-            padding: '2px 8px'
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: 'pointer',
+            padding: 0,
+            fontFamily: 'inherit',
+            textDecoration: 'underline'
           }}
         >
-          Priority
-        </span>
-      </div>
+          Show {g.total} item{g.total === 1 ? '' : 's'}
+        </button>
+      </Card>
 
-      {/* Big Score Fraction */}
-      <div style={{ fontSize: 24, fontWeight: 800, color: activeColor, marginBottom: 12, lineHeight: 1 }}>
-        {g.received}/{g.total}
-      </div>
-
-      {/* Segmented Ticks Bar — exact component from Asset Visibility */}
-      <div className="kpmg-segmented-bar" style={{ margin: '12px 0 14px' }}>
-        {Array.from({ length: 50 }).map((_, idx) => {
-          const filled = ratio > 0 ? idx < Math.round(ratio * 50) : false;
-          return (
-            <div
-              key={idx}
-              className="kpmg-bar-tick"
-              style={{ background: filled ? activeColor : '#E9EAEF' }}
-            />
-          );
-        })}
-      </div>
-
-      {/* Toggle items */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: '#1E49E2',
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: 'pointer',
-          padding: 0,
-          fontFamily: 'inherit',
-          textDecoration: 'underline'
-        }}
-      >
-        {open ? 'Hide items' : `Show ${g.total} item${g.total === 1 ? '' : 's'}`}
-      </button>
-
-      {open && (
-        <div style={{ borderTop: `1px solid ${C.border}`, padding: '8px 0 0', marginTop: 10 }}>
-          {groupReceived.map(it => (
-            <EvidenceLine key={it.id} item={it} marks={QUALITY} current={it.quality}
-              onMark={q => { setEvidenceQuality(it.id, q); bump(); }} />
-          ))}
-          {groupMissing.map(it => (
-            <EvidenceLine key={it.id} item={it} marks={MISSING_MARK} current={it.status} showFallback
-              onMark={m => { setEvidenceStatus(it.id, m); bump(); }} />
-          ))}
-        </div>
+      {openDrawer && (
+        <EvidenceSlideDrawer
+          g={g}
+          onClose={() => setOpenDrawer(false)}
+          bump={bump}
+        />
       )}
-    </Card>
+    </>
   );
 }
 
