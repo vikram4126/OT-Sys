@@ -393,25 +393,31 @@ h3 {
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
 }
 
-/* Segmented Bar */
+/* Segmented Bar & Ticks */
 .kpmg-segmented-bar {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   height: 28px;
-  margin: 16px 0 12px 0;
+  margin: 14px 0 12px 0;
   width: 100%;
   overflow: hidden;
 }
 
 .kpmg-bar-tick {
-  width: 5px;
-  min-width: 5px;
+  flex: 1 1 0%;
   height: 28px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  transition: opacity 0.2s;
+  border-radius: 5px;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.kpmg-bar-tick-active-risk {
+  background: #E52323;
+}
+
+.kpmg-bar-tick-muted {
+  background: #D5D9E2;
 }
 
 /* Zone Grid & Asset Visibility Panel */

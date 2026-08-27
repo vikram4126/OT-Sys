@@ -389,7 +389,7 @@ function SectionScope({ company, setCompany, onSaved }) {
           borderRadius: 12,
           padding: '12px 20px',
           display: 'flex',
-          justify: 'flex-end',
+          justifyContent: 'flex-end',
           alignItems: 'center'
         }}
       >

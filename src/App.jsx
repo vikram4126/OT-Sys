@@ -13,6 +13,7 @@ import LogsTab from './components/LogsTab';
 import AdminPortal from './components/AdminPortal';
 import { seedDemoLogs, addLog, LOG_TYPES } from './services/logService';
 import { hasBaseline, SNAPSHOT_EVENT } from './services/snapshotService';
+import { useAssessment } from './services/assessmentStore';
 
 const LogsIcon = () => (
   <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{ flexShrink: 0 }}>
@@ -83,6 +84,7 @@ const SUBTITLES = {
 };
 
 export default function App() {
+  const { company } = useAssessment();
   const [tab, setTab] = useState(hasBaseline() ? 'dashboard' : 'model');
   const [adminMode, setAdminMode] = useState(false);
   const [expanded, setExpanded] = useState({ Assessment: true, Analysis: true, Reports: true });
@@ -198,10 +200,21 @@ export default function App() {
       <div className="kpmg-main-area">
         <header className="kpmg-header">
           <div className="kpmg-header-row">
-            <h1 className="kpmg-title">{TITLES[tab]}</h1>
+            <h1 className="kpmg-title">
+              {tab === 'dashboard' ? (company?.name || 'Acme Utilities') : TITLES[tab]}
+            </h1>
             {headerActions}
           </div>
-          {tab !== 'vulns' && (
+          {tab === 'dashboard' ? (
+            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+              <span style={{ background: '#F4F3FF', color: '#6941C6', fontSize: 12, fontWeight: 600, padding: '3px 12px', borderRadius: 16 }}>
+                {company?.industry || 'Energy & Utilities'}
+              </span>
+              <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 12, fontWeight: 600, padding: '3px 12px', borderRadius: 16 }}>
+                {company?.primarySite || 'North Plant'}
+              </span>
+            </div>
+          ) : tab !== 'vulns' && (
             <div className="kpmg-subtitle">
               {SUBTITLES[tab] || `Manage and overview your ${TITLES[tab]?.toLowerCase() || ''}`}
             </div>

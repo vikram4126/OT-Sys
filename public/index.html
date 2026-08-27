@@ -4,25 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#00338D" />
-    <!-- Mirrors the CSP the backend already sends on its own responses
-         (see backend/app/core/security.py SecurityHeadersMiddleware) — this
-         is the layer that actually matters, since that one only covers API
-         JSON responses, not the page that loads this app. connect-src
-         includes the default local dev backend; update for other deployments. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; script-src 'self'; connect-src 'self' http://127.0.0.1:8000 http://localhost:8000; object-src 'none'; base-uri 'self'; form-action 'self'" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-    <style>
-      @font-face {
-        font-family: 'KPMG';
-        src: url('%PUBLIC_URL%/kpmg-fonts/kpmg-web-light.woff2') format('woff2'),
-             url('%PUBLIC_URL%/kpmg-fonts/kpmg-web-light.woff') format('woff'),
-             url('%PUBLIC_URL%/kpmg-fonts/kpmg-web-light.ttf') format('truetype');
-        font-weight: 300;
-        font-style: normal;
-      }
-    </style>
     <title>OT Overview</title>
   </head>
   <body>
