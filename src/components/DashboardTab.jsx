@@ -10,7 +10,7 @@ import {
 } from '../services/assessmentStore';
 
 // Reusable Segmented Risk Ticks component matching SCSS design classes
-const RiskTickBar = ({ score, totalTicks = 32 }) => {
+const RiskTickBar = ({ score, totalTicks = 48 }) => {
   const activeCount = Math.round((score / 10) * totalTicks);
   return (
     <div className="kpmg-segmented-bar">

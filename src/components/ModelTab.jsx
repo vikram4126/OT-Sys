@@ -598,8 +598,7 @@ function EvidenceTile({ g, bump }) {
         {/* Dynamic Segmented Ticks Bar */}
         <DynamicSegmentedBar
           matchedRatio={ratio}
-          registerRatio={0}
-          shadowRatio={1 - ratio}
+          color={activeColor}
           style={{ margin: '12px 0 14px' }}
         />
 

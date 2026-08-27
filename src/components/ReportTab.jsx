@@ -342,12 +342,6 @@ export default function ReportTab({ onNavigate = () => {} }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text, letterSpacing: -.3 }}>Assessment Report</h2>
-        <p style={{ margin: '4px 0 0', color: C.muted, fontSize: 13 }}>
-          OT Security Assessment — {client.orgName || 'Organisation from Uploads'}
-        </p>
-      </div>
 
       {/* Risk score header — overall + per zone */}
       <div style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:16, alignItems:'stretch' }}>

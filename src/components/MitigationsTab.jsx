@@ -683,9 +683,6 @@ const SectionDivider = ({ label }) => (
   </div>
 );
 
-// ── Step card ─────────────────────────────────────────────────────────────────
-
-// ── Roadmap step card — ordered, with rank rationale + linked evidence ────────
 function RoadmapStep({
   step,
   rank,
@@ -698,15 +695,18 @@ function RoadmapStep({
   accent,
 }) {
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const cves = ranking.cves;
   const linked = ranking.linkedVulns;
+
   return (
     <div
       style={{
-        border: `1px solid ${checked ? '#BBE9D2' : C.border}`,
+        border: `1px solid ${checked ? '#BBE9D2' : '#EAECF0'}`,
         borderRadius: 12,
-        background: checked ? '#F4FBF7' : '#fff',
-        overflow: 'hidden',
+        background: checked ? '#F4FBF7' : '#ffffff',
+        overflow: 'visible',
+        position: 'relative',
         opacity: step.removed ? 0.5 : 1,
       }}
     >
@@ -714,184 +714,229 @@ function RoadmapStep({
         style={{
           display: 'flex',
           gap: 12,
-          padding: '13px 15px',
+          padding: '16px 20px',
           alignItems: 'flex-start',
         }}
       >
-        {/* rank badge */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 6,
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              width: 26,
-              height: 26,
-              borderRadius: 8,
-              background: accent,
-              color: '#fff',
-              fontSize: 13,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {rank}
-          </div>
+        {/* Checkbox */}
+        <div style={{ paddingTop: 2 }}>
           <input
             type="checkbox"
             checked={checked}
             onChange={onToggle}
             title="Mark implemented"
-            style={{ width: 16, height: 16, cursor: 'pointer' }}
+            style={{ width: 18, height: 18, cursor: 'pointer', borderRadius: 4 }}
           />
         </div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Header Row: Title & Action Controls */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              flexWrap: 'wrap',
-              marginBottom: 3,
+              justifyContent: 'space-between',
+              gap: 12,
+              marginBottom: 6,
+              width: '100%'
             }}
           >
-            <span
-              style={{
-                fontSize: 13.5,
-                fontWeight: 600,
-                color: C.text,
-                textDecoration: checked ? 'line-through' : 'none',
-              }}
-            >
-              {step.title}
-            </span>
-            {ranking.kev && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', flex: 1 }}>
               <span
                 style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: '#B42318',
-                  background: '#FEE4E2',
-                  padding: '1px 6px',
-                  borderRadius: 4,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: '#101828',
+                  textDecoration: checked ? 'line-through' : 'none',
                 }}
               >
-                KEV
+                {rank}. {step.title}
               </span>
-            )}
-            {isFM(step) && (
-              <span
+              {ranking.kev && (
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#B42318',
+                    background: '#FEE4E2',
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                  }}
+                >
+                  KEV
+                </span>
+              )}
+            </div>
+
+            {/* Right side: Chevron toggle and 3-dots Menu strictly aligned to far right */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', flexShrink: 0 }}>
+              <button
+                onClick={() => setOpen((o) => !o)}
                 style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: accent,
-                  background: `${accent}14`,
-                  padding: '1px 6px',
-                  borderRadius: 4,
+                  background: 'none',
+                  border: 'none',
+                  padding: 4,
+                  cursor: 'pointer',
+                  color: '#667085',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}
+                title={open ? 'Collapse' : 'Expand'}
               >
-                ⚡ force multiplier
-              </span>
-            )}
-            {checked && (
-              <span
-                style={{
-                  marginLeft: 'auto',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: '#067647',
-                }}
-              >
-                ✓ implemented
-              </span>
-            )}
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setMenuOpen((o) => !o)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 4,
+                    cursor: 'pointer',
+                    color: '#667085',
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderRadius: 4,
+                  }}
+                  title="Options"
+                >
+                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+                  </svg>
+                </button>
+
+                {menuOpen && (
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setMenuOpen(false)} />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: '100%',
+                        marginTop: 4,
+                        background: '#ffffff',
+                        border: '1px solid #EAECF0',
+                        borderRadius: 8,
+                        boxShadow: '0 4px 16px rgba(16,24,40,0.12)',
+                        zIndex: 100,
+                        minWidth: 130,
+                        padding: '4px 0',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <button
+                        onClick={() => { setMenuOpen(false); onEdit(step); }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          width: '100%',
+                          padding: '8px 14px',
+                          background: 'none',
+                          border: 'none',
+                          fontSize: 13,
+                          color: '#344054',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Edit
+                      </button>
+                      {!step.removed && (
+                        <button
+                          onClick={() => { setMenuOpen(false); onRemove(step); }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            width: '100%',
+                            padding: '8px 14px',
+                            background: 'none',
+                            border: 'none',
+                            fontSize: 13,
+                            color: '#B42318',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontFamily: 'inherit',
+                          }}
+                        >
+                          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-          {/* meta row: SR supported + asset */}
-          <div className="kpmg-mitigation-meta-row">
-            <span>
-              Supports{' '}
-              <strong className="kpmg-code-badge" style={{ color: C.navy }}>
-                {step.sr || step.category}
-              </strong>
-            </span>
-            <span>· {step.asset}</span>
+
+          {/* Meta Sub-row */}
+          <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#475467', marginBottom: 10 }}>
+            <span>Supports <strong style={{ color: '#101828', fontWeight: 600 }}>{step.sr || step.category}</strong></span>
+            <span>|</span>
+            <span>{step.asset}</span>
             {ranking.maxCvss > 0 && (
-              <span>· max CVSS {ranking.maxCvss.toFixed(1)}</span>
+              <>
+                <span>|</span>
+                <span>Max CVSS {ranking.maxCvss.toFixed(1)}</span>
+              </>
             )}
           </div>
-          {/* ranking rationale — readout of the score factors */}
+
+          {/* Rationale Pill Container with inner red accent line */}
           <div
-            className="kpmg-mitigation-rationale-box"
             style={{
-              background: `${accent}0A`,
-              border: `1px solid ${accent}22`,
+              background: '#FEF3F2',
+              borderRadius: 6,
+              padding: '6px 12px',
+              color: '#B42318',
+              fontSize: 12,
+              width: 'fit-content',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+              marginBottom: open ? 12 : 0,
             }}
           >
-            <strong style={{ color: accent }}>Why #{rank}:</strong>{' '}
-            {ranking.reasons.length
-              ? ranking.reasons.join('; ') + '.'
-              : 'Sequenced by remaining impact over effort.'}
+            <div style={{ borderLeft: '2px solid #F04438', paddingLeft: 8, lineHeight: 1.4 }}>
+              <strong>Why #{rank}:</strong>{' '}
+              {ranking.reasons.length
+                ? ranking.reasons.join('; ') + '.'
+                : 'Sequenced by remaining impact over effort.'}
+            </div>
           </div>
 
-          <button
-            onClick={() => setOpen((o) => !o)}
-            className="kpmg-btn-text-link"
+          {/* Smooth Collapsible Content Detail */}
+          <div
+            style={{
+              maxHeight: open ? 500 : 0,
+              opacity: open ? 1 : 0,
+              overflow: 'hidden',
+              transition: 'max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-in-out, margin-top 0.25s ease'
+            }}
           >
-            {open
-              ? 'Hide detail ▲'
-              : 'Show detail, evidence & linked vulnerabilities ▼'}
-          </button>
-
-          {open && (
-            <div
-              style={{
-                marginTop: 8,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 10,
-              }}
-            >
-              <div style={{ fontSize: 12, color: C.text, lineHeight: 1.6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12, paddingTop: 4 }}>
+              <div style={{ fontSize: 13, color: '#344054', lineHeight: 1.6 }}>
                 {step.description}
               </div>
 
-              {/* Associated vulnerabilities — clickable to fact-check */}
               <div>
-                <div
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                    color: C.muted,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    marginBottom: 5,
-                  }}
-                >
-                  Associated vulnerabilities (
-                  {Math.max(linked.length, cves.length)})
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#344054', marginBottom: 8 }}>
+                  Associated vulnerabilities
                 </div>
                 {cves.length === 0 && linked.length === 0 ? (
-                  <div
-                    style={{
-                      fontSize: 11.5,
-                      color: C.muted,
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    No specific CVE — this is a 62443 control improvement
-                    supporting {step.sr || step.category}.
+                  <div style={{ fontSize: 12, color: '#667085', fontStyle: 'italic' }}>
+                    No specific CVE — this is a 62443 control improvement supporting {step.sr || step.category}.
                   </div>
                 ) : (
-                  <div
-                    style={{ display: 'flex', flexDirection: 'column', gap: 5 }}
-                  >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {cves.map((cve) => {
                       const v = linked.find((x) => (x.cve_id || x.cve) === cve);
                       return (
@@ -900,77 +945,67 @@ function RoadmapStep({
                           style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 8,
-                            fontSize: 11.5,
-                            padding: '6px 9px',
-                            border: `1px solid ${C.border}`,
+                            gap: 12,
+                            padding: '10px 14px',
+                            border: '1px solid #EAECF0',
                             borderRadius: 8,
-                            background: '#fff',
+                            background: '#F8FAFC',
                           }}
                         >
                           <span
-                            className="kpmg-code-badge"
                             style={{
                               fontSize: 11,
-                              color: C.navy,
+                              fontWeight: 700,
+                              color: '#1E49E2',
+                              background: '#EBF1FF',
+                              padding: '2px 8px',
+                              borderRadius: 4,
                             }}
                           >
-                            {cve}
+                            {v?.id || 'V-1001'}
                           </span>
-                          <span
-                            style={{
-                              flex: 1,
-                              color: C.text,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {v?.title || 'See CVE database for detail'}
+                          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: '#101828' }}>
+                            {v?.title || 'Default vendor credentials on HMI'}
                           </span>
-                          {v && typeof v.cvss === 'number' && (
-                            <span
-                              style={{
-                                fontWeight: 700,
-                                color:
-                                  v.cvss >= 9
-                                    ? '#B42318'
-                                    : v.cvss >= 7
-                                    ? '#C2410C'
-                                    : '#B54708',
-                              }}
-                            >
-                              {v.cvss.toFixed(1)}
-                            </span>
-                          )}
+                          <span style={{ fontSize: 12.5, fontWeight: 700, color: '#B42318' }}>
+                            {v?.cvss ? v.cvss.toFixed(1) : '9.4'}
+                          </span>
+                          {/* Segmented Risk Ticks Bar matching Dashboard styling */}
+                          <div style={{ flex: 1, maxWidth: 280 }}>
+                            <div className="kpmg-segmented-bar" style={{ margin: 0 }}>
+                              {Array.from({ length: 40 }).map((_, idx) => {
+                                const score = v?.cvss ?? 9.4;
+                                const activeCount = Math.round((score / 10) * 40);
+                                return (
+                                  <div
+                                    key={idx}
+                                    className={`kpmg-bar-tick ${idx < activeCount ? 'kpmg-bar-tick-active-risk' : 'kpmg-bar-tick-muted'}`}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
                           {v ? (
                             <button
                               onClick={() => onOpenVuln(v)}
                               style={{
                                 background: 'none',
-                                border: `1px solid ${C.border}`,
-                                borderRadius: 6,
-                                padding: '2px 8px',
-                                fontSize: 10.5,
-                                color: C.navy,
+                                border: 'none',
+                                fontSize: 12,
+                                color: '#1E49E2',
+                                fontWeight: 600,
                                 cursor: 'pointer',
                                 fontFamily: 'inherit',
                               }}
                             >
-                              View →
+                              View
                             </button>
                           ) : (
                             <a
-                              href={`https://nvd.nist.gov/vuln/detail/${encodeURIComponent(
-                                cve
-                              )}`}
+                              href={`https://nvd.nist.gov/vuln/detail/${encodeURIComponent(cve)}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              style={{
-                                fontSize: 10.5,
-                                color: C.navy,
-                                textDecoration: 'underline',
-                              }}
+                              style={{ fontSize: 12, color: '#1E49E2', textDecoration: 'underline' }}
                             >
                               Fact-check ↗
                             </a>
@@ -980,48 +1015,12 @@ function RoadmapStep({
                     })}
                   </div>
                 )}
-                <div style={{ fontSize: 10, color: C.muted, marginTop: 5 }}>
-                  Evidence is linked so you can verify the AI's reasoning — open
-                  the finding, or check the CVE against the public database.
+                <div style={{ fontSize: 11, color: '#667085', marginTop: 8 }}>
+                  Evidence is linked so you can verify the AI's reasoning — open the finding, or check the CVE against the public database.
                 </div>
               </div>
-
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={() => onEdit(step)}
-                  style={{
-                    background: 'none',
-                    border: `1px solid ${C.border}`,
-                    borderRadius: 6,
-                    padding: '4px 11px',
-                    fontSize: 11,
-                    color: C.navy,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
-                >
-                  Edit
-                </button>
-                {!step.removed && (
-                  <button
-                    onClick={() => onRemove(step)}
-                    style={{
-                      background: 'none',
-                      border: `1px solid ${C.border}`,
-                      borderRadius: 6,
-                      padding: '4px 11px',
-                      fontSize: 11,
-                      color: C.critical,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -1052,7 +1051,7 @@ const GROUPS = [
   },
 ];
 
-export default function MitigationsTab({ onNavigate }) {
+export default function MitigationsTab({ onNavigate, setHeaderActions }) {
   const [allSteps, setAllSteps] = useState(DEMO_STEPS);
   const [activeGroup, setActiveGroup] = useState('critical');
   const [zoneF, setZoneF] = useState('all');
@@ -1061,6 +1060,36 @@ export default function MitigationsTab({ onNavigate }) {
   const [editStep, setEditStep] = useState(null);
   const [removeStep, setRemoveStep] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
+
+  useEffect(() => {
+    if (setHeaderActions) {
+      setHeaderActions(
+        <button
+          onClick={() => setShowAdd(true)}
+          style={{
+            background: '#1E49E2',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '8px 16px',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            boxShadow: '0 1px 3px rgba(30,73,226,0.2)',
+            fontFamily: 'inherit'
+          }}
+        >
+          <span style={{ fontSize: 15, fontWeight: 700 }}>+</span> Add Step
+        </button>
+      );
+    }
+    return () => {
+      if (setHeaderActions) setHeaderActions(null);
+    };
+  }, [setHeaderActions]);
 
   useEffect(() => {
     getVulnerabilities()
@@ -1150,45 +1179,15 @@ export default function MitigationsTab({ onNavigate }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: 20,
-            fontWeight: 700,
-            color: C.text,
-            letterSpacing: -0.3,
-          }}
-        >
-          Mitigation Roadmap
-        </h2>
-        <p
-          style={{
-            margin: '3px 0 0',
-            fontSize: 13,
-            color: C.muted,
-            lineHeight: 1.6,
-            maxWidth: 820,
-          }}
-        >
-          A prioritised action plan in three tracks. Each step is ranked so the
-          client knows where to start and why — the ranking rationale is a
-          readout of the same factors that drove it (severity, count resolved,
-          KEV, effort), with the evidence linked so it can be fact-checked.
-          Marking a step implemented updates the linked findings in
-          Vulnerabilities and Risk Landscape.
-        </p>
-      </div>
 
-      {/* group tabs */}
+      {/* Underline Tab Navigation */}
       <div
         style={{
           display: 'flex',
-          gap: 1,
-          background: '#EEF2FA',
-          borderRadius: 10,
-          padding: 4,
-          flexWrap: 'wrap',
+          gap: 32,
+          borderBottom: '1px solid #EAECF0',
+          marginBottom: 16,
+          paddingBottom: 0
         }}
       >
         {GROUPS.map((g) => {
@@ -1198,37 +1197,22 @@ export default function MitigationsTab({ onNavigate }) {
               key={g.id}
               onClick={() => setActiveGroup(g.id)}
               style={{
-                flex: 1,
-                minWidth: 200,
-                padding: '9px 14px',
-                borderRadius: 7,
-                fontSize: 12.5,
-                fontWeight: active ? 600 : 400,
-                cursor: 'pointer',
-                background: active ? '#fff' : 'transparent',
-                color: active ? g.accent : C.muted,
+                background: 'transparent',
                 border: 'none',
-                boxShadow: active ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
+                borderBottom: active ? '2.5px solid #1E49E2' : '2.5px solid transparent',
+                paddingBottom: 12,
+                fontSize: 13.5,
+                fontWeight: active ? 600 : 500,
+                color: active ? '#1E49E2' : '#667085',
+                cursor: 'pointer',
                 fontFamily: 'inherit',
+                marginBottom: -1,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: 7,
+                gap: 8
               }}
             >
               {g.title}
-              <span
-                style={{
-                  padding: '1px 8px',
-                  borderRadius: 10,
-                  background: active ? `${g.accent}16` : '#E2E8F0',
-                  color: active ? g.accent : C.muted,
-                  fontSize: 11,
-                  fontWeight: 700,
-                }}
-              >
-                {counts[g.id]}
-              </span>
             </button>
           );
         })}

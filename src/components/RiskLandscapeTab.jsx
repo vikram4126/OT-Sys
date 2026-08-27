@@ -1013,13 +1013,6 @@ export default function RiskLandscapeTab({ onNavigate }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <div>
-        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.text, letterSpacing:-.3 }}>Risk Landscape</h2>
-        <p style={{ margin:'3px 0 0', fontSize:13, color:C.muted, lineHeight:1.6, maxWidth:780 }}>
-          What could actually happen to the business, and why that's credible. Attack scenarios are supporting
-          illustration — one plausible route each, not an enumeration of every possible path.
-        </p>
-      </div>
       <div style={{ display:'flex', gap:1, background:'#EEF2FA', borderRadius:8, padding:3, width:'fit-content' }}>
         {[['purdue','Purdue model'],['paths','Business risk']].map(([v,l])=>(
           <button key={v} onClick={()=>setView(v)} style={{ padding:'5px 16px', borderRadius:6, fontSize:12, fontWeight:view===v?600:400, cursor:'pointer', background:view===v?'#fff':'transparent', color:view===v?C.navy:C.muted, border:'none', boxShadow:view===v?'0 1px 3px rgba(0,0,0,.08)':'none', fontFamily:'inherit' }}>{l}</button>

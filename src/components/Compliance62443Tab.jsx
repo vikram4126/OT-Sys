@@ -454,14 +454,7 @@ export default function Compliance62443Tab() {
 
   return (
     <div className="kpmg-page-stack">
-      <div className="kpmg-header-row">
-        <div>
-          <h2 className="kpmg-title">IEC 62443-3-3</h2>
-          <p className="kpmg-subtitle">
-            Click a zone or conduit in the diagram to inspect its requirements. Each requirement shows its status; click one to
-            review the evidence, see the AI's suggestion, and record your determination.
-          </p>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
         <button onClick={()=>setActionsOpen(true)} className="kpmg-btn-primary" style={{ flexShrink:0, boxShadow:'0 2px 8px rgba(0,51,141,.2)' }}>
           <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           Actions{actionCount>0 && <span style={{ fontSize:12, fontWeight:700, background:'rgba(255,255,255,.25)', padding:'1px 8px', borderRadius:20 }}>{actionCount}</span>}

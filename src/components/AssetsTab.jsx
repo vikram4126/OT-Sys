@@ -145,7 +145,7 @@ export default function AssetsTab() {
 /* ── Asset visibility ─────────────────────────────────────────────────────
    Plain arithmetic, no model: how far the client's records agree with what
    we observed. Every number is clickable back to its assets.              */
-export function DynamicSegmentedBar({ matchedRatio, registerRatio, shadowRatio, style, fillCard }) {
+export function DynamicSegmentedBar({ matchedRatio, registerRatio = 0, shadowRatio = 0, color, style, fillCard }) {
   const containerRef = useRef(null);
   const [ticksCount, setTicksCount] = useState(40);
 
@@ -154,8 +154,8 @@ export function DynamicSegmentedBar({ matchedRatio, registerRatio, shadowRatio, 
     const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
         const width = entry.contentRect.width;
-        // Each tick unit = 5px width + 5px gap = 10px.
-        const computedTicks = Math.max(5, Math.floor((width + 5) / 10));
+        // Each tick unit = 5px width + 4px gap = 9px.
+        const computedTicks = Math.max(5, Math.floor((width + 4) / 9));
         setTicksCount(computedTicks);
       }
     });
@@ -167,8 +167,24 @@ export function DynamicSegmentedBar({ matchedRatio, registerRatio, shadowRatio, 
   const register = Math.round((registerRatio || 0) * ticksCount);
   const shadow = Math.max(0, ticksCount - matched - register);
 
+  if (color) {
+    return (
+      <div ref={containerRef} className="kpmg-segmented-bar kpmg-segmented-bar-wide" style={style}>
+        {Array.from({ length: ticksCount }).map((_, i) => (
+          <div
+            key={`t-${i}`}
+            className="kpmg-bar-tick"
+            style={{
+              background: i < matched ? color : '#D5D9E2'
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div ref={containerRef} className="kpmg-segmented-bar" style={style}>
+    <div ref={containerRef} className="kpmg-segmented-bar kpmg-segmented-bar-wide" style={style}>
       {Array.from({ length: matched }).map((_, i) => (
         <div key={`m-${i}`} className="kpmg-bar-tick kpmg-bar-tick-matched" />
       ))}

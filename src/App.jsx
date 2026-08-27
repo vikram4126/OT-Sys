@@ -243,7 +243,7 @@ export default function App() {
                 {tab === 'risk' && <RiskLandscapeTab onNavigate={handleSetTab} />}
                 {tab === 'assets' && <AssetsTab />}
                 {tab === 'compliance' && <Compliance62443Tab />}
-                {tab === 'mitigations' && <MitigationsTab onNavigate={setTab} />}
+                {tab === 'mitigations' && <MitigationsTab onNavigate={setTab} setHeaderActions={setHeaderActions} />}
                 {tab === 'report' && <ReportTab onNavigate={setTab} />}
                 {tab === 'logs' && <LogsTab />}
               </>
