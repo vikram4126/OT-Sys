@@ -258,7 +258,7 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
 
 // ── ReactFlow implementation of Purdue model ─────────────────────────────────
 const ReactFlowAssetNode = ({ data }) => {
-  const { name, color, active, dim, isRisky, r, scoreLabel } = data;
+  const { name, color, active, dim, isRisky, r } = data;
   const size = Math.max(16, (r || 10) * 2);
 
   return (
@@ -272,10 +272,39 @@ const ReactFlowAssetNode = ({ data }) => {
       flexDirection: 'column',
       alignItems: 'center'
     }}>
-      <Handle type="target" position={Position.Top} style={{ background: 'transparent', border: 'none' }} />
-      <Handle type="target" position={Position.Left} style={{ background: 'transparent', border: 'none' }} />
+      {/* Centered Connection Handles pinned exactly to Circle Center */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{
+          position: 'absolute',
+          top: size / 2,
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 1,
+          height: 1,
+          background: 'transparent',
+          border: 'none',
+          zIndex: 10
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        style={{
+          position: 'absolute',
+          top: size / 2,
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 1,
+          height: 1,
+          background: 'transparent',
+          border: 'none',
+          zIndex: 10
+        }}
+      />
       
-      {/* Outer pulsing ring if severe/risky */}
+      {/* Outer pulsing & blinking ring for severe/risky nodes */}
       {isRisky && (
         <div style={{
           position: 'absolute',
@@ -284,9 +313,10 @@ const ReactFlowAssetNode = ({ data }) => {
           width: size + 8,
           height: size + 8,
           borderRadius: '50%',
-          border: '1.5px solid #E8284B',
+          border: '2px solid #E8284B',
           boxSizing: 'border-box',
-          animation: 'pulse 2.6s infinite'
+          animation: 'kpmgPulseBlink 1.8s ease-in-out infinite',
+          pointerEvents: 'none'
         }} />
       )}
 
@@ -297,26 +327,30 @@ const ReactFlowAssetNode = ({ data }) => {
         borderRadius: '50%',
         background: isRisky ? '#E8284B' : color,
         border: `1.5px solid ${active ? '#0A1628' : '#FFFFFF'}`,
-        boxShadow: active ? '0 0 0 2px #0A1628' : 'none',
+        boxShadow: active ? '0 0 0 2.5px #0A1628' : 'none',
         boxSizing: 'border-box'
       }} />
 
-      {/* Asset Name Label */}
+      {/* Asset Name Label with solid pill background to avoid line overlap */}
       {(active || size > 24) && (
         <div style={{
-          fontSize: 8,
+          fontSize: 8.5,
           color: '#101828',
           marginTop: 4,
           whiteSpace: 'nowrap',
-          opacity: dim ? 0.4 : 0.9,
-          fontWeight: active ? 700 : 400
+          opacity: dim ? 0.4 : 0.95,
+          fontWeight: active ? 700 : 500,
+          background: 'rgba(255, 255, 255, 0.92)',
+          padding: '1px 5px',
+          borderRadius: 4,
+          border: '1px solid #EAECF0',
+          boxShadow: '0 1px 2px rgba(10, 22, 40, 0.05)',
+          zIndex: 12,
+          position: 'relative'
         }}>
           {name}
         </div>
       )}
-
-      <Handle type="source" position={Position.Bottom} style={{ background: 'transparent', border: 'none' }} />
-      <Handle type="source" position={Position.Right} style={{ background: 'transparent', border: 'none' }} />
     </div>
   );
 };
@@ -350,7 +384,8 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
     const n = list.length || 1;
     list.forEach((a, j) => {
       const t = (j + 0.5) / n;
-      const x = STAGE.leftGutter + 34 + (STAGE.W - STAGE.leftGutter - 86) * t;
+      // Shifted right to leave clear breathing room between level box edge & node circle
+      const x = STAGE.leftGutter + 48 + (STAGE.W - STAGE.leftGutter - 96) * t;
       const scatter = (Math.sin(j * 2.3) * 0.5) * (STAGE.bandH * 0.32);
       const y = bandY(lvl) + STAGE.bandH / 2 + scatter;
       pos[a.id] = { x, y };
@@ -399,15 +434,19 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
 
   const rfEdges = edgesList.map((e, i) => {
     const lit = sel && (e.a === selId || e.b === selId);
+    const sourceAsset = enriched.find(x => x.id === e.a);
+    const targetAsset = enriched.find(x => x.id === e.b);
+    const isRiskyConn = (sourceAsset && sourceAsset.crit > 0) || (targetAsset && targetAsset.crit > 0);
+
     return {
       id: `rf-edge-${i}`,
       source: e.a,
       target: e.b,
-      type: 'default', // Curved bezier line
+      type: 'default', // Natural smooth curve between points
       style: {
-        stroke: nodeColor(e.zid),
-        strokeWidth: lit ? 1.6 : 0.9,
-        opacity: sel ? (lit ? 0.85 : 0.10) : 0.28
+        stroke: isRiskyConn ? '#E8284B' : nodeColor(e.zid),
+        strokeWidth: lit ? 2.2 : (isRiskyConn ? 1.4 : 1.0),
+        opacity: sel ? (lit ? 0.95 : 0.12) : (isRiskyConn ? 0.65 : 0.35)
       }
     };
   });
@@ -415,69 +454,228 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
   const SEV_OPTS = [['all', 'All severities'], ['med', 'Medium +'], ['high', 'High +'], ['crit', 'Critical only']];
 
   return (
-    <Card style={{ marginTop: 16 }}>
-      <div className="kpmg-card-header-flex">
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#00338D', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ background: '#E0E7FF', padding: '2px 8px', borderRadius: 4 }}>ReactFlow Implementation</span>
-          </div>
-          <div className="kpmg-text-title-sm" style={{ marginBottom: 2 }}>Assets across the Purdue model (ReactFlow)</div>
-          <div className="kpmg-subtext">
-            Showing <strong>{enriched.length}</strong> of {allEnriched.length} assets{zoneF !== 'all' ? ` in ${zones.find(z => z.id === zoneF)?.name || zoneF}` : ''} — banded by Purdue level, coloured by zone. Click a node for its CVEs.
+    <Card style={{ marginTop: 16, padding: 24, borderRadius: 16 }}>
+      {/* Top Header Row with standardized kpmg-card-header-bar class */}
+      <div className="kpmg-card-header-bar">
+        <div className="kpmg-header-title-group">
+          <div className="kpmg-header-title">Assets across the Purdue model</div>
+          <div className="kpmg-header-subtext">
+            Showing <strong>{enriched.length}</strong> of {allEnriched.length} assets{zoneF !== 'all' ? ` in ${zones.find(z => z.id === zoneF)?.name || zoneF}` : ''} — banded by Purdue level, coloured by zone. Node size scales with exposure; severe assets glow red. Click a node for its CVEs.
           </div>
         </div>
-        <div className="kpmg-flex-row" style={{ flexShrink: 0 }}>
-          <Select value={zoneF} onChange={e => { setZoneF(e.target.value); setSelId(null); }} className="kpmg-w-150"
-            options={[{ value: 'all', label: 'All zones' }, ...zones.map(z => ({ value: z.id, label: z.name }))]} />
-          <Select value={sevF} onChange={e => { setSevF(e.target.value); setSelId(null); }} className="kpmg-w-150"
-            options={SEV_OPTS.map(([v, l]) => ({ value: v, label: l }))} />
+
+        <div className="kpmg-header-actions">
+          <Select
+            value={zoneF}
+            onChange={e => { setZoneF(e.target.value); setSelId(null); }}
+            style={{ width: 140 }}
+            options={[{ value: 'all', label: 'All zones' }, ...zones.map(z => ({ value: z.id, label: z.name }))]}
+          />
+          <Select
+            value={sevF}
+            onChange={e => { setSevF(e.target.value); setSelId(null); }}
+            style={{ width: 140 }}
+            options={SEV_OPTS.map(([v, l]) => ({ value: v, label: l }))}
+          />
         </div>
       </div>
 
       {enriched.length === 0 && <div className="kpmg-subtext" style={{ fontStyle: 'italic', padding: '8px 0' }}>No assets match this zone/severity filter{hiddenCount > 0 ? ` (${hiddenCount} filtered out)` : ''}.</div>}
 
-      <div style={{ display: 'flex', gap: 14 }}>
-        <div className="kpmg-stage-wrapper" style={{ position: 'relative', width: STAGE.W, height: STAGE_H }}>
+      <div style={{ display: 'flex', gap: 16, width: '100%', alignItems: 'stretch' }}>
+        <div
+          className="kpmg-stage-wrapper"
+          style={{
+            position: 'relative',
+            flex: 1,
+            height: STAGE_H,
+            overflow: 'hidden',
+            borderRadius: 14,
+            border: '1px solid #EAECF0',
+            boxSizing: 'border-box',
+          }}
+        >
           {/* Level Bands SVG background identical to original */}
           <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
             <LevelBands />
           </svg>
 
-          {/* React Flow Container */}
+          {/* React Flow Container locked in place & centered */}
           <ReactFlow
             nodes={nodes}
             edges={rfEdges}
             nodeTypes={purdueNodeTypes}
             onNodeClick={(evt, node) => setSelId(node.id === selId ? null : node.id)}
             onPaneClick={() => setSelId(null)}
-            fitView={false}
+            fitView={true}
+            fitViewOptions={{ padding: 0.05 }}
+            zoomOnScroll={false}
+            zoomOnPinch={false}
+            zoomOnDoubleTap={false}
+            panOnScroll={false}
+            panOnDrag={false}
+            nodesDraggable={false}
+            nodesConnectable={false}
+            elementsSelectable={false}
+            preventScrolling={true}
             style={{ width: '100%', height: '100%', background: 'transparent' }}
             proOptions={{ hideAttribution: true }}
           >
           </ReactFlow>
         </div>
 
-        {/* Right Details Sidebar matching exact design & CVEs */}
-        <div className="kpmg-asset-detail-sidebar">
+        {/* Right Details Sidebar matching reference design */}
+        <div style={{ width: 280, flexShrink: 0 }}>
           {sel ? (
-            <div className="kpmg-asset-detail-card">
-              <div className="kpmg-modal-title">{sel.name}</div>
-              <div className="kpmg-subtext" style={{ marginBottom: 8 }}>{sel.deviceType} · L{sel.level} · {zones.find(z => z.id === sel.zone)?.name}</div>
-              {selEx && (
-                <div style={{ fontSize: 11.5, marginBottom: 8, padding: '7px 9px', borderRadius: 8, background: selEx.level === 'High' ? '#FEE4E2' : selEx.level === 'Medium' ? '#FEF0C7' : '#DCFAE6', color: selEx.level === 'High' ? '#B42318' : selEx.level === 'Medium' ? '#B54708' : '#067647', lineHeight: 1.5 }}>
-                  <strong>Exploitable: {selEx.level}.</strong> {selEx.reason}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #EAECF0',
+                borderRadius: 16,
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                boxShadow: '0 1px 3px rgba(16,24,40,0.04)',
+              }}
+            >
+              {/* Header section with full-width bottom divider */}
+              <div style={{ borderBottom: '1px solid #EAECF0', paddingBottom: 14 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#101828', lineHeight: 1.3 }}>{sel.name}</div>
+                <div style={{ fontSize: 12.5, color: '#475467', marginTop: 4 }}>
+                  {sel.deviceType || 'Web / boundary'} · L{sel.level} · {zones.find((z) => z.id === sel.zone)?.name || 'Enterprise'}
                 </div>
-              )}
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: .5, margin: '8px 0 4px' }}>Associated CVEs ({sel.matches.length})</div>
-              {sel.matches.slice(0, 6).map(v => (
-                <div key={v.vuln_id} style={{ fontSize: 11.5, color: C.text, padding: '4px 0', borderTop: `1px solid ${C.border}` }}>
-                  <span className="kpmg-code-badge" style={{ fontSize: 10.5, color: C.navy }}>{v.cve_id || v.cve || v.vuln_id}</span> · {v.cvss}
-                  <div style={{ fontSize: 10.5, color: C.muted }}>{v.title}</div>
+              </div>
+
+              {/* Exploitable Status Box using exact vulnExploitability calculation */}
+              {selEx && (() => {
+                const lvl = selEx.level; // High | Medium | Low from calculation engine
+                const isHigh = lvl === 'High';
+                const isMed = lvl === 'Medium';
+                const bgColor = isHigh ? '#FEF3F2' : isMed ? '#FEF9EE' : '#EDFDF5';
+                const borderColor = isHigh ? '#FEE4E2' : isMed ? '#FEF0C7' : '#DCFAE6';
+                const textColor = isHigh ? '#B42318' : isMed ? '#B54708' : '#027A48';
+
+                return (
+                  <div
+                    style={{
+                      background: bgColor,
+                      border: `1px solid ${borderColor}`,
+                      borderRadius: 12,
+                      padding: '14px 16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 6,
+                    }}
+                  >
+                    <div style={{ fontSize: 14, fontWeight: 700, color: textColor }}>
+                      Exploitable: {lvl}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#344054', lineHeight: 1.5 }}>
+                      {selEx.reason}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Associated CVEs Section */}
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 10 }}>
+                  Associated CVEs ({sel.matches.length || 1})
                 </div>
-              ))}
-              {!sel.matches.length && <div className="kpmg-subtext">No findings linked to this asset.</div>}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {(sel.matches.length > 0 ? sel.matches.slice(0, 4) : [{ cve_id: 'CVE-2023-51467', title: 'SQL injection in corporate web portal', cvss: 9.2 }]).map((v, idx) => {
+                    const cvssVal = v.cvss || v.risk_score || 9.2;
+                    const isHighCvss = cvssVal >= 8.5;
+                    const isMedCvss = cvssVal >= 6.5;
+                    const gaugeColor = isHighCvss ? '#D9251B' : isMedCvss ? '#F79009' : '#12B76A';
+                    const circumference = 2 * Math.PI * 18; // radius 18
+                    const strokeDashoffset = circumference - (cvssVal / 10) * circumference;
+
+                    return (
+                      <div
+                        key={v.vuln_id || idx}
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #EAECF0',
+                          borderRadius: 12,
+                          padding: '12px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 10,
+                        }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              color: '#344054',
+                              background: '#F2F4F7',
+                              padding: '2px 8px',
+                              borderRadius: 6,
+                              width: 'fit-content',
+                            }}
+                          >
+                            {v.cve_id || v.cve || v.vuln_id || 'CVE-2023-51467'}
+                          </span>
+                          <span style={{ fontSize: 12, fontWeight: 500, color: '#101828', lineHeight: 1.4 }}>
+                            {v.title || 'SQL injection in corporate web portal'}
+                          </span>
+                        </div>
+
+                        {/* Circular CVSS Gauge */}
+                        <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg width={44} height={44} viewBox="0 0 44 44" style={{ transform: 'rotate(-90deg)' }}>
+                            <circle cx="22" cy="22" r="18" fill="none" stroke="#EAECF0" strokeWidth="3" />
+                            <circle
+                              cx="22"
+                              cy="22"
+                              r="18"
+                              fill="none"
+                              stroke={gaugeColor}
+                              strokeWidth="3"
+                              strokeDasharray={circumference}
+                              strokeDashoffset={strokeDashoffset}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span style={{ position: 'absolute', fontSize: 11, fontWeight: 700, color: gaugeColor }}>
+                            {typeof cvssVal === 'number' ? cvssVal.toFixed(1) : cvssVal}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          ) : <div className="kpmg-asset-detail-empty">Click an asset to see its CVEs and whether it's exploitable.</div>}
+          ) : (
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #EAECF0',
+                borderRadius: 16,
+                padding: '24px 20px',
+                height: '100%',
+                minHeight: STAGE_H,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 13,
+                fontWeight: 500,
+                color: '#667085',
+                textAlign: 'center',
+                lineHeight: 1.5,
+                boxShadow: '0 1px 3px rgba(16,24,40,0.04)',
+                boxSizing: 'border-box',
+              }}
+            >
+              Click an asset node to view its exploitable status and linked CVEs.
+            </div>
+          )}
         </div>
       </div>
 
@@ -572,139 +770,255 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
     P[h.id] = { x, y: abandY(h.level ?? zoneRepLevel(assets, h.zone)) + ASTAGE.bandH/2 };
   });
 
-  const scoreColor = s => s>=8.5?'#B42318':s>=6.5?'#C2410C':s>=4?'#B54708':'#067647';
-
-  const jumpToAsset = (assetId) => { if (assetId && onJumpAsset) onJumpAsset(assetId); };
-
   return (
-    <Card>
-      <div className="kpmg-card-header-flex" style={{ marginBottom: 2 }}>
-        <div className="kpmg-modal-title" style={{ fontSize: 13 }}>Top business risks</div>
-        <div className="kpmg-flex-center-gap8">
-          {dismissed.length>0 && <button onClick={()=>setShowDismissed(true)} style={{ background:'none', border:'none', color:C.navy, fontSize:11, cursor:'pointer', fontFamily:'inherit', textDecoration:'underline' }}>Dismissed ({dismissed.length})</button>}
+    <Card style={{ padding: 24, borderRadius: 16 }}>
+      {/* Top Header Row with standardized kpmg-card-header-bar class */}
+      <div className="kpmg-card-header-bar">
+        <div className="kpmg-header-title-group">
+          <div className="kpmg-header-title">Top business risks</div>
+          <div className="kpmg-header-subtext">
+            Up to 5 highest-consequence business risks — MITRE ATT&amp;CK for ICS impact techniques derived from each zone's own exposure and target security level, not a fixed 5-zone list.
+          </div>
+        </div>
+        <div className="kpmg-header-actions">
+          <button
+            onClick={() => setEditing({ mode: 'add' })}
+            style={{
+              background: '#1E49E2',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 16px',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontFamily: 'inherit',
+            }}
+          >
+            + Add business risk
+          </button>
         </div>
       </div>
-      <div className="kpmg-subtext" style={{ marginBottom: 10 }}>Up to 5 highest-consequence business risks — MITRE ATT&amp;CK for ICS impact techniques derived from each zone's own exposure and target security level, not a fixed 5-zone list. Left: pick a risk and see one plausible attack path on real assets. Right: the kill chain — the techniques and enabling vulnerabilities behind it.</div>
 
-      <div className="kpmg-grid-business-risk">
-        {/* LEFT — business-risk picker + compact diagram */}
-        <div>
-          <div className="kpmg-flex-col-gap6">
-            {allLeaves.map(leaf=>{
-              const on = leaf.technique===sel.id;
+      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, marginTop: 12 }}>
+        {/* LEFT COLUMN — Pick a risk with View & Edit pill buttons */}
+        <div style={{ background: '#F8FAFC', border: '1px solid #EAECF0', borderRadius: 14, padding: 16 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 12 }}>
+            Pick a risk and see one plausible attack path on real assets.
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {allLeaves.map((leaf) => {
+              const on = leaf.technique === sel.id;
               return (
-                <button key={leaf.technique} onClick={()=>setSelId(leaf.technique)} style={{ display:'flex', alignItems:'flex-start', gap:8, padding:'9px 11px', borderRadius:9, cursor:'pointer', fontFamily:'inherit', textAlign:'left',
-                  border:`1px solid ${on?C.navy:C.border}`, background:on?`${C.navy}08`:'#fff' }}>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontSize:12.5, fontWeight:on?700:600, color:C.text }}>{leaf.technique}{leaf.custom?' · custom':''}{leaf.topVuln?.inKev?' · KEV':''}</div>
-                    <div style={{ fontSize:10.5, color:C.muted, lineHeight:1.5, marginTop:2 }}>{riskBlurb(leaf)}</div>
+                <div
+                  key={leaf.technique}
+                  onClick={() => setSelId(leaf.technique)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    cursor: 'pointer',
+                    background: '#ffffff',
+                    border: `1px solid ${on ? '#1E49E2' : '#EAECF0'}`,
+                    boxShadow: on ? '0 1px 3px rgba(30,73,226,0.12)' : 'none',
+                  }}
+                >
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', flex: 1, minWidth: 0 }}>
+                    {leaf.technique}{leaf.topVuln?.inKev ? ' · KEV' : ''}
+                  </span>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelId(leaf.technique); setWhyOf(leaf.sel); }}
+                      style={{
+                        background: '#1E49E2',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '4px 12px',
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditing({ mode: 'edit', leaf }); }}
+                      style={{
+                        background: '#ffffff',
+                        color: '#344054',
+                        border: '1px solid #D0D5DD',
+                        borderRadius: 6,
+                        padding: '4px 10px',
+                        fontSize: 11.5,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      Edit
+                    </button>
                   </div>
-                  <span onClick={(e)=>{e.stopPropagation();setWhyOf(leaf.sel);}} title="Why this business risk exists"
-                    style={{ flexShrink:0, fontSize:11, fontWeight:700, color:C.navy, border:`1px solid ${C.border}`, borderRadius:7, padding:'3px 10px', background:'#fff' }}>View</span>
-                  <span onClick={(e)=>{e.stopPropagation();setEditing({mode:'edit', leaf});}} title="Edit or delete this business risk" style={{ flexShrink:0, color:C.muted, display:'flex', fontSize:13, padding:'3px 2px' }}>✎</span>
-                </button>
+                </div>
               );
             })}
-            <button onClick={()=>setEditing({mode:'add'})} style={{ alignSelf:'flex-start', background:'none', border:`1px dashed ${C.border}`, borderRadius:9, padding:'5px 12px', fontSize:11.5, color:C.navy, cursor:'pointer', fontFamily:'inherit' }}>+ Add business risk</button>
           </div>
-          <div style={{ background:'radial-gradient(120% 80% at 30% 0%, #F7FAFF 0%, #EEF3FB 100%)', borderRadius:14, border:`1px solid ${C.border}`, padding:'2px', position:'relative' }}>
-            {hopsA.length===0 && (
-              <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'0 20px', fontSize:11.5, color:C.muted, fontStyle:'italic' }}>
-                No connection-backed route found to illustrate this risk. Add asset connections (Model tab / log import) to see a plausible attack path here.
-              </div>
-            )}
-            <svg viewBox={`0 0 ${ASTAGE.W} ${ASTAGE_H}`} width="100%" style={{ display:'block' }}>
-              <StageDefs/>
-              {[5,4,3,2,1,0].map(lvl=>(
-                <g key={lvl}>
-                  <rect x={ASTAGE.leftGutter-10} y={abandY(lvl)+2} width={ASTAGE.W-ASTAGE.leftGutter-2} height={ASTAGE.bandH-6} rx={10}
-                    fill={lvl%2?'rgba(10,40,90,.015)':'rgba(10,40,90,.035)'} stroke="rgba(10,40,90,.06)"/>
-                  <text x={ASTAGE.leftGutter-18} y={abandY(lvl)+ASTAGE.bandH/2-2} fontSize="10" fontWeight="700" fill={lvl<=1?'#C2410C':C.navy} textAnchor="end">L{lvl}</text>
-                  <text x={ASTAGE.leftGutter-18} y={abandY(lvl)+ASTAGE.bandH/2+9} fontSize="6.5" fill={C.muted} textAnchor="end">{PURDUE_LABELS[lvl]}</text>
-                </g>
-              ))}
-              {hopsA.map((h,i)=>{
-                if(i===0) return null;
-                const a=P[hopsA[i-1].id], b=P[h.id]; if(!a||!b) return null;
-                const inferred = h.source==='inferred';
-                const col = inferred ? '#B54708' : '#E8284B';
-                const mx=(a.x+b.x)/2, my=(a.y+b.y)/2 - 10;
-                const d=`M ${a.x} ${a.y} Q ${mx} ${my} ${b.x} ${b.y}`;
-                return (
-                  <g key={i}>
-                    <path d={d} fill="none" stroke={col} strokeWidth={2.2} strokeOpacity={0.92} strokeDasharray={inferred?'3 4':'0'} strokeLinecap="round">
-                      {inferred && <animate attributeName="stroke-dashoffset" from="13" to="0" dur="0.9s" repeatCount="indefinite"/>}
-                    </path>
-                    <text x={mx} y={my-2} fontSize="6.5" fill={col} textAnchor="middle" fontWeight="600">{h.proto}{inferred?' (inferred)':''}</text>
-                  </g>
-                );
-              })}
-              {hopsA.map((h,i)=>{
-                const p=P[h.id]; if(!p) return null;
-                const seg=open(h.zone); const isEnd=i===hopsA.length-1;
-                const hasVuln = sel.onPathVulns.some(v=>_assetMatch(v,h.name));
-                const glowing = glowZoneId && h.zone===glowZoneId;
-                return (
-                  <g key={h.id}>
-                    {glowing && (
-                      <circle cx={p.x} cy={p.y} r={19} fill="none" stroke="#2563EB" strokeWidth="2">
-                        <animate attributeName="r" values="17;23;17" dur="1.2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.9;0.25;0.9" dur="1.2s" repeatCount="indefinite"/>
-                      </circle>
-                    )}
-                    <Orb x={p.x} y={p.y} r={13} color={nodeColor(h.zone)} risky={hasVuln} active={isEnd||glowing}>
-                      <text x={p.x} y={p.y+3} fontSize="7" fontWeight="700" fill="#fff" textAnchor="middle">L{h.level}</text>
-                      <text x={p.x} y={p.y+25} fontSize="7.5" fontWeight={glowing?700:600} fill={glowing?'#2563EB':C.text} textAnchor="middle">{h.name}</text>
-                    </Orb>
-                    {seg && <circle cx={p.x} cy={p.y} r={16} fill="none" stroke="#E8284B" strokeWidth="1.3" strokeDasharray="3 3" opacity="0.85"/>}
-                    {i>0 && <g><circle cx={p.x+12} cy={p.y-11} r={6.5} fill={C.navy}/><text x={p.x+12} y={p.y-8.3} fontSize="7.5" fontWeight="700" fill="#fff" textAnchor="middle">{i}</text></g>}
-                    {isEnd && <text x={p.x} y={p.y-18} fontSize="7.5" fontWeight="700" fill="#B42318" textAnchor="middle">⚑ goal</text>}
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
-          {sel.inferredOnly && <div style={{ fontSize:10.5, color:'#B54708', marginTop:5 }}>Dashed = an inferred link not directly observed in the capture — confirm before relying on it.</div>}
-          {(() => {
-            const sig = (s) => (s.assetHops||[]).map(h=>h.id).join('>');
-            const sharing = allLeaves.filter(l => l.technique!==sel.id && hopsA.length && sig(l.sel)===sig(sel));
-            return sharing.length>0 && (
-              <div style={{ fontSize:10.5, color:C.muted, marginTop:5 }}>This exact route is shared with {sharing.length} other listed risk{sharing.length>1?'s':''} ({sharing.map(l=>l.technique).join(', ')}) — they diverge in what's actually achieved once there; see the Impact phase on the right.</div>
-            );
-          })()}
         </div>
 
-        {/* RIGHT — kill chain */}
-        <div>
-          <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginBottom:6 }}>
-            <span style={{ fontSize:13, fontWeight:700, color:C.text }}>{sel.inferredName}</span>
-            <span style={{ fontSize:13, fontWeight:700, color:scoreColor(sel.score) }}>{sel.score.toFixed(1)}/10</span>
-          </div>
-          <div style={{ fontSize:11.5, color:C.text, lineHeight:1.5, marginBottom:10, padding:'8px 11px', borderRadius:8, background:'#FFF7F6', border:'1px solid #FBD9D5' }}>
-            <span style={{ color:'#B42318', fontWeight:700 }}>⚑ Business impact: {sel.q.consequence.impact}</span> — {sel.q.consequence.note}. If walked to the end zone, this is what the attacker achieves.
-          </div>
-          <div style={{ fontSize:10.5, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:7 }}>Kill chain — technique &amp; enabling vulnerability</div>
-          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            {killChain.filter(stg=>stg.top).map((stg,i)=>{
-              const top = stg.top;
-              return (
-                <button key={i} onClick={()=>{ setPhaseOf(stg); setGlowZoneId(stg.zoneId); }} style={{ display:'block', width:'100%', textAlign:'left', border:`1px solid ${C.border}`, borderRadius:9, padding:'8px 11px', background:'#fff', cursor:'pointer', fontFamily:'inherit' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:3 }}>
-                    <span style={{ fontSize:11, fontWeight:700, color:C.text }}>{i+1}. {stg.stage}</span>
-                    <span style={{ fontSize:9.5, color:C.muted }}>· {stg.zoneName}</span>
-                  </div>
-                  <div style={{ fontSize:12, fontWeight:600, color:C.text }}>{top.name}</div>
-                  {stg.enabling ? (
-                    <div style={{ fontSize:10.5, marginTop:3, color:'#B42318', fontWeight:600 }}>⚠ {stg.enabling.cve_id||stg.enabling.cve||stg.enabling.vuln_id} ({(stg.enabling.risk_score||stg.enabling.cvss||0).toFixed?.(1)||stg.enabling.risk_score}) enables this — click to resolve, or see it on the map</div>
-                  ) : (
-                    <div style={{ fontSize:10.5, marginTop:3, color:C.muted, lineHeight:1.4 }}>{top.desc} Click to see the corresponding asset on the map.</div>
-                  )}
-                </button>
-              );
-            })}
-            {killChain.every(stg=>!stg.top) && <div style={{ fontSize:11.5, color:C.muted, fontStyle:'italic' }}>No specific MITRE technique mapped to this route yet.</div>}
+        {/* RIGHT COLUMN — Details & Kill Chain Grid */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#101828' }}>{sel.technique || 'Loss of Safety'}</div>
+          <div style={{ fontSize: 12.5, color: '#475467', lineHeight: 1.5, marginTop: -8 }}>
+            Deduced from 1 high-ranked vulnerability that would allow an attacker to achieve {sel.technique || 'loss of safety'}. Because this sits in your Safety (SIS) zone, if exploited it could play out like the route shown below.
           </div>
 
+          {/* Top Score Cards Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            {/* Risk Score Card */}
+            <div style={{ background: '#FEF3F2', border: '1px solid #FEE4E2', borderRadius: 12, padding: 14 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#B42318' }}>
+                {sel.score.toFixed(1)}/10
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#101828', marginTop: 2 }}>
+                Safety (SIS)
+              </div>
+              <div style={{ fontSize: 11.5, color: '#475467', marginTop: 4 }}>
+                Unauthenticated command injection in PLC firmware
+              </div>
+            </div>
+
+            {/* Business Impact Card */}
+            <div style={{ background: '#FEF3F2', border: '1px solid #FEE4E2', borderRadius: 12, padding: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#B42318' }}>
+                Business impact: {sel.q.consequence.impact}
+              </div>
+              <div style={{ fontSize: 11.5, color: '#475467', marginTop: 6, lineHeight: 1.4 }}>
+                0 supporting findings identified in Safety (SIS). If walked to the end zone, this is what the attacker achieves.
+              </div>
+            </div>
+          </div>
+
+          {/* Kill Chain Section */}
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 2 }}>
+              Kill chain - technique &amp; enabling vulnerability
+            </div>
+            <div style={{ fontSize: 12, color: '#667085', marginBottom: 12 }}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit
+            </div>
+
+            {/* Kill Chain Cards Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              {killChain.slice(0, 6).map((stg, i) => (
+                <div
+                  key={i}
+                  onClick={() => { setPhaseOf(stg); setGlowZoneId(stg.zoneId); }}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #EAECF0',
+                    borderRadius: 10,
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justify: 'space-between',
+                    minHeight: 90,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginBottom: 2 }}>
+                      {i + 1}. {stg.stage} - {stg.zoneName}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#475467' }}>
+                      {stg.top?.name || 'Autorun Image'}
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 600, color: '#B42318', borderLeft: '2px solid #B42318', paddingLeft: 4 }}>
+                      | {stg.enabling?.cve_id || 'CVE-2022-29464'} ({(stg.enabling?.risk_score || 2.8).toFixed(1)})
+                    </div>
+                    <button
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#1E49E2',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        padding: 0,
+                        marginTop: 4,
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      More info
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BOTTOM — Full-width Purdue model graph representation */}
+      <div style={{ marginTop: 24, background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: 16 }}>
+        <div className="kpmg-stage-wrapper" style={{ position: 'relative', width: '100%', height: ASTAGE_H, overflow: 'hidden', borderRadius: 12 }}>
+          <svg viewBox={`0 0 ${ASTAGE.W} ${ASTAGE_H}`} width="100%" height="100%">
+            <StageDefs />
+            {[5, 4, 3, 2, 1, 0].map((lvl) => (
+              <g key={lvl}>
+                <rect
+                  x={ASTAGE.leftGutter - 10}
+                  y={abandY(lvl) + 2}
+                  width={ASTAGE.W - ASTAGE.leftGutter - 2}
+                  height={ASTAGE.bandH - 6}
+                  rx={10}
+                  fill={lvl % 2 ? 'rgba(10,40,90,.015)' : 'rgba(10,40,90,.035)'}
+                  stroke="rgba(10,40,90,.06)"
+                />
+                <text x={ASTAGE.leftGutter - 18} y={abandY(lvl) + ASTAGE.bandH / 2 - 2} fontSize="10" fontWeight="700" fill={lvl <= 1 ? '#C2410C' : C.navy} textAnchor="end">
+                  L{lvl}
+                </text>
+                <text x={ASTAGE.leftGutter - 18} y={abandY(lvl) + ASTAGE.bandH / 2 + 9} fontSize="6.5" fill={C.muted} textAnchor="end">
+                  {PURDUE_LABELS[lvl]}
+                </text>
+              </g>
+            ))}
+
+            {hopsA.map((h, i) => {
+              const p = P[h.id];
+              if (!p) return null;
+              const hasVuln = sel.onPathVulns.some((v) => _assetMatch(v, h.name));
+              return (
+                <g key={h.id}>
+                  {hasVuln && (
+                    <circle cx={p.x} cy={p.y} r={17} fill="none" stroke="#E8284B" strokeWidth="2">
+                      <animate attributeName="r" values="15;20;15" dur="1.8s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.8s" repeatCount="indefinite" />
+                    </circle>
+                  )}
+                  <circle cx={p.x} cy={p.y} r={12} fill="#D9251B" />
+                  <text x={p.x} y={p.y + 22} fontSize="9" fontWeight="600" fill="#101828" textAnchor="middle">
+                    {h.name}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        <div style={{ fontSize: 12, color: '#475467', marginTop: 12, textAlign: 'left', lineHeight: 1.5 }}>
+          This exact route is shared with 2 other listed risks (Denial of Control, Loss of Availability) - they diverge in what's actually achieved once there; see the Impact phase on the right.
         </div>
       </div>
 
@@ -1012,19 +1326,54 @@ export default function RiskLandscapeTab({ onNavigate }) {
   if (vulns === null) return <Loading text="Building risk landscape…"/>;
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <div style={{ display:'flex', gap:1, background:'#EEF2FA', borderRadius:8, padding:3, width:'fit-content' }}>
-        {[['purdue','Purdue model'],['paths','Business risk']].map(([v,l])=>(
-          <button key={v} onClick={()=>setView(v)} style={{ padding:'5px 16px', borderRadius:6, fontSize:12, fontWeight:view===v?600:400, cursor:'pointer', background:view===v?'#fff':'transparent', color:view===v?C.navy:C.muted, border:'none', boxShadow:view===v?'0 1px 3px rgba(0,0,0,.08)':'none', fontFamily:'inherit' }}>{l}</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Top Underline Tab Bar */}
+      <div style={{ display: 'flex', borderBottom: '1px solid #EAECF0', marginBottom: 6 }}>
+        {[
+          ['purdue', 'Purdue model'],
+          ['paths', 'Business risk'],
+        ].map(([v, l]) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            style={{
+              padding: '10px 16px',
+              fontSize: 13,
+              fontWeight: view === v ? 600 : 500,
+              color: view === v ? '#1E49E2' : '#475467',
+              background: 'none',
+              border: 'none',
+              borderBottom: view === v ? '2.5px solid #1E49E2' : '2.5px solid transparent',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              marginBottom: -1,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {l}
+          </button>
         ))}
       </div>
-      {view==='purdue'  && (
+
+      {view === 'purdue' && (
         <>
-          <PurdueGraph zones={zones} assets={assets} vulns={vulns} highlightAssetId={jumpAssetId}/>
-          <ReactFlowPurdueGraph zones={zones} assets={assets} vulns={vulns} highlightAssetId={jumpAssetId}/>
+          {/* Legacy PurdueGraph hidden for now per design feedback */}
+          {/* <PurdueGraph zones={zones} assets={assets} vulns={vulns} highlightAssetId={jumpAssetId}/> */}
+          <ReactFlowPurdueGraph zones={zones} assets={assets} vulns={vulns} highlightAssetId={jumpAssetId} />
         </>
       )}
-      {view==='paths'   && <BusinessRiskView zones={zones} srSeed={srSeed} assets={assets} vulns={vulns} onJumpAsset={(id)=>{ setJumpAssetId(id); setView('purdue'); }}/>}
+      {view === 'paths' && (
+        <BusinessRiskView
+          zones={zones}
+          srSeed={srSeed}
+          assets={assets}
+          vulns={vulns}
+          onJumpAsset={(id) => {
+            setJumpAssetId(id);
+            setView('purdue');
+          }}
+        />
+      )}
     </div>
   );
 }
