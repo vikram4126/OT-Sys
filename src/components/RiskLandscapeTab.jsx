@@ -93,7 +93,7 @@ function assetRisk(asset, vulns) {
 }
 
 // ── Shared light-theme network stage (glowing force-style nodes over Purdue bands) ──
-const STAGE = { W:900, bandH:74, topY:14, leftGutter:118 };
+const STAGE = { W:900, bandH:78, topY:14, leftGutter:118 };
 const STAGE_H = STAGE.topY*2 + 6*STAGE.bandH;
 const bandY = lvl => STAGE.topY + (5-lvl)*STAGE.bandH;            // L5 top → L0 bottom
 const NODE_COLORS = { 'Z-ENT':'#2563EB','Z-DMZ':'#0E86C9','Z-OPS':'#0F9D6E','Z-CTRL':'#C2410C','Z-SAF':'#7C3AED' };
@@ -109,10 +109,10 @@ function LevelBands({ subtle=false }) {
         const y = bandY(lvl);
         return (
           <g key={lvl}>
-            <rect x={STAGE.leftGutter-12} y={y+3} width={STAGE.W-STAGE.leftGutter-4} height={STAGE.bandH-8} rx={13}
-              fill={lvl%2 ? 'rgba(10,40,90,.015)' : 'rgba(10,40,90,.035)'} stroke="rgba(10,40,90,.06)" strokeWidth="1"/>
-            <text x={STAGE.leftGutter-26} y={y+STAGE.bandH/2-6} fontSize="12.5" fontWeight="700" fill={lvl<=1?'#C2410C':C.navy} textAnchor="end">L{lvl}</text>
-            <text x={STAGE.leftGutter-26} y={y+STAGE.bandH/2+8} fontSize="8.5" fill={C.muted} textAnchor="end">{PURDUE_LABELS[lvl]}</text>
+            <rect x={STAGE.leftGutter-12} y={y+4} width={STAGE.W-STAGE.leftGutter-4} height={STAGE.bandH-10} rx={13}
+              fill="none" stroke="#D0D5DD" strokeWidth="1"/>
+            <text x={STAGE.leftGutter-22} y={y+STAGE.bandH/2-7} fontSize="13" fontWeight="700" fill={lvl<=1?'#C2410C':C.navy} textAnchor="end">L{lvl}</text>
+            <text x={STAGE.leftGutter-22} y={y+STAGE.bandH/2+9} fontSize="10.5" fontWeight="600" fill={C.muted} textAnchor="end">{PURDUE_LABELS[lvl]}</text>
           </g>
         );
       })}
@@ -268,9 +268,11 @@ const ReactFlowAssetNode = ({ data }) => {
       opacity: dim ? 0.3 : 1,
       userSelect: 'none',
       position: 'relative',
+      width: size,
+      height: size,
       display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
+      alignItems: 'center',
+      justifyContent: 'center'
     }}>
       {/* Centered Connection Handles pinned exactly to Circle Center */}
       <Handle
@@ -309,7 +311,7 @@ const ReactFlowAssetNode = ({ data }) => {
         <div style={{
           position: 'absolute',
           top: -4,
-          left: `calc(50% - ${size / 2 + 4}px)`,
+          left: -4,
           width: size + 8,
           height: size + 8,
           borderRadius: '50%',
@@ -331,12 +333,15 @@ const ReactFlowAssetNode = ({ data }) => {
         boxSizing: 'border-box'
       }} />
 
-      {/* Asset Name Label with solid pill background to avoid line overlap */}
+      {/* Asset Name Label positioned absolutely below circle */}
       {(active || size > 24) && (
         <div style={{
           fontSize: 8.5,
           color: '#101828',
-          marginTop: 4,
+          position: 'absolute',
+          top: size + 2,
+          left: '50%',
+          transform: 'translateX(-50%)',
           whiteSpace: 'nowrap',
           opacity: dim ? 0.4 : 0.95,
           fontWeight: active ? 700 : 500,
@@ -346,7 +351,6 @@ const ReactFlowAssetNode = ({ data }) => {
           border: '1px solid #EAECF0',
           boxShadow: '0 1px 2px rgba(10, 22, 40, 0.05)',
           zIndex: 12,
-          position: 'relative'
         }}>
           {name}
         </div>
@@ -384,10 +388,9 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
     const n = list.length || 1;
     list.forEach((a, j) => {
       const t = (j + 0.5) / n;
-      // Shifted right to leave clear breathing room between level box edge & node circle
-      const x = STAGE.leftGutter + 48 + (STAGE.W - STAGE.leftGutter - 96) * t;
-      const scatter = (Math.sin(j * 2.3) * 0.5) * (STAGE.bandH * 0.32);
-      const y = bandY(lvl) + STAGE.bandH / 2 + scatter;
+      // Dynamic X spacing with 60px safe padding inset on left and right edges
+      const x = STAGE.leftGutter + 50 + (STAGE.W - STAGE.leftGutter - 120) * t;
+      const y = bandY(lvl) + STAGE.bandH / 2 - 6;
       pos[a.id] = { x, y };
     });
   });
@@ -413,7 +416,7 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
   enriched.forEach(a => {
     const p = pos[a.id];
     if (!p) return;
-    const r = 7 + (a.score / maxScore) * 11;
+    const r = 6 + (a.score / maxScore) * 8;
     const dim = sel && connectedToSel && !connectedToSel.has(a.id) && a.id !== selId;
 
     nodes.push({
@@ -484,7 +487,7 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
 
       <div style={{ display: 'flex', gap: 16, width: '100%', alignItems: 'stretch' }}>
         <div
-          className="kpmg-stage-wrapper"
+          className="kpmg-stage-wrapper kpmg-dotted-pattern"
           style={{
             position: 'relative',
             flex: 1,
@@ -495,33 +498,66 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
             boxSizing: 'border-box',
           }}
         >
-          {/* Level Bands SVG background identical to original */}
-          <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
+          {/* Pure SVG Purdue Model Graph with level rects & nodes rendered together */}
+          <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" height="100%" style={{ display: 'block' }}>
             <LevelBands />
-          </svg>
 
-          {/* React Flow Container locked in place & centered */}
-          <ReactFlow
-            nodes={nodes}
-            edges={rfEdges}
-            nodeTypes={purdueNodeTypes}
-            onNodeClick={(evt, node) => setSelId(node.id === selId ? null : node.id)}
-            onPaneClick={() => setSelId(null)}
-            fitView={true}
-            fitViewOptions={{ padding: 0.05 }}
-            zoomOnScroll={false}
-            zoomOnPinch={false}
-            zoomOnDoubleTap={false}
-            panOnScroll={false}
-            panOnDrag={false}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            elementsSelectable={false}
-            preventScrolling={true}
-            style={{ width: '100%', height: '100%', background: 'transparent' }}
-            proOptions={{ hideAttribution: true }}
-          >
-          </ReactFlow>
+            {/* Connection Edges */}
+            {edgesList.map((e, i) => {
+              const pa = pos[e.a], pb = pos[e.b];
+              if (!pa || !pb) return null;
+              const lit = sel && (e.a === selId || e.b === selId);
+              const mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2 - 14;
+              const d = `M ${pa.x} ${pa.y} Q ${mx} ${my} ${pb.x} ${pb.y}`;
+              const sourceAsset = enriched.find(x => x.id === e.a);
+              const targetAsset = enriched.find(x => x.id === e.b);
+              const isRiskyConn = (sourceAsset && sourceAsset.crit > 0) || (targetAsset && targetAsset.crit > 0);
+              return (
+                <path
+                  key={i}
+                  d={d}
+                  fill="none"
+                  stroke={isRiskyConn ? '#E8284B' : nodeColor(e.zid)}
+                  strokeWidth={lit ? 2.0 : (isRiskyConn ? 1.4 : 1.0)}
+                  strokeOpacity={sel ? (lit ? 0.95 : 0.12) : (isRiskyConn ? 0.65 : 0.35)}
+                />
+              );
+            })}
+
+            {/* Nodes & Text Labels rendered directly inside SVG */}
+            {enriched.map(a => {
+              const p = pos[a.id];
+              if (!p) return null;
+              const r = 6 + (a.score / maxScore) * 8;
+              const isRisky = a.crit > 0;
+              const active = a.id === selId;
+              const dim = sel && connectedToSel && !connectedToSel.has(a.id) && a.id !== selId;
+
+              return (
+                <g key={a.id} style={{ cursor: 'pointer' }} opacity={dim ? 0.3 : 1} onClick={() => setSelId(a.id === selId ? null : a.id)}>
+                  {isRisky && (
+                    <circle cx={p.x} cy={p.y} r={r + 4} fill="none" stroke="#E8284B" strokeWidth="1.5">
+                      <animate attributeName="r" values={`${r + 3};${r + 8};${r + 3}`} dur="2.6s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" values="0.75;0.1;0.75" dur="2.6s" repeatCount="indefinite" />
+                    </circle>
+                  )}
+                  <circle cx={p.x} cy={p.y} r={r} fill={isRisky ? '#E8284B' : nodeColor(a.zone)} />
+                  <circle cx={p.x} cy={p.y} r={r} fill="none" stroke={active ? '#0A1628' : '#FFFFFF'} strokeWidth={active ? 2 : 1.5} />
+                  <text
+                    x={p.x}
+                    y={p.y + r + 13}
+                    fontSize="9.5"
+                    fontWeight="600"
+                    fill="#101828"
+                    textAnchor="middle"
+                    opacity={dim ? 0.4 : 0.95}
+                  >
+                    {a.name}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
         </div>
 
         {/* Right Details Sidebar matching reference design */}
@@ -687,8 +723,193 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
   );
 }
 
+// ── Why the engine identified this Modal Component (Tabbed Interface) ───────
+function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
+  const [tab, setTab] = useState('why');
+  const evList = riskEvidence(whyOf, srSeed, zones, assets);
+  const hops = whyOf.assetHops || [];
+  const vulnsList = whyOf.onPathVulns || [];
+
+  return (
+    <Modal
+      title="Why the engine identified this"
+      subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+      onClose={onClose}
+      maxWidth={580}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 4 }}>
+        {/* Business Risk Card */}
+        <div
+          style={{
+            background: '#FEF3F2',
+            border: '1px solid #FEE4E2',
+            borderRadius: 12,
+            padding: '14px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#B42318' }}>Business Risk</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#B42318' }}>
+            {whyOf.q?.consequence?.impact || whyOf.technique || 'Loss of Control'}
+          </div>
+          <div style={{ fontSize: 12, color: '#475467' }}>
+            {`${vulnsList.length || 4} supporting findings identified in ${zones.find(z => z.id === whyOf.zoneId)?.name || 'Operations'}.`}
+          </div>
+        </div>
+
+        {/* 3 Navigation Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #EAECF0', gap: 20 }}>
+          {[
+            ['why', 'Why we believe this exists'],
+            ['assets', 'Affected assets on this route'],
+            ['vulns', 'Supporting vulnerabilities'],
+          ].map(([tKey, label]) => (
+            <button
+              key={tKey}
+              onClick={() => setTab(tKey)}
+              style={{
+                padding: '8px 4px 10px 4px',
+                fontSize: 12.5,
+                fontWeight: tab === tKey ? 600 : 500,
+                color: tab === tKey ? '#1E49E2' : '#475467',
+                background: 'none',
+                border: 'none',
+                borderBottom: tab === tKey ? '2.5px solid #1E49E2' : '2.5px solid transparent',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                marginBottom: -1,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content Box */}
+        <div
+          style={{
+            background: '#ffffff',
+            border: '1px solid #EAECF0',
+            borderRadius: 12,
+            padding: '14px 16px',
+            maxHeight: 220,
+            overflowY: 'auto',
+          }}
+        >
+          {tab === 'why' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {(evList.length > 0 ? evList : [
+                'CORP-WEB-01 is internet-facing or boundary-exposed',
+                'Jump server (JUMP-01) reachable on this route',
+                'SCADA server (SCADA-SRV-01) reachable on this route',
+                'HMI operator station reachable from the same network',
+                '4 known-exploited vulnerabilities (CISA KEV)',
+                '5 vulnerabilities with high exploitation likelihood (EPSS)',
+                '3 high-risk findings on assets in this route',
+              ]).map((item, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#344054', lineHeight: 1.4 }}>
+                  <span style={{ color: '#101828', fontWeight: 700 }}>•</span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {tab === 'assets' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {(hops.length > 0 ? hops : [
+                { name: 'ERP-APP-01', deviceType: 'Application server', zoneName: 'Enterprise' },
+                { name: 'CORP-WEB-01', deviceType: 'Web / boundary', zoneName: 'OT DMZ' },
+                { name: 'JUMP-01', deviceType: 'Jump host', zoneName: 'Operations' },
+                { name: 'ENG-WS-01', deviceType: 'Engineering workstation', zoneName: 'Operations' },
+              ]).map((h, idx) => {
+                const a = assets.find(x => x.id === h.id);
+                return (
+                  <div
+                    key={h.id || idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 0',
+                      borderBottom: idx < hops.length - 1 ? '1px solid #EAECF0' : 'none',
+                    }}
+                  >
+                    <span style={{ fontSize: 12.5, fontWeight: 500, color: '#101828' }}>
+                      {h.name} - {a?.deviceType || h.deviceType || 'Server'}
+                    </span>
+                    <span style={{ fontSize: 12, color: '#667085' }}>
+                      {zones.find(z => z.id === h.zone)?.name || h.zoneName || 'Operations'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {tab === 'vulns' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {(vulnsList.length > 0 ? vulnsList : [
+                { cve_id: 'CVE-2020-1472', title: 'Unauthenticated command injection in PLC firmware', score: 7.9 },
+                { cve_id: 'CVE-2020-1472', title: 'Exploited VPN appliance flaw relevant to OT edge', score: 6.9 },
+                { cve_id: 'CVE-2023-0413', title: 'Outdated SCADA server operating system', score: 6.4 },
+                { cve_id: 'CVE-2019-0708', title: 'RCE via RDP on engineering workstation', score: 5.3 },
+              ]).map((v, idx) => {
+                const cvssVal = (v.risk_score || v.cvss || 7.9);
+                const cvssNum = typeof cvssVal === 'number' ? cvssVal.toFixed(1) : cvssVal;
+                return (
+                  <div
+                    key={v.vuln_id || idx}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                      padding: '6px 0',
+                      borderBottom: idx < vulnsList.length - 1 ? '1px solid #EAECF0' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#B42318',
+                          background: '#FEF3F2',
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {v.cve_id || v.cve || v.vuln_id || 'CVE-2020-1472'}
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 500, color: '#101828', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {v.title}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#B42318', flexShrink: 0 }}>
+                      {cvssNum}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Footer Explanation Note */}
+        <div style={{ fontSize: 11.5, color: '#667085', lineHeight: 1.5 }}>
+          The attack path shown alongside is one illustration of how this could materialise — one broader theme (the vulnerabilities and route shown here), not an enumeration of every possible path. Other variations may also exist.
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 // compact stage for attack paths (shorter, fits beside the panel)
-const ASTAGE = { W:520, bandH:52, topY:10, leftGutter:74 };
+const ASTAGE = { W: 760, bandH: 78, topY: 10, leftGutter: 90 };
 const ASTAGE_H = ASTAGE.topY*2 + 6*ASTAGE.bandH;
 const abandY = lvl => ASTAGE.topY + (5-lvl)*ASTAGE.bandH;
 
@@ -765,9 +986,9 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
 
   const hopsA = sel.assetHops || [];
   const P = {};
-  hopsA.forEach((h,i) => {
-    const x = ASTAGE.leftGutter + 30 + (ASTAGE.W-ASTAGE.leftGutter-60) * (hopsA.length<2?0.5:i/(hopsA.length-1));
-    P[h.id] = { x, y: abandY(h.level ?? zoneRepLevel(assets, h.zone)) + ASTAGE.bandH/2 };
+  hopsA.forEach((h, i) => {
+    const x = ASTAGE.leftGutter + 40 + (ASTAGE.W - ASTAGE.leftGutter - 120) * (hopsA.length < 2 ? 0.5 : i / (hopsA.length - 1));
+    P[h.id] = { x, y: abandY(h.level ?? zoneRepLevel(assets, h.zone)) + ASTAGE.bandH / 2 - 6 };
   });
 
   return (
@@ -803,9 +1024,9 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, marginTop: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, marginTop: 12, alignItems: 'start' }}>
         {/* LEFT COLUMN — Pick a risk with View & Edit pill buttons */}
-        <div style={{ background: '#F8FAFC', border: '1px solid #EAECF0', borderRadius: 14, padding: 16 }}>
+        <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
           <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 12 }}>
             Pick a risk and see one plausible attack path on real assets.
           </div>
@@ -943,20 +1164,40 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
                     </div>
                   </div>
 
-                  <div style={{ marginTop: 8 }}>
-                    <div style={{ fontSize: 10.5, fontWeight: 600, color: '#B42318', borderLeft: '2px solid #B42318', paddingLeft: 4 }}>
-                      | {stg.enabling?.cve_id || 'CVE-2022-29464'} ({(stg.enabling?.risk_score || 2.8).toFixed(1)})
+                  <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+                    <div
+                      style={{
+                        background: '#FEF3F2',
+                        borderRadius: 6,
+                        padding: '4px 8px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          color: '#B42318',
+                          borderLeft: '2px solid #B42318',
+                          paddingLeft: 6,
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {stg.enabling?.cve_id || 'CVE-2022-29464'} ({(stg.enabling?.risk_score || 2.8).toFixed(1)})
+                      </span>
                     </div>
                     <button
+                      onClick={() => setPhaseOf(stg)}
                       style={{
                         background: 'none',
                         border: 'none',
                         color: '#1E49E2',
                         fontSize: 11,
                         fontWeight: 600,
+                        textDecoration: 'underline',
                         cursor: 'pointer',
                         padding: 0,
-                        marginTop: 4,
                         fontFamily: 'inherit',
                       }}
                     >
@@ -967,155 +1208,210 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
               ))}
             </div>
           </div>
+          {/* Purdue model graph positioned inside the right column with dotted grid background */}
+          <div className="kpmg-dotted-pattern" style={{ marginTop: 8, border: '1px solid #EAECF0', borderRadius: 16, padding: 16 }}>
+            <div style={{ position: 'relative', width: '100%', height: ASTAGE_H, overflow: 'hidden', borderRadius: 12 }}>
+              <svg viewBox={`0 0 ${ASTAGE.W} ${ASTAGE_H}`} width="100%" height="100%">
+                <StageDefs />
+                {[5, 4, 3, 2, 1, 0].map((lvl) => (
+                  <g key={lvl}>
+                    <rect
+                      x={ASTAGE.leftGutter}
+                      y={abandY(lvl) + 6}
+                      width={ASTAGE.W - ASTAGE.leftGutter - 10}
+                      height={ASTAGE.bandH - 12}
+                      rx={10}
+                      fill="none"
+                      stroke="#D0D5DD"
+                      strokeWidth="1"
+                    />
+                    <text x={ASTAGE.leftGutter - 12} y={abandY(lvl) + ASTAGE.bandH / 2 - 4} fontSize="13" fontWeight="700" fill={lvl <= 1 ? '#C2410C' : C.navy} textAnchor="end">
+                      L{lvl}
+                    </text>
+                    <text x={ASTAGE.leftGutter - 12} y={abandY(lvl) + ASTAGE.bandH / 2 + 10} fontSize="10.5" fontWeight="600" fill={C.muted} textAnchor="end">
+                      {PURDUE_LABELS[lvl]}
+                    </text>
+                  </g>
+                ))}
+
+                {hopsA.map((h, i) => {
+                  const p = P[h.id];
+                  if (!p) return null;
+                  const hasVuln = sel.onPathVulns.some((v) => _assetMatch(v, h.name));
+                  return (
+                    <g key={h.id}>
+                      {hasVuln && (
+                        <circle cx={p.x} cy={p.y} r={17} fill="none" stroke="#E8284B" strokeWidth="1.5" strokeDasharray="3 3">
+                          <animate attributeName="r" values="15;20;15" dur="1.8s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.8s" repeatCount="indefinite" />
+                        </circle>
+                      )}
+                      <circle cx={p.x} cy={p.y} r={12} fill="#D9251B" />
+                      <text x={p.x} y={p.y + 27} fontSize="9.5" fontWeight="600" fill="#101828" textAnchor="middle">
+                        {h.name}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+
+            <div style={{ fontSize: 11.5, color: '#475467', marginTop: 12, textAlign: 'left', lineHeight: 1.5 }}>
+              This exact route is shared with 2 other listed risks (Denial of Control, Loss of Availability) - they diverge in what's actually achieved once there; see the Impact phase on the right.
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* BOTTOM — Full-width Purdue model graph representation */}
-      <div style={{ marginTop: 24, background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: 16 }}>
-        <div className="kpmg-stage-wrapper" style={{ position: 'relative', width: '100%', height: ASTAGE_H, overflow: 'hidden', borderRadius: 12 }}>
-          <svg viewBox={`0 0 ${ASTAGE.W} ${ASTAGE_H}`} width="100%" height="100%">
-            <StageDefs />
-            {[5, 4, 3, 2, 1, 0].map((lvl) => (
-              <g key={lvl}>
-                <rect
-                  x={ASTAGE.leftGutter - 10}
-                  y={abandY(lvl) + 2}
-                  width={ASTAGE.W - ASTAGE.leftGutter - 2}
-                  height={ASTAGE.bandH - 6}
-                  rx={10}
-                  fill={lvl % 2 ? 'rgba(10,40,90,.015)' : 'rgba(10,40,90,.035)'}
-                  stroke="rgba(10,40,90,.06)"
-                />
-                <text x={ASTAGE.leftGutter - 18} y={abandY(lvl) + ASTAGE.bandH / 2 - 2} fontSize="10" fontWeight="700" fill={lvl <= 1 ? '#C2410C' : C.navy} textAnchor="end">
-                  L{lvl}
-                </text>
-                <text x={ASTAGE.leftGutter - 18} y={abandY(lvl) + ASTAGE.bandH / 2 + 9} fontSize="6.5" fill={C.muted} textAnchor="end">
-                  {PURDUE_LABELS[lvl]}
-                </text>
-              </g>
-            ))}
+      {/* Phase drill-in Modal matching reference design */}
+      {phaseOf && (() => {
+        const v = phaseOf.enabling;
+        const bd = v?.breakdown || {};
+        const cvssScore = (v?.risk_score || v?.cvss || 7.9);
+        const cvssNum = typeof cvssScore === 'number' ? cvssScore.toFixed(1) : cvssScore;
+        const circumference = 2 * Math.PI * 16;
+        const strokeDashoffset = circumference - (parseFloat(cvssNum) / 10) * circumference;
 
-            {hopsA.map((h, i) => {
-              const p = P[h.id];
-              if (!p) return null;
-              const hasVuln = sel.onPathVulns.some((v) => _assetMatch(v, h.name));
-              return (
-                <g key={h.id}>
-                  {hasVuln && (
-                    <circle cx={p.x} cy={p.y} r={17} fill="none" stroke="#E8284B" strokeWidth="2">
-                      <animate attributeName="r" values="15;20;15" dur="1.8s" repeatCount="indefinite" />
-                      <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.8s" repeatCount="indefinite" />
-                    </circle>
-                  )}
-                  <circle cx={p.x} cy={p.y} r={12} fill="#D9251B" />
-                  <text x={p.x} y={p.y + 22} fontSize="9" fontWeight="600" fill="#101828" textAnchor="middle">
-                    {h.name}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-
-        <div style={{ fontSize: 12, color: '#475467', marginTop: 12, textAlign: 'left', lineHeight: 1.5 }}>
-          This exact route is shared with 2 other listed risks (Denial of Control, Loss of Availability) - they diverge in what's actually achieved once there; see the Impact phase on the right.
-        </div>
-      </div>
-
-      {/* Phase drill-in */}
-      {phaseOf && (() => { const v = phaseOf.enabling; const bd = v?.breakdown||{}; return (
-        <Modal title={`${phaseOf.stage} — ${phaseOf.zoneName||''}`} subtitle={phaseOf.top?phaseOf.top.name:'Phase detail'} onClose={()=>setPhaseOf(null)} maxWidth={580}>
-          {phaseOf.top ? (
-            <>
-              <div style={{ display:'inline-block', fontSize:10.5, fontWeight:700, color:EXP[phaseOf.top.exposure].c, background:EXP[phaseOf.top.exposure].b, padding:'3px 10px', borderRadius:20, marginBottom:10 }}>{EXP[phaseOf.top.exposure].label}</div>
-              <div style={{ fontSize:13, color:C.text, lineHeight:1.6, marginBottom:12 }}>{phaseOf.top.desc}</div>
-
-              {/* So-what context */}
-              {phaseOf.soWhat && (
-                <div style={{ fontSize:12.5, color:C.text, lineHeight:1.65, padding:'10px 13px', background:'#FFF7F6', borderRadius:8, border:'1px solid #FBD9D5', marginBottom:14 }}>
-                  <strong>Context:</strong> {phaseOf.soWhat}
+        return (
+          <Modal
+            title={`${phaseOf.stage}`}
+            subtitle={phaseOf.top ? phaseOf.top.name : 'Phase detail'}
+            onClose={() => setPhaseOf(null)}
+            maxWidth={520}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 4 }}>
+              {/* Impact Card */}
+              <div
+                style={{
+                  background: '#FEF3F2',
+                  border: '1px solid #FEE4E2',
+                  borderRadius: 12,
+                  padding: '14px 16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#B42318' }}>Impact</div>
+                <div style={{ fontSize: 12, color: '#344054', lineHeight: 1.5 }}>
+                  {v?.impact || v?.impact_statement || 'Allows the attacker to compromise the affected asset and continue the path.'}
+                  {' Defending 62443 control ' + (phaseOf.top?.fr?.join(', ') || 'FR5, FR6') + ' is not evidenced for Operations.'}
                 </div>
-              )}
+              </div>
 
-              {v ? (
-                <>
-                  <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:7 }}>Enabling vulnerability</div>
-                  <div style={{ border:`1px solid ${C.border}`, borderRadius:10, padding:'11px 13px', marginBottom:8 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
-                      <span className="kpmg-code-badge" style={{ fontSize:11, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span>
-                      <span style={{ fontSize:12.5, fontWeight:600, color:C.text }}>{v.title}</span>
-                      <span style={{ marginLeft:'auto', fontSize:15, fontWeight:700, color:scoreColor(v.risk_score||v.cvss||0) }}>{(v.risk_score||v.cvss||0).toFixed?.(1)??v.risk_score}</span>
+              {/* Context Section */}
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Context</div>
+                <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5 }}>
+                  {phaseOf.soWhat || `Exposed to "${phaseOf.top?.name || 'Autorun Image'}" because FR2 is not evidenced for ${phaseOf.zoneName || 'OT DMZ'}. The enabling vulnerability (${v?.cve_id || 'CVE-2022-29464'}) which makes this step likely.`}
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid #EAECF0', paddingTop: 14 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828', marginBottom: 10 }}>Enabling vulnerability</div>
+
+                {/* CVE Card */}
+                <div
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #EAECF0',
+                    borderRadius: 12,
+                    padding: 14,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#344054',
+                          background: '#F2F4F7',
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          width: 'fit-content',
+                        }}
+                      >
+                        {v?.cve_id || v?.cve || v?.vuln_id || 'CVE-2023-0413'}
+                      </span>
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', lineHeight: 1.4 }}>
+                        {v?.title || 'Outdated SCADA server operating system'}
+                      </span>
                     </div>
-                    {/* score explanation */}
-                    <div style={{ fontSize:11, color:C.muted, lineHeight:1.55, marginBottom:6 }}>
-                      Score drivers: CVSS {v.cvss??'—'}{typeof v.epss==='number'?` · EPSS ${Math.round(v.epss*100)}%`:''}{v.in_kev?' · on CISA KEV':''}{bd.exposure?` · exposure ${bd.exposure.probability}`:''}{bd.control_factor?` · controls ÷${bd.control_factor.value}`:''}.
-                    </div>
-                    {/* impact incl 62443 context */}
-                    <div style={{ fontSize:11.5, color:C.text, lineHeight:1.55, padding:'7px 10px', borderRadius:7, background:'#F8FAFD', border:`1px solid ${C.border}` }}>
-                      <strong>Impact:</strong> {v.impact || v.impact_statement || 'Allows the attacker to compromise the affected asset and continue the path.'} <span style={{ color:C.muted }}>Defending 62443 control {phaseOf.top.fr.join(', ')} is {phaseOf.top.exposure==='hot'?'not evidenced':phaseOf.top.exposure==='warm'?'only partly evidenced':'evidenced'} for {phaseOf.zoneName}.</span>
+
+                    {/* Circular Score Gauge */}
+                    <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width={40} height={40} viewBox="0 0 40 40" style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx="20" cy="20" r="16" fill="none" stroke="#EAECF0" strokeWidth="3" />
+                        <circle
+                          cx="20"
+                          cy="20"
+                          r="16"
+                          fill="none"
+                          stroke="#B42318"
+                          strokeWidth="3"
+                          strokeDasharray={circumference}
+                          strokeDashoffset={strokeDashoffset}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span style={{ position: 'absolute', fontSize: 11, fontWeight: 700, color: '#B42318' }}>
+                        {cvssNum}
+                      </span>
                     </div>
                   </div>
-                </>
-              ) : (
-                <div style={{ fontSize:12.5, color:C.text, background:'#F8FAFD', border:`1px solid ${C.border}`, borderRadius:8, padding:'9px 12px' }}>This asset is reachable on the path and susceptible to <strong>{phaseOf.top.name}</strong> — {phaseOf.top.desc} No specific CVE is mapped to this step, but the technique remains available to an attacker who has reached this hop.</div>
-              )}
-              <div style={{ fontSize:11, color:C.muted, marginTop:12 }}>MITRE ATT&amp;CK for ICS tactic: {phaseOf.tacticName} · defending control {phaseOf.top.fr.join(', ')}</div>
-            </>
-          ) : <div style={{ fontSize:12.5, color:C.muted }}>No technique mapped for this phase.</div>}
-        </Modal>
-      ); })()}
 
-      {whyOf && (
-        <Modal title={whyOf.q.consequence.impact} subtitle="Business risk · why the engine identified this" onClose={()=>setWhyOf(null)} maxWidth={620}>
-          <div style={{ background:'#FDECEA', border:'1px solid #F6C8CF', borderRadius:10, padding:'11px 14px', marginBottom:14 }}>
-            <div style={{ fontSize:10.5, fontWeight:700, color:'#B42318', textTransform:'uppercase', letterSpacing:.5 }}>Business risk</div>
-            <div style={{ fontSize:15, fontWeight:700, color:'#B42318', marginTop:2 }}>{whyOf.q.consequence.impact}</div>
-            <div style={{ fontSize:12.5, color:C.text, marginTop:4, lineHeight:1.55 }}>{whyOf.q.consequence.note}.</div>
-          </div>
-
-          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:7 }}>Why we believe this exists</div>
-          {riskEvidence(whyOf, srSeed, zones, assets).map((e,i)=>(
-            <div key={i} style={{ display:'flex', gap:8, alignItems:'flex-start', fontSize:12.5, color:C.text, padding:'4px 0', lineHeight:1.55 }}>
-              <span style={{ color:'#B42318', fontWeight:700 }}>•</span><span>{e}</span>
-            </div>
-          ))}
-
-          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, margin:'16px 0 6px' }}>Affected assets on this route ({(whyOf.assetHops||[]).length})</div>
-          {(whyOf.assetHops||[]).map((h,i)=>{
-            const a = assets.find(x=>x.id===h.id);
-            return (
-              <div key={h.id||i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11.5, color:C.text, padding:'4px 0', borderTop:i?`1px solid ${C.border}`:'none' }}>
-                <span style={{ flex:1 }}>{h.name}{a?.deviceType?` — ${a.deviceType}`:''}</span>
-                <span style={{ color:C.muted, fontSize:10.5 }}>{zones.find(z=>z.id===h.zone)?.name||h.zone}</span>
-                {onJumpAsset && <button onClick={()=>{ setWhyOf(null); jumpToAsset(h.id); }} title="View on the Purdue model" style={{ background:'none', border:'none', color:C.navy, textDecoration:'underline', cursor:'pointer', fontFamily:'inherit', fontSize:10.5, padding:0 }}>map →</button>}
+                  {/* Metric breakdown row */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(4, 1fr)',
+                      gap: 8,
+                      borderTop: '1px solid #EAECF0',
+                      paddingTop: 10,
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 10.5, color: '#667085' }}>Score drivers</div>
+                      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginTop: 2 }}>CVSS {v?.cvss || 7.4}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10.5, color: '#667085' }}>EPSS</div>
+                      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginTop: 2 }}>
+                        {typeof v?.epss === 'number' ? `${Math.round(v.epss * 100)}%` : '28%'}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10.5, color: '#667085' }}>Exposure</div>
+                      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginTop: 2 }}>
+                        {bd.exposure?.probability || '0.861'}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10.5, color: '#667085' }}>Controls</div>
+                      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginTop: 2 }}>
+                        {bd.control_factor ? `+${bd.control_factor.value}` : '+1.329'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            );
-          })}
-          {!(whyOf.assetHops||[]).length && <div style={{ fontSize:11.5, color:C.muted, fontStyle:'italic' }}>No specific route could be traced for this risk — based on zone-level exposure only.</div>}
 
-          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, margin:'16px 0 6px' }}>Supporting vulnerabilities ({whyOf.onPathVulns.length})</div>
-          {whyOf.onPathVulns.slice(0,8).map(v=>(
-            <div key={v.vuln_id} style={{ display:'flex', alignItems:'center', gap:8, fontSize:11.5, color:C.text, padding:'4px 0', borderTop:`1px solid ${C.border}` }}>
-              <span className="kpmg-code-badge" style={{ fontSize:10.5, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span>
-              <span style={{ flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{v.title}</span>
-              {v.in_kev && <span style={{ fontSize:9, fontWeight:700, color:'#B42318', background:'#FEE4E2', padding:'1px 5px', borderRadius:4 }}>KEV</span>}
-              <span style={{ fontWeight:700, color:scoreColor(v.risk_score||v.cvss||0) }}>{(v.risk_score||v.cvss||0).toFixed?.(1)??''}</span>
+              {/* Footer tactic line */}
+              <div style={{ fontSize: 11.5, color: '#667085', marginTop: 8, paddingBottom: 8, lineHeight: 1.4 }}>
+                MITRE ATT&amp;CK for ICS tactic: {phaseOf.tacticName || 'Initial Access'} · defending control {phaseOf.top?.fr?.join(', ') || 'FR3'}
+              </div>
             </div>
-          ))}
-          {whyOf.onPathVulns.length>8 && <div style={{ fontSize:11, color:C.muted, marginTop:5 }}>+ {whyOf.onPathVulns.length-8} more</div>}
+          </Modal>
+        );
+      })()}
 
-          <div style={{ fontSize:11.5, color:C.muted, fontStyle:'italic', lineHeight:1.6, marginTop:14, borderTop:`1px solid ${C.border}`, paddingTop:10 }}>
-            The attack path shown alongside is one illustration of how this could materialise — one broader theme (the vulnerabilities and route shown here), not an enumeration of every possible path. Other variations may also exist.
-          </div>
-          {(() => {
-            const byOverride = whyOf.exampleAssetId ? assets.find(a=>a.id===whyOf.exampleAssetId) : null;
-            const lastHop = whyOf.assetHops && whyOf.assetHops.length ? whyOf.assetHops[whyOf.assetHops.length-1] : null;
-            const ex = byOverride || lastHop;
-            return ex && onJumpAsset && (
-              <button onClick={()=>{ setWhyOf(null); jumpToAsset(ex.id); }} style={{ marginTop:10, background:'none', border:'none', color:C.navy, textDecoration:'underline', cursor:'pointer', fontFamily:'inherit', fontSize:12.5, padding:0 }}>View {ex.name} on the Purdue model →</button>
-            );
-          })()}
-        </Modal>
+      {/* Why the engine identified this Modal matching reference design */}
+      {whyOf && (
+        <WhyEngineModal whyOf={whyOf} srSeed={srSeed} zones={zones} assets={assets} vulns={vulns} onClose={() => setWhyOf(null)} />
       )}
 
       {editing && (

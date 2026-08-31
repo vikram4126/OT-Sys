@@ -8,12 +8,11 @@ import React, { useState, useEffect } from 'react';
 import { C } from '../theme';
 import { Card, Btn, FormField, Select, Input, Textarea, Tag, Modal, Bar2 } from './UI';
 import { Network, AlertCircle, Refresh } from './Icons';
-import { DynamicSegmentedBar } from './AssetsTab';
 import {
   useAssessment, SL_META, INDUSTRIES,
   SITE_SCALES, TOOLING_OPTIONS,
   EVIDENCE_STATUS, RECEIVED_QUALITY,
-  setEvidenceStatus, setEvidenceQuality, evidenceSplit, collectionProgress, getEvidenceState,
+  setEvidenceStatus, setEvidenceQuality, evidenceSplit, collectionProgress,
   evidenceFindings, folderPlanText, scanEvidenceDrop, scanEvidenceGroup, evidenceGroupSummary,
   simulateClientUpload, getDrop, setDrop,
   getZoneRules, addZoneRule, removeZoneRule, saveZoneRules,
@@ -44,12 +43,19 @@ function SectionNav({ section, setSection, company, prog, zonesCount }) {
     zones: zonesCount || null,
   };
   return (
-    <div className="kpmg-nav-pills">
+    <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
       {SECTIONS.map(s => {
         const active = section === s.id;
+        const badge = badges[s.id];
         return (
-          <button key={s.id} onClick={() => setSection(s.id)} className={`kpmg-nav-pill-btn ${active ? 'active' : ''}`}>
+          <button key={s.id} onClick={() => setSection(s.id)} style={{
+            display:'flex', alignItems:'center', gap:8, padding:'9px 16px', borderRadius:20, cursor:'pointer',
+            fontFamily:'inherit', fontSize:13, fontWeight:active ? 700 : 500,
+            border:`1.5px solid ${active ? C.navy : C.border}`, background:active ? C.navy : '#fff', color:active ? '#fff' : C.text,
+          }}>
             {s.label}
+            {badge != null && <span style={{ fontSize:11, fontWeight:700, padding:'1px 7px', borderRadius:10,
+              background:active ? 'rgba(255,255,255,.22)' : '#EEF2FA', color:active ? '#fff' : C.navy }}>{badge}</span>}
           </button>
         );
       })}
@@ -91,76 +97,21 @@ function BaselineBar({ a }) {
   };
 
   return (
-    <Card
-      style={{
-        padding: '14px 20px',
-        border: `1px solid ${baseline ? '#EAECF0' : '#FEDF89'}`,
-        background: baseline ? '#ffffff' : '#FFFAEB',
-        borderRadius: 14,
-        boxShadow: '0 1px 2px rgba(16, 24, 40, 0.03)'
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 260 }}>
-          {baseline && (
-            <div
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: '50%',
-                background: '#039855',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
-          )}
-          <div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#101828' }}>
-              {baseline ? 'Baseline captured - initial analysis saved' : 'Run the initial analysis'}
-            </div>
-            <div style={{ fontSize: 12, color: '#475467', marginTop: 2, lineHeight: 1.45 }}>
-              {baseline
-                ? `${new Date(baseline.at).toLocaleDateString()} · ${baseline.metrics?.assets_total ?? '24'} assets, ${baseline.metrics?.zones_total ?? '6'} zones, ${baseline.metrics?.vulns_total ?? '17'} findings. Risk ${baseline.metrics?.overall_risk ?? '5.5'}/10`
-                : 'Analyses assets, zones, findings and compliance, and saves the result as the baseline. This unlocks the analysis tabs.'}
-            </div>
+    <Card style={{ padding:'14px 20px', border:`1px solid ${baseline ? '#BBE9D2' : '#FCD9A6'}`, background:baseline ? '#F4FBF7' : '#FFFBF2' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:14, flexWrap:'wrap' }}>
+        <div style={{ flex:1, minWidth:260 }}>
+          <div style={{ fontSize:13.5, fontWeight:700, color:C.text }}>
+            {baseline ? 'Baseline captured — initial analysis saved' : 'Run the initial analysis'}
+          </div>
+          <div style={{ fontSize:12, color:C.muted, marginTop:2, lineHeight:1.55 }}>
+            {baseline
+              ? `${new Date(baseline.at).toLocaleDateString()} — ${baseline.metrics?.assets_total ?? '—'} assets, ${baseline.metrics?.zones_total ?? '—'} zones, ${baseline.metrics?.vulns_total ?? '—'} findings. Risk ${baseline.metrics?.overall_risk ?? '—'}/10 · ${baseline.metrics?.coverage ?? '—'}% compliance.`
+              : 'Analyses assets, zones, findings and compliance, and saves the result as the baseline. This unlocks the analysis tabs.'}
           </div>
         </div>
-
-        {/* Right side element: Green compliance pill tag when captured, or Primary action button when initial */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {baseline ? (
-            <span
-              onClick={captureBaseline}
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#027A48',
-                background: '#ECFDF3',
-                border: '1px solid #ABEFC6',
-                borderRadius: 14,
-                padding: '4px 12px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                cursor: analysing ? 'wait' : 'pointer'
-              }}
-              title="Click to recapture baseline"
-            >
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#12B76A' }} />
-              {analysing ? 'Analysing…' : `${baseline.metrics?.coverage ?? 30}% compliance`}
-            </span>
-          ) : (
-            <Btn size="sm" variant="primary" onClick={captureBaseline} disabled={analysing} style={{ padding: '8px 16px', borderRadius: 8 }}>
-              {analysing ? 'Analysing…' : 'Run analysis & capture baseline'}
-            </Btn>
-          )}
-        </div>
+        <Btn size="sm" variant={baseline ? 'outline' : 'primary'} onClick={captureBaseline} disabled={analysing}>
+          {analysing ? 'Analysing…' : baseline ? 'Recapture baseline' : 'Run analysis & capture baseline'}
+        </Btn>
       </div>
     </Card>
   );
@@ -204,218 +155,78 @@ function SectionScope({ company, setCompany, onSaved }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* 2-column Grid Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, alignItems: 'start' }}>
-        {/* Left Column: Scope & Context Card */}
-        <Card style={{ padding: 24, borderRadius: 12 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Scope &amp; context</div>
-          <div style={{ fontSize: 12.5, color: '#475467', marginBottom: 20, lineHeight: 1.5 }}>
-            From the uploaded registers. Click an asset to view/edit it, or the brain icon to see how it was classified.
-          </div>
+    <div style={{ maxWidth:740, margin:'0 auto', display:'flex', flexDirection:'column', gap:14 }}>
+      <Card>
+        <div style={{ fontSize:15, fontWeight:700, color:C.text, marginBottom:4 }}>Scope &amp; context</div>
+        <div style={{ fontSize:12.5, color:C.muted, marginBottom:16, lineHeight:1.6 }}>
+          Who the client is, how big the site is, and what visibility they already have.
+        </div>
+        <FormField label="Company name" required><Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Northwind Water Utilities"/></FormField>
+        <FormField label="Industry" required>
+          <Select value={f.industry} onChange={e => set('industry', e.target.value)} options={[{ value:'', label:'Select…' }, ...INDUSTRIES.map(i => ({ value:i, label:i }))]}/>
+        </FormField>
+        <FormField label="Site name"><Input value={f.site} onChange={e => set('site', e.target.value)} placeholder="e.g. Treatment Plant 3"/></FormField>
 
-          <div style={{ marginBottom: 16 }}>
-            <FormField label="Company name" required>
-              <Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="Acme Industrial Ltd" />
-            </FormField>
-          </div>
+        <div style={{ fontSize:12, fontWeight:600, color:C.text, margin:'6px 0 6px' }}>Site size <span style={{ color:C.critical }}>*</span></div>
+        <div style={{ fontSize:11.5, color:C.muted, marginBottom:8, lineHeight:1.5 }}>
+          This assessment covers one site, so size is the scale of the estate here — not a number of sites.
+        </div>
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
+          {SITE_SCALES.map(sc => {
+            const on = f.scale === sc.id;
+            return (
+              <button key={sc.id} onClick={() => set('scale', sc.id)} style={{
+                flex:'1 1 190px', textAlign:'left', cursor:'pointer', fontFamily:'inherit',
+                border:`1px solid ${on ? C.navy : C.border}`, background:on ? '#F2F6FC' : '#fff',
+                borderRadius:10, padding:'10px 13px',
+              }}>
+                <div style={{ fontSize:13, fontWeight:700, color:on ? C.navy : C.text }}>{sc.label}</div>
+                <div style={{ fontSize:11, color:C.muted, marginTop:2, lineHeight:1.45 }}>{sc.hint}</div>
+              </button>
+            );
+          })}
+        </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 18 }}>
-            <FormField label="Site name">
-              <Input value={f.site} onChange={e => set('site', e.target.value)} placeholder="North Plant" />
-            </FormField>
-            <FormField label="Industry" required>
-              <Select
-                value={f.industry}
-                onChange={e => set('industry', e.target.value)}
-                options={[{ value: '', label: 'Select industry…' }, ...INDUSTRIES.map(i => ({ value: i, label: i }))]}
-              />
-            </FormField>
-          </div>
-
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 2 }}>
-              Site size <span style={{ color: '#D9251B' }}>*</span>
-            </div>
-            <div style={{ fontSize: 11.5, color: '#475467', marginBottom: 10, lineHeight: 1.45 }}>
-              This assessment covers one site, so size is the scale of the estate here – not a number of sites.
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-              {SITE_SCALES.map(sc => {
-                const on = f.scale === sc.id;
-                const letter = sc.id === 'small' ? 'S' : sc.id === 'medium' ? 'M' : 'L';
-                return (
-                  <button
-                    key={sc.id}
-                    onClick={() => set('scale', sc.id)}
-                    style={{
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      border: `1px solid ${on ? '#1E49E2' : '#EAECF0'}`,
-                      background: on ? '#F5F8FF' : '#ffffff',
-                      borderRadius: 10,
-                      padding: '12px',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 10
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        background: on ? '#E8EDFF' : '#F2F4F7',
-                        color: on ? '#1E49E2' : '#475467',
-                        fontSize: 12,
-                        fontWeight: 700,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        lineHeight: 1,
-                        flexShrink: 0
-                      }}
-                    >
-                      {letter}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: on ? '#1E49E2' : '#101828' }}>{sc.label}</div>
-                      <div style={{ fontSize: 10.5, color: '#475467', marginTop: 2, lineHeight: 1.35 }}>{sc.hint}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 2 }}>Existing monitoring or inventory tooling</div>
-            <div style={{ fontSize: 11.5, color: '#475467', marginBottom: 10, lineHeight: 1.45 }}>
-              Select any that apply — a site can run both IT and OT tooling.
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {TOOLING_OPTIONS.map(t => {
-                const on = tools.includes(t.id);
-                return (
-                  <div
-                    key={t.id}
-                    onClick={() => toggleTool(t.id)}
-                    style={{
-                      display: 'flex',
-                      gap: 12,
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      border: `1px solid ${on ? '#1E49E2' : '#EAECF0'}`,
-                      background: on ? '#F5F8FF' : '#ffffff',
-                      borderRadius: 10,
-                      padding: '12px 14px'
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 5,
-                        flexShrink: 0,
-                        border: `1.5px solid ${on ? '#1E49E2' : '#D0D5DD'}`,
-                        background: on ? '#1E49E2' : '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#ffffff',
-                        fontSize: 11.5,
-                        fontWeight: 700,
-                        lineHeight: 1
-                      }}
-                    >
-                      {on ? '✓' : ''}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828' }}>{t.label}</div>
-                      <div style={{ fontSize: 11, color: '#475467', marginTop: 2, lineHeight: 1.4 }}>{t.note}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </Card>
-
-        {/* Right Column: Evidence Drop Card */}
-        <Card style={{ padding: 24, borderRadius: 12 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Evidence drop</div>
-          <div style={{ fontSize: 12.5, color: '#475467', marginBottom: 16, lineHeight: 1.5 }}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Give the client a folder structure organised <strong>by source</strong>, and a link to upload into. They send what exists in its native format - nothing needs to be re-keyed, and empty folders are fine.
-          </div>
-
-          <div
-            style={{
-              background: '#FAFAFC',
-              border: '1px solid #EAECF0',
-              borderRadius: 10,
-              padding: 16,
-              marginBottom: 20
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828', marginBottom: 4 }}>Copy Evidence Plan</div>
-            <div style={{ fontSize: 11.5, color: '#475467', marginBottom: 12, lineHeight: 1.45 }}>
-              Copies a ready-to-send folder list (one folder per evidence item, with who owns it) to paste into the drop or an email.
-            </div>
-            <button
-              onClick={copyPlan}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #D0D5DD',
-                borderRadius: 8,
-                padding: '7px 14px',
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#344054',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6
-              }}
-            >
-              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-              {copied ? 'Copied' : 'Copy'}
-            </button>
-          </div>
-
-          <div>
-            <FormField label="Drop location (SharePoint, secure transfer, or your intake portal)">
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontSize: 12.5, color: '#667085', background: '#F2F4F7', border: '1px solid #D0D5DD', borderRight: 'none', borderRadius: '8px 0 0 8px', padding: '8px 10px', height: 38, boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}>https://</span>
-                <Input
-                  value={link.replace(/^https?:\/\//, '')}
-                  onChange={e => setLink(`https://${e.target.value.replace(/^https?:\/\//, '')}`)}
-                  placeholder="www.example.com"
-                  style={{ borderRadius: '0 8px 8px 0' }}
-                />
+        <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:6 }}>Existing monitoring or inventory tooling</div>
+        <div style={{ fontSize:11.5, color:C.muted, marginBottom:8, lineHeight:1.5 }}>
+          Select any that apply — a site can run both IT and OT tooling.
+        </div>
+        {TOOLING_OPTIONS.map(t => {
+          const on = tools.includes(t.id);
+          return (
+            <div key={t.id} onClick={() => toggleTool(t.id)} style={{
+              display:'flex', gap:10, alignItems:'flex-start', cursor:'pointer', marginBottom:7,
+              border:`1px solid ${on ? C.navy : C.border}`, background:on ? '#F2F6FC' : '#fff', borderRadius:10, padding:'10px 13px',
+            }}>
+              <div style={{ width:17, height:17, borderRadius:5, flexShrink:0, marginTop:1,
+                border:`1.5px solid ${on ? C.navy : C.border}`, background:on ? C.navy : '#fff',
+                display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:11 }}>{on ? '✓' : ''}</div>
+              <div>
+                <div style={{ fontSize:12.5, fontWeight:600, color:C.text }}>{t.label}</div>
+                {on && <div style={{ fontSize:11.5, color:C.muted, marginTop:3, lineHeight:1.5 }}>{t.note}</div>}
               </div>
-            </FormField>
-          </div>
-        </Card>
-      </div>
+            </div>
+          );
+        })}
+      </Card>
 
-      {/* Sticky Bottom Save Bar */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '1px solid #EAECF0',
-          borderRadius: 12,
-          padding: '12px 20px',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center'
-        }}
-      >
-        <Btn onClick={save} disabled={!ok} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>
-          Save
-        </Btn>
+      <Card>
+        <div style={{ fontSize:13.5, fontWeight:700, color:C.text, marginBottom:4 }}>Evidence drop</div>
+        <div style={{ fontSize:12.5, color:C.muted, marginBottom:12, lineHeight:1.6 }}>
+          Give the client a folder structure organised <strong>by source</strong>, and a link to upload into. They send what
+          exists in its native format — nothing needs to be re-keyed, and empty folders are fine.
+        </div>
+        <Btn variant="outline" onClick={copyPlan}>{copied ? '✓ Folder plan copied' : 'Copy evidence folder plan'}</Btn>
+        <div style={{ fontSize:11.5, color:C.muted, margin:'9px 0 14px', lineHeight:1.55 }}>
+          Copies a ready-to-send folder list (one folder per evidence item, with who owns it) to paste into the drop or an email.
+        </div>
+        <FormField label="Drop location (SharePoint, secure transfer, or your intake portal)">
+          <Input value={link} onChange={e => setLink(e.target.value)} placeholder="https://…"/>
+        </FormField>
+      </Card>
+
+      <div style={{ display:'flex', justifyContent:'flex-end' }}>
+        <Btn onClick={save} disabled={!ok}>Save &amp; continue to model inputs</Btn>
       </div>
     </div>
   );
@@ -437,234 +248,95 @@ const MISSING_MARK = [
   { k:EVIDENCE_STATUS.NA,          label:'N/A here',      color:C.muted, bg:'#F1F1EF' },
 ];
 
-function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
+function EvidenceLine({ item, marks, current, onMark, showFallback }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
-      {/* Top row: Tags */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-        <span style={{ fontSize: 11, color: '#667085', fontWeight: 500 }}>Controls</span>
-        {item.core && (
-          <span style={{ fontSize: 10.5, fontWeight: 700, color: '#B54708', background: '#FFFAEB', border: '1px solid #FEDF89', borderRadius: 12, padding: '1px 8px' }}>
-            Core
-          </span>
-        )}
+    <div style={{ borderTop:`1px solid ${C.border}`, padding:'10px 0' }}>
+      <div style={{ display:'flex', gap:10, alignItems:'flex-start', flexWrap:'wrap' }}>
+        <div style={{ flex:1, minWidth:230 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
+            <span style={{ fontSize:13, fontWeight:600, color:C.text }}>{item.name}</span>
+            {item.core && <Tag label="Core" color={C.navy} bg="#E7EEFB"/>}
+          </div>
+          <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{item.owner}</div>
+        </div>
+        <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
+          {marks.map(m => {
+            const on = current === m.k;
+            return (
+              <button key={m.k} onClick={() => onMark(m.k)} style={{
+                background:on ? m.bg : 'none', border:`1px solid ${on ? m.color : C.border}`, color:on ? m.color : C.muted,
+                borderRadius:20, padding:'4px 11px', fontSize:11, fontWeight:on ? 700 : 500, cursor:'pointer', fontFamily:'inherit',
+              }}>{m.label}</button>
+            );
+          })}
+        </div>
       </div>
-
-      {/* Item title */}
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#101828', lineHeight: 1.4, marginBottom: 12 }}>
-        {item.name}
-      </div>
-
-      {/* Status Buttons Row */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: open ? 12 : 0 }}>
-        {marks.map(m => {
-          const on = current === m.k;
-          return (
-            <button
-              key={m.k}
-              onClick={() => onMark(m.k)}
-              style={{
-                background: on ? (m.bg === '#E7F7EF' ? '#ECFDF5' : m.bg) : '#ffffff',
-                border: `1px solid ${on ? (m.color === C.low ? '#12B76A' : m.color) : '#D0D5DD'}`,
-                color: on ? (m.color === C.low ? '#027A48' : m.color) : '#344054',
-                borderRadius: 8,
-                padding: '6px 14px',
-                fontSize: 12,
-                fontWeight: on ? 700 : 500,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                transition: 'all 0.15s ease'
-              }}
-            >
-              {m.label}
-            </button>
-          );
-        })}
-
-        {/* Chevron expand accordion button */}
-        <button
-          onClick={() => setOpen(o => !o)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#667085',
-            cursor: 'pointer',
-            padding: 4,
-            marginLeft: 'auto',
-            display: 'flex',
-            alignItems: 'center'
-          }}
-          title={open ? 'Collapse details' : 'Expand details'}
-        >
-          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Expanded Accordion Details */}
+      <button onClick={() => setOpen(o => !o)} style={{ background:'none', border:'none', color:C.navy, fontSize:11.5, fontWeight:600, cursor:'pointer', padding:'6px 0 0', fontFamily:'inherit' }}>
+        {open ? 'Hide' : 'Why it matters'}
+      </button>
       {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid #F2F4F7', paddingTop: 12, marginTop: 12 }}>
-          {item.why && (
-            <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Why it matters</div>
-              <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5 }}>{item.why}</div>
-            </div>
-          )}
-
-          {showFallback && item.fallback && (
-            <div style={{ background: '#FFFAEB', border: '1px solid #FEDF89', borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#B54708', marginBottom: 4 }}>Fallback</div>
-              <div style={{ fontSize: 12, color: '#B54708', lineHeight: 1.5 }}>{item.fallback}</div>
-            </div>
-          )}
-
-          {showFallback && item.finding && (
-            <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#B42318', marginBottom: 4 }}>Raises a finding</div>
-              <div style={{ fontSize: 12, color: '#B42318', lineHeight: 1.5 }}>{item.finding}</div>
-            </div>
-          )}
+        <div style={{ fontSize:12, color:C.muted, lineHeight:1.6, paddingTop:3 }}>
+          {item.why}
+          {showFallback && <div style={{ marginTop:6, color:C.high }}><strong>Fallback.</strong> {item.fallback}</div>}
+          {showFallback && item.finding && <div style={{ marginTop:4, color:C.critical, fontWeight:600 }}>Raises a finding: {item.finding}</div>}
         </div>
       )}
     </div>
   );
 }
 
-function EvidenceSlideDrawer({ g, onClose, bump }) {
+function EvidenceTile({ g, onScan, bump }) {
+  const [open, setOpen] = useState(false);
   const { received, missing } = evidenceSplit();
   const groupReceived = received.filter(it => it.group === g.id);
   const groupMissing = missing.filter(it => it.group === g.id);
+  const tone = g.pct === 100 ? C.low : g.corePending > 0 ? C.critical : '#B54708';
 
   return (
-    <div className="kpmg-slide-overlay" onClick={onClose}>
-      <div className="kpmg-slide-drawer" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #EAECF0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
-          <div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0, lineHeight: 1.3 }}>{g.name}</h3>
-            <div style={{ fontSize: 12, color: '#475467', marginTop: 4, fontWeight: 500 }}>{g.owner}</div>
+    <div style={{ border:`1px solid ${g.changed ? '#FCD9A6' : C.border}`, borderRadius:11, background:g.changed ? '#FFFBF2' : '#fff', overflow:'hidden' }}>
+      <div style={{ padding:'13px 15px' }}>
+        <div style={{ display:'flex', alignItems:'flex-start', gap:8, flexWrap:'wrap' }}>
+          <div style={{ flex:1, minWidth:150 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
+              <span style={{ fontSize:13.5, fontWeight:700, color:C.text }}>{g.name}</span>
+              {g.priority && <Tag label="Priority" color={C.navy} bg="#E7EEFB"/>}
+              {g.changed && <Tag label="Changed since last scan" color="#B54708" bg="#FEF0C7"/>}
+            </div>
+            <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{g.owner}</div>
           </div>
-          <button
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#667085', fontSize: 18, cursor: 'pointer', padding: 4, lineHeight: 1, borderRadius: 4 }}
-          >
-            ✕
-          </button>
+          <Btn size="sm" variant="outline" onClick={() => { onScan(g.id); bump(); }}>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:5 }}><Refresh/> Scan</span>
+          </Btn>
         </div>
-
-        {/* Scrollable Items Container */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: '#F8FAFC' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginTop:10 }}>
+          <span style={{ fontSize:15, fontWeight:800, color:tone, minWidth:44 }}>{g.received}/{g.total}</span>
+          <Bar2 pct={g.pct} color={tone}/>
+        </div>
+        {g.lastScannedAt && <div style={{ fontSize:10.5, color:C.muted, marginTop:6 }}>Last scanned {new Date(g.lastScannedAt).toLocaleString()}</div>}
+        <button onClick={() => setOpen(o => !o)} style={{ background:'none', border:'none', color:C.navy, fontSize:11.5, fontWeight:600, cursor:'pointer', padding:'8px 0 0', fontFamily:'inherit' }}>
+          {open ? 'Hide items' : `Show ${g.total} item${g.total===1?'':'s'}`}
+        </button>
+      </div>
+      {open && (
+        <div style={{ borderTop:`1px solid ${C.border}`, padding:'2px 15px 10px', background:'#FAFBFF' }}>
           {groupReceived.map(it => (
-            <EvidenceSlideItem
-              key={it.id}
-              item={it}
-              marks={QUALITY}
-              current={it.quality}
-              onMark={q => { setEvidenceQuality(it.id, q); bump(); }}
-            />
+            <EvidenceLine key={it.id} item={it} marks={QUALITY} current={it.quality}
+              onMark={q => { setEvidenceQuality(it.id, q); bump(); }}/>
           ))}
           {groupMissing.map(it => (
-            <EvidenceSlideItem
-              key={it.id}
-              item={it}
-              marks={MISSING_MARK}
-              current={it.status}
-              showFallback
-              onMark={m => { setEvidenceStatus(it.id, m); bump(); }}
-            />
+            <EvidenceLine key={it.id} item={it} marks={MISSING_MARK} current={it.status} showFallback
+              onMark={m => { setEvidenceStatus(it.id, m); bump(); }}/>
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function EvidenceTile({ g, bump }) {
-  const [openDrawer, setOpenDrawer] = useState(false);
-
-  const ratio = g.total > 0 ? g.received / g.total : 0;
-  const activeColor = ratio === 1 ? '#039855' : ratio > 0 ? '#F76808' : '#D9251B';
-
-  return (
-    <>
-      <Card style={{ padding: 18, borderRadius: 12, border: `1px solid ${g.changed ? '#FCD9A6' : '#EAECF0'}`, background: g.changed ? '#FFFBF2' : '#ffffff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div>
-            <span style={{ fontSize: 13.5, fontWeight: 700, color: '#101828' }}>{g.name}</span>
-            <span style={{ fontSize: 11, color: '#475467', marginLeft: 8 }}>{g.owner}</span>
-          </div>
-          <span
-            style={{
-              fontSize: 10.5,
-              fontWeight: 600,
-              color: '#1E49E2',
-              background: '#F0F5FF',
-              border: '1px solid #D0E1FF',
-              borderRadius: 10,
-              padding: '2px 8px'
-            }}
-          >
-            Priority
-          </span>
-        </div>
-
-        {/* Big Score Fraction */}
-        <div style={{ fontSize: 24, fontWeight: 800, color: activeColor, marginBottom: 12, lineHeight: 1 }}>
-          {g.received}/{g.total}
-        </div>
-
-        {/* Dynamic Segmented Ticks Bar */}
-        <DynamicSegmentedBar
-          matchedRatio={ratio}
-          color={activeColor}
-          style={{ margin: '12px 0 14px' }}
-        />
-
-        {/* Toggle items side drawer */}
-        <button
-          onClick={() => setOpenDrawer(true)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#1E49E2',
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: 'pointer',
-            padding: 0,
-            fontFamily: 'inherit',
-            textDecoration: 'underline'
-          }}
-        >
-          Show {g.total} item{g.total === 1 ? '' : 's'}
-        </button>
-      </Card>
-
-      {openDrawer && (
-        <EvidenceSlideDrawer
-          g={g}
-          onClose={() => setOpenDrawer(false)}
-          bump={bump}
-        />
       )}
-    </>
+    </div>
   );
 }
 
 function SectionInputs() {
   const [, force] = useState(0);
   const bump = () => force(n => n + 1);
-
-  useEffect(() => {
-    // Ensure initial sample data is populated if state is empty
-    const st = getEvidenceState();
-    if (Object.keys(st).length === 0) {
-      simulateClientUpload();
-      bump();
-    }
-  }, []);
-
   const { received, missing } = evidenceSplit();
   const prog = collectionProgress();
   const findings = evidenceFindings();
@@ -674,47 +346,43 @@ function SectionInputs() {
   const demo = () => { simulateClientUpload(); bump(); };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Top Intro text */}
-      <div style={{ fontSize: 12.5, color: '#475467', lineHeight: 1.5, marginTop: -4 }}>
-        What came back from the drop, and what didn&apos;t. Nothing here blocks the assessment – a gap either has a fallback or becomes a finding. Scan a group as its evidence arrives, or scan everything at once.
-      </div>
-
-      {/* 3 Metric Cards: Received, Not received, Resolved */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 16 }}>Received</div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#1E49E2', lineHeight: 1 }}>
-            {received.length < 10 ? `0${received.length}` : received.length}
+    <div style={{ maxWidth:1040, margin:'0 auto', display:'flex', flexDirection:'column', gap:14 }}>
+      <Card>
+        <div style={{ display:'flex', alignItems:'center', gap:10, flexWrap:'wrap' }}>
+          <div style={{ flex:1, minWidth:240 }}>
+            <div style={{ fontSize:15, fontWeight:700, color:C.text }}>Model inputs</div>
+            <div style={{ fontSize:12.5, color:C.muted, marginTop:3, lineHeight:1.6 }}>
+              What came back from the drop, and what didn&apos;t. Nothing here blocks the assessment — a gap either has a
+              fallback or becomes a finding. Scan a group as its evidence arrives, or scan everything at once.
+            </div>
           </div>
-        </Card>
-
-        <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 16 }}>Not received</div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>
-            {missing.length < 10 ? `0${missing.length}` : missing.length}
+          <Btn variant="outline" onClick={scanAll}><span style={{ display:'inline-flex', alignItems:'center', gap:6 }}><Refresh/> Scan all</span></Btn>
+        </div>
+        <div style={{ display:'flex', gap:18, flexWrap:'wrap', marginTop:14 }}>
+          <div><div style={{ fontSize:22, fontWeight:800, color:C.low, lineHeight:1 }}>{received.length}</div><div style={{ fontSize:11.5, color:C.muted, marginTop:3 }}>received</div></div>
+          <div><div style={{ fontSize:22, fontWeight:800, color:C.high, lineHeight:1 }}>{missing.length}</div><div style={{ fontSize:11.5, color:C.muted, marginTop:3 }}>not received</div></div>
+          <div><div style={{ fontSize:22, fontWeight:800, color:C.navy, lineHeight:1 }}>{prog.pct}%</div><div style={{ fontSize:11.5, color:C.muted, marginTop:3 }}>resolved</div></div>
+        </div>
+        {received.length === 0 && (
+          <div style={{ marginTop:12, background:'#FFFBF2', border:'1px solid #FCD9A6', borderRadius:9, padding:'10px 13px', fontSize:12, color:C.text, lineHeight:1.6 }}>
+            Nothing detected in the drop yet. Scan once the client has uploaded — or{' '}
+            <button onClick={demo} style={{ background:'none', border:'none', color:C.navy, textDecoration:'underline', cursor:'pointer', fontFamily:'inherit', fontSize:12, padding:0 }}>
+              load a sample upload
+            </button>{' '}to see how the inventory works.
           </div>
-        </Card>
+        )}
+      </Card>
 
-        <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 16 }}>Resolved</div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#039855', lineHeight: 1 }}>
-            {prog.pct}%
-          </div>
-        </Card>
-      </div>
-
-      {/* Grid of Evidence Group Tiles */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        {groups.map(g => <EvidenceTile key={g.id} g={g} onScan={scanEvidenceGroup} bump={bump} />)}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:12 }}>
+        {groups.map(g => <EvidenceTile key={g.id} g={g} onScan={scanEvidenceGroup} bump={bump}/>)}
       </div>
 
       {findings.length > 0 && (
-        <Card style={{ padding: 20, borderRadius: 12 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 10 }}>Findings raised from gaps ({findings.length})</div>
+        <Card>
+          <div style={{ fontSize:13.5, fontWeight:700, color:C.text, marginBottom:7 }}>Findings raised from gaps ({findings.length})</div>
           {findings.map(f => (
-            <div key={f.id} style={{ fontSize: 12, color: '#344054', lineHeight: 1.6, padding: '6px 0', borderTop: `1px solid ${C.border}` }}>
-              <AlertCircle /> {f.finding}
+            <div key={f.id} style={{ fontSize:12, color:C.text, lineHeight:1.6, padding:'5px 0', borderTop:`1px solid ${C.border}` }}>
+              <AlertCircle/> {f.finding}
             </div>
           ))}
         </Card>
@@ -754,7 +422,7 @@ function SubnetChips({ rules, zoneId, onAdd, onRemove }) {
     <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8 }}>
       {cidrs.map(c => (
         <span key={c} style={{ display:'inline-flex', alignItems:'center', gap:6, background:'#EAF1FB', color:C.navy,
-          borderRadius:7, padding:'3px 9px', fontSize:11.5, fontFamily:'inherit' }}>
+          borderRadius:7, padding:'3px 9px', fontSize:11.5, fontFamily:'ui-monospace, Menlo, monospace' }}>
           {c}
           <button onClick={() => onRemove(c)} style={{ background:'none', border:'none', color:C.navy, cursor:'pointer', fontSize:13, padding:0, fontFamily:'inherit' }}>×</button>
         </span>
@@ -1313,6 +981,10 @@ export default function ModelTab({ onNavigate = () => {} }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+      <div>
+        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.text, letterSpacing:-.3 }}>Model</h2>
+        <div style={{ fontSize:13, color:C.muted, marginTop:3 }}>Scope, evidence and zones — collected once, revisited any time.</div>
+      </div>
       <BaselineBar a={a}/>
       <SectionNav section={section} setSection={setSection} company={a.company} prog={prog} zonesCount={a.zones.length}/>
       {section === 'scope'  && <SectionScope company={a.company} setCompany={a.setCompany} onSaved={() => setSection('inputs')}/>}

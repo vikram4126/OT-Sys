@@ -21,201 +21,46 @@ import {
 const slColor = sl => ['#B42318','#B54708','#CA8A04','#16A34A','#2563EB'][sl] ?? '#B42318';
 const confColor = c => c>=75?'#059669':c>=50?'#B54708':'#B42318';
 
-import ReactFlow, { Background, Controls, Handle, Position } from 'reactflow';
-import 'reactflow/dist/style.css';
-
-// ── Custom React Flow Node Component for Zones ──────────────────────────────
-const ReactFlowNode = ({ data }) => {
-  const { sla, rangeLabel, name, active, slColor } = data;
-  return (
-    <div style={{
-      textAlign: 'center',
-      cursor: 'pointer',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      userSelect: 'none'
-    }}>
-      <Handle type="target" position={Position.Left} style={{ background: '#555', opacity: 0 }} />
-      <div style={{
-        width: 50,
-        height: 50,
-        borderRadius: '50%',
-        background: active ? '#fff' : '#FBFCFE',
-        border: `3px solid ${active ? '#00338D' : slColor}`,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justify: 'center',
-        boxShadow: active ? '0 0 10px rgba(0,51,141,0.3)' : '0 2px 4px rgba(0,0,0,0.06)'
-      }}>
-        <span style={{ fontSize: 11, fontWeight: '700', color: slColor, marginTop: 7 }}>SL{sla}</span>
-        <span style={{ fontSize: 8, color: '#5F5E5A', marginTop: -2 }}>{rangeLabel}</span>
-      </div>
-      <div style={{ fontSize: 11, fontWeight: '600', color: '#1A1A1A', marginTop: 6, whiteSpace: 'nowrap' }}>
-        {name}
-      </div>
-      <Handle type="source" position={Position.Right} style={{ background: '#555', opacity: 0 }} />
-    </div>
-  );
-};
-
-const nodeTypes = { zoneNode: ReactFlowNode };
-
-// ── ReactFlow implementation of ZoneDiagram ─────────────────────────────────
-function ReactFlowZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelConduit }) {
-  const ordered = [...zones].sort((a, b) => zoneTopLevel(assets, b.id) - zoneTopLevel(assets, a.id));
-  const n = Math.max(ordered.length, 1);
-  const W = 820;
-
-  const nodes = ordered.map((z, i) => {
-    const sla = slaForZone(srSeed, z);
-    const active = sel?.type === 'zone' && sel.id === z.id;
-    const range = zoneLevelRange(assets, z.id);
-    const rangeLabel = zoneRangeLabel(range);
-
-    const x = 40 + i * ((W - 120) / Math.max(n - 1, 1));
-    const y = 50 + (i % 2 === 0 ? -20 : 20);
-
-    return {
-      id: z.id,
-      type: 'zoneNode',
-      position: { x, y },
-      data: {
-        sla,
-        rangeLabel,
-        name: z.name,
-        active,
-        slColor: slColor(sla),
-        zone: z
-      }
-    };
-  });
-
-  const edges = conduits.map(c => {
-    const active = sel?.type === 'conduit' && sel.id === c.id;
-    const open = ['missing', 'partial'].includes(itemStatus(srSeed, c.to, 'SR5.2')) || ['missing', 'partial'].includes(itemStatus(srSeed, c.from, 'SR5.2'));
-
-    return {
-      id: c.id,
-      source: c.from,
-      target: c.to,
-      type: 'smoothstep',
-      animated: open,
-      style: {
-        stroke: active ? '#534AB7' : (open ? '#B4231899' : '#B9C6DE'),
-        strokeWidth: active ? 3 : 2,
-        strokeDasharray: open ? '5 4' : undefined,
-        cursor: 'pointer'
-      },
-      data: { conduit: c }
-    };
-  });
-
-  return (
-    <Card style={{ padding: '12px', marginTop: 12 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#00338D', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ background: '#E0E7FF', padding: '2px 8px', borderRadius: 4 }}>ReactFlow Test Implementation</span>
-        <span style={{ fontSize: 11, color: '#5F5E5A', fontWeight: 400 }}>(Interactive Test Diagram)</span>
-      </div>
-      <div style={{ width: '100%', height: 210 }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodeClick={(evt, node) => onSelZone(node.data.zone)}
-          onEdgeClick={(evt, edge) => onSelConduit(edge.data.conduit)}
-          fitView
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background color="#E2E8F0" gap={16} />
-          <Controls showInteractive={false} />
-        </ReactFlow>
-      </div>
-      <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 6 }}>
-        Click any node (Zone) or edge (Conduit) in this ReactFlow graph to trigger interactive state updates below
-      </div>
-    </Card>
-  );
-}
-
-// ── Standardized Pure SVG Zone + conduit diagram ─────────────────────────────
+// ── Zone + conduit diagram ───────────────────────────────────────────────────
 function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelConduit }) {
-  const W = 860, H = 220, NODE_R = 28, PADX = 100;
+  // Horizontal node graph: zones flow left→right (ordered by Purdue level, edge →
+  // safety), staggered vertically so multiple connections per zone read clearly.
+  const W = 860, H = 170, NODE_R = 25, PADX = 60;
   const ordered = [...zones].sort((a,b)=> zoneTopLevel(assets,b.id) - zoneTopLevel(assets,a.id));
   const n = Math.max(ordered.length, 1);
   const pos = {};
-  
-  ordered.forEach((z, i) => {
-    const x = PADX + i * ((W - PADX * 2) / Math.max(n - 1, 1));
-    const y = H / 2 + (i % 2 === 0 ? -32 : 32);
-    pos[z.id] = { x, y };
-  });
-
-  const edgePath = (a, b) => {
-    const mx = (a.x + b.x) / 2;
-    return `M ${a.x} ${a.y} C ${mx} ${a.y}, ${mx} ${b.y}, ${b.x} ${b.y}`;
-  };
+  ordered.forEach((z,i)=>{ pos[z.id] = { x: PADX + i*((W-PADX*2)/Math.max(n-1,1)), y: H/2 + (i%2===0 ? -26 : 26) }; });
+  const edgePath = (a,b) => { const my=(a.y+b.y)/2; return `M ${a.x} ${a.y} C ${a.x} ${my}, ${b.x} ${my}, ${b.x} ${b.y}`; };
 
   return (
-    <div style={{ width: '100%' }}>
-      <div className="kpmg-dotted-pattern" style={{ border: '1px solid #EAECF0', borderRadius: 16, padding: '24px 16px', overflow: 'hidden' }}>
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" style={{ display: 'block' }}>
-          {/* Conduit Edges */}
-          {conduits.map(c => {
-            const a = pos[c.from], b = pos[c.to];
-            if (!a || !b) return null;
-            const active = sel?.type === 'conduit' && sel.id === c.id;
-            const open = ['missing', 'partial'].includes(itemStatus(srSeed, c.to, 'SR5.2')) || ['missing', 'partial'].includes(itemStatus(srSeed, c.from, 'SR5.2'));
-            return (
-              <g key={c.id} style={{ cursor: 'pointer' }} onClick={() => onSelConduit(c)}>
-                <path d={edgePath(a, b)} fill="none" stroke="transparent" strokeWidth={16} />
-                <path
-                  d={edgePath(a, b)}
-                  fill="none"
-                  stroke={active ? '#534AB7' : (open ? '#B42318' : '#B9C6DE')}
-                  strokeWidth={active ? 2.5 : 1.5}
-                  strokeDasharray="4 4"
-                  opacity={open ? 0.75 : 0.4}
-                >
-                  {open && <animate attributeName="stroke-dashoffset" values="8;0" dur="1.2s" repeatCount="indefinite" />}
-                </path>
-              </g>
-            );
-          })}
-
-          {/* Zone Nodes */}
-          {ordered.map(z => {
-            const p = pos[z.id], sla = slaForZone(srSeed, z), active = sel?.type === 'zone' && sel.id === z.id;
-            const range = zoneLevelRange(assets, z.id);
-            return (
-              <g key={z.id} style={{ cursor: 'pointer' }} onClick={() => onSelZone(z)}>
-                {/* Node Ring */}
-                <circle
-                  cx={p.x}
-                  cy={p.y}
-                  r={NODE_R}
-                  fill="#FFFFFF"
-                  stroke={active ? '#00338D' : '#D0D5DD'}
-                  strokeWidth={active ? 2.5 : 1.2}
-                  filter="drop-shadow(0px 2px 4px rgba(16, 24, 40, 0.06))"
-                />
-                {/* Node Labels */}
-                <text x={p.x} y={p.y - 3} fontSize="10.5" fontWeight="700" fill="#101828" textAnchor="middle">SL0</text>
-                <text x={p.x} y={p.y + 9} fontSize="8.5" fontWeight="600" fill="#667085" textAnchor="middle">{zoneRangeLabel(range)}</text>
-                {/* Zone Name Label below */}
-                <text x={p.x} y={p.y + NODE_R + 16} fontSize="11" fontWeight="600" fill="#101828" textAnchor="middle">{z.name}</text>
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* Subtext caption inside the diagram box container */}
-        <div style={{ fontSize: 11.5, color: C.muted, textAlign: 'center', marginTop: 10, paddingBottom: 4 }}>
-          Click a zone (node) or conduit (edge) to inspect its requirements below
-        </div>
-      </div>
-    </div>
+    <Card style={{ padding:'6px 4px' }}>
+      <svg viewBox={`0 0 ${W} ${H+26}`} width="100%" style={{ display:'block', maxHeight:200 }}>
+        {conduits.map(c => {
+          const a=pos[c.from], b=pos[c.to]; if(!a||!b) return null;
+          const active = sel?.type==='conduit' && sel.id===c.id;
+          const open = ['missing','partial'].includes(itemStatus(srSeed,c.to,'SR5.2')) || ['missing','partial'].includes(itemStatus(srSeed,c.from,'SR5.2'));
+          return (
+            <g key={c.id} style={{ cursor:'pointer' }} onClick={()=>onSelConduit(c)}>
+              <path d={edgePath(a,b)} fill="none" stroke="transparent" strokeWidth={14}/>
+              <path d={edgePath(a,b)} fill="none" stroke={active?C.violet:(open?`${C.critical}99`:'#B9C6DE')} strokeWidth={active?3:2} strokeDasharray={open?'5 4':''}/>
+            </g>
+          );
+        })}
+        {ordered.map(z => {
+          const p=pos[z.id], sla=slaForZone(srSeed,z), active=sel?.type==='zone'&&sel.id===z.id;
+          const range=zoneLevelRange(assets,z.id);
+          return (
+            <g key={z.id} style={{ cursor:'pointer' }} onClick={()=>onSelZone(z)}>
+              <circle cx={p.x} cy={p.y} r={NODE_R} fill={active?'#fff':'#FBFCFE'} stroke={active?C.navy:slColor(sla)} strokeWidth={active?3:2}/>
+              <text x={p.x} y={p.y-2} fontSize="10" fontWeight="700" fill={slColor(sla)} textAnchor="middle">SL{sla}</text>
+              <text x={p.x} y={p.y+9} fontSize="7.5" fill={C.muted} textAnchor="middle">{zoneRangeLabel(range)}</text>
+              <text x={p.x} y={p.y+NODE_R+13} fontSize="10.5" fontWeight="600" fill={C.text} textAnchor="middle">{z.name}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ fontSize:11, color:C.muted, textAlign:'center', marginTop:0 }}>Click a zone (node) or conduit (edge) to inspect its requirements below</div>
+    </Card>
   );
 }
 
@@ -278,7 +123,7 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
 
   return (
     <Modal title={`${item.id} — ${item.name}`} subtitle={`${zone.name} · evidence review`} onClose={onClose} maxWidth={1080}>
-      <div className="kpmg-grid-2col-split">
+      <div style={{ display:'grid', gridTemplateColumns:'1.1fr 1fr', gap:22 }}>
         {/* LEFT — evidence viewer */}
         <div>
           <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:8 }}>Evidence ({docs.length})</div>
@@ -452,20 +297,20 @@ export default function Compliance62443Tab() {
 
   const renderZoneReqs = (zone, onlyFR) => (
     <Card style={{ padding:0, overflow:'hidden' }}>
-      <div style={{ padding:'12px 16px', background: '#FAFCFF', borderBottom:`1px solid ${C.border}`, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+      <div style={{ padding:'12px 16px', borderBottom:`1px solid ${C.border}`, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
         <span style={{ fontSize:14, fontWeight:700, color:C.text }}>{zone.name}</span>
         <span style={{ fontSize:12, color:C.muted }}>target SL-T {zone.slT}</span>
         <span style={{ fontSize:16, fontWeight:700, color:slColor(slaForZone(srSeed,zone)) }}>SL-A {slaForZone(srSeed,zone)}</span>
         <Btn size="sm" variant="outline" onClick={()=>setAssetOpen(zone)} style={{ marginLeft:'auto' }}>Assets ({assetsForZone(assets,zone.id).length})</Btn>
       </div>
 
-      <div style={{ padding:'9px 16px', background:'#FFFFFF', borderBottom:`1px solid ${C.border}`, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5 }}>IEC 62443-3-3 requirements</div>
+      <div style={{ padding:'9px 16px', background:'#F4F7FD', borderBottom:`1px solid ${C.border}`, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5 }}>IEC 62443-3-3 requirements</div>
       {FR_CATALOGUE.filter(c=>!onlyFR||c.fr===onlyFR).map((cat,ci,arr)=>{
         const items = requiredItems(cat.fr, zone.slT); if(!items.length) return null;
         return (
           <div key={cat.fr} style={{ borderBottom:ci<arr.length-1?`1px solid ${C.border}`:'none' }}>
             <div style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', background:'#FAFBFF' }}>
-              <span className="kpmg-code-badge" style={{ fontSize:12, fontWeight:700, color:C.navy }}>{cat.fr}</span>
+              <span style={{ fontFamily:'monospace', fontSize:12, fontWeight:700, color:C.navy }}>{cat.fr}</span>
               <span style={{ fontSize:12.5, fontWeight:600, color:C.text, flex:1 }}>{cat.name}</span>
               <span style={{ fontSize:11, fontWeight:700, color:slColor(slaForFR(srSeed,zone,cat.fr)) }}>SL-A {slaForFR(srSeed,zone,cat.fr)}</span>
             </div>
@@ -476,7 +321,7 @@ export default function Compliance62443Tab() {
                   style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 16px', paddingLeft: it.isRE?40:16, borderTop:`1px solid ${C.border}`, cursor:'pointer' }}
                   onMouseEnter={e=>e.currentTarget.style.background='#F8FAFD'} onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
                   <span style={{ width:15, height:15, borderRadius:4, background:m.bg, color:m.fg, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>{m.mark}</span>
-                  <span className="kpmg-code-badge" style={{ fontSize:11, color: it.isRE?C.muted:C.navy, fontWeight:600, width:92 }}>{it.id}</span>
+                  <span style={{ fontFamily:'monospace', fontSize:11, color: it.isRE?C.muted:C.navy, fontWeight:600, width:92 }}>{it.id}</span>
                   <span style={{ fontSize:12.5, color:C.text, flex:1 }}>{it.name}</span>
                   {(()=>{ const acts=srActions(zone.id, it.id); const n=Object.keys(acts).length; return n>0 && <span title="Consultant action pending" style={{ fontSize:10, fontWeight:700, color:'#B54708', background:'#FEF0C7', padding:'1px 7px', borderRadius:20, whiteSpace:'nowrap' }}>{n} action{n>1?'s':''}</span>; })()}
                   <span style={{ fontSize:11, fontWeight:600, color:m.fg }}>{m.label}</span>
@@ -490,9 +335,16 @@ export default function Compliance62443Tab() {
   );
 
   return (
-    <div className="kpmg-page-stack">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button onClick={()=>setActionsOpen(true)} className="kpmg-btn-primary" style={{ flexShrink:0, boxShadow:'0 2px 8px rgba(0,51,141,.2)' }}>
+    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, flexWrap:'wrap' }}>
+        <div>
+          <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.text, letterSpacing:-.3 }}>IEC 62443-3-3</h2>
+          <p style={{ margin:'3px 0 0', fontSize:13, color:C.muted, lineHeight:1.6, maxWidth:680 }}>
+            Click a zone or conduit in the diagram to inspect its requirements. Each requirement shows its status; click one to
+            review the evidence, see the AI's suggestion, and record your determination.
+          </p>
+        </div>
+        <button onClick={()=>setActionsOpen(true)} style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', borderRadius:9, background:C.navy, border:'none', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'inherit', flexShrink:0, boxShadow:'0 2px 8px rgba(0,51,141,.2)' }}>
           <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           Actions{actionCount>0 && <span style={{ fontSize:12, fontWeight:700, background:'rgba(255,255,255,.25)', padding:'1px 8px', borderRadius:20 }}>{actionCount}</span>}
         </button>
@@ -503,8 +355,8 @@ export default function Compliance62443Tab() {
 
       {selZone && renderZoneReqs(selZone)}
       {selConduit && (
-        <div className="kpmg-page-stack" style={{ gap: 12 }}>
-          <div className="kpmg-subtext">Conduit <strong style={{ color:'var(--heading-color)' }}>{selConduit.name}</strong> — restricted-data-flow (FR5) requirements across the connected zones:</div>
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <div style={{ fontSize:12.5, color:C.muted }}>Conduit <strong style={{ color:C.text }}>{selConduit.name}</strong> — restricted-data-flow (FR5) requirements across the connected zones:</div>
           {conduitZones.map(z => renderZoneReqs(z, 'FR5'))}
         </div>
       )}
@@ -521,12 +373,12 @@ export default function Compliance62443Tab() {
       {actionsOpen && (
         <div style={{ position:'fixed', inset:0, background:'rgba(10,22,40,.5)', zIndex:200, display:'flex', justifyContent:'flex-end', backdropFilter:'blur(2px)' }} onClick={()=>setActionsOpen(false)}>
           <div style={{ width:'min(880px, 94vw)', height:'100%', background:'#F4F7FD', boxShadow:'-12px 0 40px rgba(10,22,40,.25)', display:'flex', flexDirection:'column' }} onClick={e=>e.stopPropagation()}>
-            <div style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 22px', background:'#fff', borderBottom:`1px solid var(--border-color)`, flexShrink:0 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 22px', background:'#fff', borderBottom:`1px solid ${C.border}`, flexShrink:0 }}>
               <div>
-                <div className="kpmg-modal-title">Actions</div>
-                <div className="kpmg-modal-subtitle">Everything outstanding from the 62443 review, across every zone</div>
+                <div style={{ fontSize:16, fontWeight:700, color:C.text }}>Actions</div>
+                <div style={{ fontSize:12, color:C.muted, marginTop:1 }}>Everything outstanding from the 62443 review, across every zone</div>
               </div>
-              <button onClick={()=>setActionsOpen(false)} className="kpmg-modal-close-btn">×</button>
+              <button onClick={()=>setActionsOpen(false)} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:24, color:C.muted, lineHeight:1 }}>×</button>
             </div>
             <div style={{ overflowY:'auto', padding:'18px 22px', flex:1 }}>
               <WorkspaceTab embedded/>
