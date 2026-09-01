@@ -469,17 +469,182 @@ export default function Compliance62443Tab() {
               <span style={{ fontSize:12.5, fontWeight:600, color:C.text, flex:1 }}>{cat.name}</span>
               <span style={{ fontSize:11, fontWeight:700, color:slColor(slaForFR(srSeed,zone,cat.fr)) }}>SL-A {slaForFR(srSeed,zone,cat.fr)}</span>
             </div>
-            {items.map(it=>{
-              const s = itemStatus(srSeed, zone.id, it.id); const m = SR_STATUS[s];
+            {items.map((it, idx) => {
+              const s = itemStatus(srSeed, zone.id, it.id);
+              const ai = aiRubricAssessment(srSeed, zone.id, it);
+              const rState = rubricStateFor(zone.id, it.id);
+              const tickOf = (i) => (rState.ticks && rState.ticks[i] !== undefined) ? rState.ticks[i] : ai[i].ticked;
+              const ticked = ai.filter((_, i) => tickOf(i)).length;
+              const totalRubric = ai.length || 5;
+              const conf = srConfidence(srSeed, zone.id, it);
+              const pct = Math.round((ticked / totalRubric) * 100) || conf.score || 80;
+              const needsManual = pct < 80;
+              const evList = (evidence.docs || []).filter(d => d.srId === it.id);
+              const evCount = evList.length;
+              const hasNextRE = items[idx + 1] && items[idx + 1].isRE;
+
+              const st = {
+                dot: s==='met'?'#067647':s==='missing'?'#B42318':'#F79009',
+                bg: s==='met'?'#ECFDF3':s==='missing'?'#FEF3F2':'#FFFAEB',
+                fg: s==='met'?'#067647':s==='missing'?'#B42318':'#B54708',
+                border: s==='met'?'#ABEFC6':s==='missing'?'#FECDCA':'#FEDF89',
+                label: s==='met'?'Met':s==='missing'?'Missing':'Partial'
+              };
+
               return (
-                <div key={it.id} onClick={()=>setReqOpen({ zone, item:it })}
-                  style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 16px', paddingLeft: it.isRE?40:16, borderTop:`1px solid ${C.border}`, cursor:'pointer' }}
-                  onMouseEnter={e=>e.currentTarget.style.background='#F8FAFD'} onMouseLeave={e=>e.currentTarget.style.background='#fff'}>
-                  <span style={{ width:15, height:15, borderRadius:4, background:m.bg, color:m.fg, display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>{m.mark}</span>
-                  <span className="kpmg-code-badge" style={{ fontSize:11, color: it.isRE?C.muted:C.navy, fontWeight:600, width:92 }}>{it.id}</span>
-                  <span style={{ fontSize:12.5, color:C.text, flex:1 }}>{it.name}</span>
-                  {(()=>{ const acts=srActions(zone.id, it.id); const n=Object.keys(acts).length; return n>0 && <span title="Consultant action pending" style={{ fontSize:10, fontWeight:700, color:'#B54708', background:'#FEF0C7', padding:'1px 7px', borderRadius:20, whiteSpace:'nowrap' }}>{n} action{n>1?'s':''}</span>; })()}
-                  <span style={{ fontSize:11, fontWeight:600, color:m.fg }}>{m.label}</span>
+                <div
+                  key={it.id}
+                  onClick={() => setReqOpen({ zone, item: it })}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '58px 95px 1fr 105px 190px 160px auto',
+                    alignItems: 'center',
+                    gap: 20,
+                    padding: '10px 24px',
+                    borderTop: `1px solid ${C.border}`,
+                    cursor: 'pointer',
+                    position: 'relative'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                >
+                  {/* Status Box Indicator & Tree Connector Line Hierarchy */}
+                  <div style={{ display: 'flex', alignItems: 'center', position: 'relative', height: 26, paddingLeft: it.isRE ? 38 : 0 }}>
+                    {/* Vertical line from parent downwards through children */}
+                    {(!it.isRE && hasNextRE) && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 11,
+                          top: 13,
+                          bottom: -22,
+                          width: 1.5,
+                          background: '#D0D5DD',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
+
+                    {/* Vertical line continuing down through child RE items */}
+                    {it.isRE && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 11,
+                          top: -22,
+                          bottom: hasNextRE ? -22 : 13,
+                          width: 1.5,
+                          background: '#D0D5DD',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
+
+                    {/* Horizontal branch line connecting vertical tree line to child badge */}
+                    {it.isRE && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: 11,
+                          top: 12,
+                          width: 27,
+                          borderTop: '1.5px solid #D0D5DD',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
+
+                    {/* Rounded Rectangle Badge with Hollow Ring */}
+                    <div
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 5,
+                        background: st.bg,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        zIndex: 1
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 13,
+                          height: 13,
+                          borderRadius: '50%',
+                          border: `2px solid ${st.dot}`,
+                          background: 'transparent'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Code ID - Parent moved further to the left */}
+                  <div style={{ display: 'flex', alignItems: 'center', marginLeft: !it.isRE ? -32 : 0 }}>
+                    <span className="kpmg-code-badge" style={{ fontSize: 11, color: it.isRE ? '#667085' : '#00338D', fontWeight: 700 }}>
+                      {it.id}
+                    </span>
+                  </div>
+
+                  {/* Title (Second Column) */}
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: 24, paddingRight: 8 }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#101828', lineHeight: 1.3, display: 'inline-block' }}>
+                      {it.name}
+                    </span>
+                  </div>
+
+                  {/* Status Pill */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span
+                      style={{
+                        background: st.bg,
+                        color: st.fg,
+                        border: `1px solid ${st.border}`,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        padding: '2px 10px',
+                        borderRadius: 12,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: st.fg }} />
+                      {st.label}
+                    </span>
+                  </div>
+
+                  {/* Compliance Rubric */}
+                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: '#344054', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                    {ticked}/{totalRubric} <span style={{ color: '#667085', fontWeight: 400, marginLeft: 4 }}>Compliance rubric</span>
+                  </div>
+
+                  {/* % Score & Manual Review */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#101828' }}>{pct}%</span>
+                    {needsManual && (
+                      <span
+                        style={{
+                          background: '#FEF3F2',
+                          color: '#B42318',
+                          border: '1px solid #FECDCA',
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          padding: '2px 8px',
+                          borderRadius: 10
+                        }}
+                      >
+                        Manual Review
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Evidence Uploaded (Far Right) */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontSize: 12, fontWeight: 600, color: '#6941C6', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {evCount} Evidence uploaded
+                  </div>
                 </div>
               );
             })}

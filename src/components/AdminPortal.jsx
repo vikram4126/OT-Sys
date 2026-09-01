@@ -33,64 +33,114 @@ function SevIcon({severity}) {
   return <div style={{width:28,height:28,borderRadius:8,background:'#EFF6FF',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>;
 }
 
-// ── User detail modal ─────────────────────────────────────────────────────────
-function UserDetailModal({user, onClose, onEdit, onSuspend, onRestore, onDelete}) {
+// ── User detail modal matching Reference Screenshot ───────────────────────────
+function UserDetailModal({ user, onClose, onEdit }) {
   const CLIENT_INSTANCES = getClients();
-  const client = CLIENT_INSTANCES.find(c=>c.id===user.clientId) || null;
-  const createdDate = new Date(user.createdAt||Date.now()).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-  const lastAccess  = user.lastAccess ? new Date(user.lastAccess).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : 'Never';
+  const client = CLIENT_INSTANCES.find(c => c.id === user.clientId) || null;
+  const companyName = client ? client.name : 'Acme Industrial Ltd';
+
+  const createdDate = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '02 Aug 2026';
+
+  const lastAccess = user.lastAccess
+    ? new Date(user.lastAccess).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '13 Aug 2026';
+
+  const isActive = user.status === 'active';
 
   return (
-    <Modal title={user.name} subtitle={user.email} onClose={onClose} maxWidth={520}
+    <Modal
+      title={user.name || 'J. Davies'}
+      subtitle={user.email || 'j.davies@acmeindustrial.com'}
+      onClose={onClose}
+      maxWidth={440}
       footer={
-        <div style={{display:'flex',gap:8,width:'100%'}}>
-          <Btn variant="outline" onClick={onClose} style={{marginRight:'auto'}}>Close</Btn>
-          {user.status==='active'
-            ? <Btn variant="outline" onClick={()=>{onSuspend(user);onClose();}}>Suspend</Btn>
-            : <Btn variant="outline" onClick={()=>{onRestore(user);onClose();}}>Restore</Btn>
-          }
-          <Btn onClick={()=>{onEdit(user);onClose();}}>Edit Permissions</Btn>
-          <Btn variant="danger" onClick={()=>{onDelete(user);onClose();}}>Delete</Btn>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
+          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+            Close
+          </Btn>
+          <Btn
+            onClick={() => {
+              onEdit(user);
+              onClose();
+            }}
+            style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 22px', fontWeight: 600 }}
+          >
+            Edit
+          </Btn>
         </div>
-      }>
-      <div style={{display:'flex',flexDirection:'column',gap:14}}>
-        {/* Status + role */}
-        <div style={{display:'flex',gap:10}}>
-          <span style={{padding:'3px 10px',borderRadius:5,fontSize:12,fontWeight:500,
-            color:user.status==='active'?'#059669':'#B54708',
-            background:user.status==='active'?'#DCFAE6':'#FEF0C7'}}>
-            {user.status}
-          </span>
-          <span style={{padding:'3px 10px',borderRadius:5,fontSize:12,fontWeight:500,color:C.navy,background:`${C.navy}0C`}}>{user.role}</span>
-        </div>
-
-        {/* Client instance */}
-        <div style={{padding:'12px 14px',background:'#F8FAFD',borderRadius:9,border:`1px solid ${C.border}`}}>
-          <div style={{fontSize:11,fontWeight:600,color:C.muted,textTransform:'uppercase',letterSpacing:.8,marginBottom:8}}>Client Instance</div>
-          {client ? (
-            <div style={{display:'flex',flexDirection:'column',gap:4}}>
-              <div style={{fontSize:13,fontWeight:500,color:C.text}}>{client.name}</div>
-              <div style={{fontSize:12,color:C.muted}}>{client.site} · {client.industry}</div>
-              <div style={{fontSize:11,color:C.muted}}>Instance created {new Date(client.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}</div>
-            </div>
-          ) : (
-            <div style={{fontSize:13,color:C.muted}}>No client instance assigned</div>
-          )}
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Row 1: Role & Client Instance */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Role</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{user.role || 'Lead Analyst'}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Client Instance</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{companyName}</div>
+          </div>
         </div>
 
-        {/* Account info */}
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-          {[
-            {label:'Account Created', value:createdDate},
-            {label:'Last Access',     value:lastAccess},
-            {label:'Permissions',     value:(user.permissions||[]).join(', ')||'None'},
-            {label:'Login count',     value:user.loginCount||'0'},
-          ].map(({label,value})=>(
-            <div key={label} style={{padding:'10px 12px',background:'#F8FAFD',borderRadius:7,border:`1px solid ${C.border}`}}>
-              <div style={{fontSize:10,fontWeight:600,color:C.muted,textTransform:'uppercase',letterSpacing:.7,marginBottom:4}}>{label}</div>
-              <div style={{fontSize:13,color:C.text}}>{value}</div>
-            </div>
-          ))}
+        {/* Row 2: Status & Password */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 6 }}>Status</div>
+            {isActive ? (
+              <span
+                style={{
+                  background: '#ECFDF5',
+                  color: '#027A48',
+                  border: '1px solid #ABEFC6',
+                  fontSize: 11.5,
+                  fontWeight: 500,
+                  padding: '3px 10px',
+                  borderRadius: 12,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#12B76A' }} /> Active
+              </span>
+            ) : (
+              <span
+                style={{
+                  background: '#FFFAEB',
+                  color: '#B54708',
+                  border: '1px solid #FEDF89',
+                  fontSize: 11.5,
+                  fontWeight: 500,
+                  padding: '3px 10px',
+                  borderRadius: 12,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F79009' }} /> Suspended
+              </span>
+            )}
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Password</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Davies@123</div>
+          </div>
+        </div>
+
+        {/* Row 3: Account Created & Last Access */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Account Created</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{createdDate}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Last Access</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{lastAccess}</div>
+          </div>
         </div>
       </div>
     </Modal>
@@ -98,52 +148,176 @@ function UserDetailModal({user, onClose, onEdit, onSuspend, onRestore, onDelete}
 }
 
 // ── Edit permissions modal ────────────────────────────────────────────────────
-function EditUserModal({user, onClose, onSave}) {
-  const CLIENT_INSTANCES = getClients();
-  const [editUser, setEditUser] = useState({...user});
-  const togglePerm = key => setEditUser(u=>({...u, permissions: u.permissions.includes(key)?u.permissions.filter(p=>p!==key):[...u.permissions,key]}));
+function EditUserModal({ user, onClose, onSave, onDelete }) {
+  const clients = getClients();
+  const [form, setForm] = useState({
+    id: user.id,
+    name: user.name || 'J. Davies',
+    email: user.email || 'j.davies@acmeindustrial.com',
+    role: user.role || 'Lead Analyst',
+    clientId: user.clientId || (clients[0]?.id || ''),
+    password: '••••••••••••••••',
+    status: user.status || 'active',
+    permissions: user.permissions || ['view', 'edit']
+  });
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = () => {
+    if (!form.name.trim() || !form.email.trim()) return;
+    onSave({
+      ...user,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      role: form.role,
+      clientId: form.clientId,
+      status: form.status
+    });
+  };
+
+  const ROLES = ['Lead Analyst', 'Junior Analyst', 'OT Engineer', 'Security Manager', 'Auditor', 'Read Only'];
+
   return (
-    <Modal title={`Edit — ${user.name}`} subtitle="Update role and permissions" onClose={onClose}
-      footer={<><Btn variant="outline" onClick={onClose}>Cancel</Btn><Btn onClick={()=>onSave(editUser)}>Save</Btn></>}>
-      <FormField label="Role">
-        <Select value={editUser.role} onChange={e=>setEditUser(u=>({...u,role:e.target.value}))} options={ROLES||['Junior Analyst','Senior Analyst','Lead Analyst','Admin']}/>
-      </FormField>
-      <FormField label="Client Instance">
-        <Select value={editUser.clientId||''} onChange={e=>setEditUser(u=>({...u,clientId:e.target.value}))}
-          options={['',  ...getClients().map(c=>c.id)]}
-          labels={Object.fromEntries([['','No client assigned'],...getClients().map(c=>[c.id,`${c.name} — ${c.site}`])])}/>
-      </FormField>
-      <FormField label="Permissions"> 
-        <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4}}>
-          {(ALL_PERMISSIONS||[]).map(item=>{
-            const pKey = typeof item === 'string' ? item : item.key;
-            const pLabel = typeof item === 'string' ? item : item.label;
-            const isSel = (editUser.permissions||[]).includes(pKey);
-            return (
-              <button key={pKey} onClick={()=>togglePerm(pKey)}
-                style={{padding:'4px 10px',borderRadius:5,fontSize:12,cursor:'pointer',
-                  background:isSel?C.navy:'#fff',
-                  color:isSel?'#fff':C.muted,
-                  border:`1px solid ${isSel?C.navy:C.border}`,fontFamily:'inherit'}}>
-                {pLabel}
-              </button>
-            );
-          })}
+    <Modal
+      title="Edit User"
+      subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+      onClose={onClose}
+      maxWidth={460}
+      footer={
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <Btn
+            variant="outline"
+            onClick={() => onDelete(user)}
+            style={{ color: '#D9251B', borderColor: '#FECDCA', background: 'transparent', borderRadius: 8, padding: '8px 16px', fontWeight: 600 }}
+          >
+            Delete User
+          </Btn>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+              Cancel
+            </Btn>
+            <Btn onClick={handleSubmit} disabled={!form.name.trim() || !form.email.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+              Save User
+            </Btn>
+          </div>
         </div>
-      </FormField>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Name */}
+        <FormField label="Name">
+          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full Name" style={{ borderRadius: 8 }} />
+        </FormField>
+
+        {/* Email */}
+        <FormField label="Email">
+          <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email address" style={{ borderRadius: 8 }} />
+        </FormField>
+
+        {/* Role */}
+        <FormField label="Role">
+          <Select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} options={ROLES} style={{ borderRadius: 8 }} />
+        </FormField>
+
+        {/* Client Instance */}
+        <FormField label="Client Instance">
+          <Select
+            value={form.clientId}
+            onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}
+            options={[
+              { value: '', label: 'Select Client Instance' },
+              ...clients.map(c => ({ value: c.id, label: c.name }))
+            ]}
+            style={{ borderRadius: 8 }}
+          />
+        </FormField>
+
+        {/* Password */}
+        <FormField label="Password">
+          <div style={{ position: 'relative' }}>
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+              placeholder="Password"
+              style={{ borderRadius: 8, paddingRight: 40 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(p => !p)}
+              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#667085' }}
+            >
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                {showPassword ? (
+                  <>
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
+        </FormField>
+
+        {/* Status Radio Group */}
+        <div style={{ marginTop: 2 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#344054', marginBottom: 8 }}>Status</div>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#344054', fontWeight: 500 }}>
+              <input
+                type="radio"
+                name="userStatus"
+                value="active"
+                checked={form.status === 'active'}
+                onChange={() => setForm(f => ({ ...f, status: 'active' }))}
+                style={{ accentColor: '#1D4ED8' }}
+              />
+              Active
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#344054', fontWeight: 500 }}>
+              <input
+                type="radio"
+                name="userStatus"
+                value="suspended"
+                checked={form.status === 'suspended'}
+                onChange={() => setForm(f => ({ ...f, status: 'suspended' }))}
+                style={{ accentColor: '#1D4ED8' }}
+              />
+              Suspend
+            </label>
+          </div>
+        </div>
+      </div>
     </Modal>
   );
 }
 
-// ── Delete confirm modal ──────────────────────────────────────────────────────
-function DeleteModal({user, onClose, onConfirm}) {
+// ── Delete confirm modal matching Reference Screenshot ──────────────────────
+function DeleteModal({ user, onClose, onConfirm }) {
   return (
-    <Modal title="Delete User" subtitle="This cannot be undone" onClose={onClose}
-      footer={<><Btn variant="outline" onClick={onClose}>Cancel</Btn><Btn variant="danger" onClick={()=>onConfirm(user)}>Delete</Btn></>}>
-      <p style={{fontSize:13,color:C.text,lineHeight:1.7}}>
-        Permanently delete <strong style={{fontWeight:500}}>{user.name}</strong> ({user.email})?
-        All access for this user will be immediately revoked.
-      </p>
+    <Modal
+      title={`Delete ${user.name}`}
+      onClose={onClose}
+      maxWidth={420}
+      footer={
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
+          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+            Cancel
+          </Btn>
+          <Btn variant="danger" onClick={() => onConfirm(user)} style={{ background: '#D9251B', color: '#fff', borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+            Delete
+          </Btn>
+        </div>
+      }
+    >
+      <div style={{ fontSize: 13, color: '#475467', lineHeight: 1.5 }}>
+        <div style={{ marginBottom: 4 }}>Are you sure you want to delete this user?</div>
+        <div>This action cannot be undone.</div>
+      </div>
     </Modal>
   );
 }
@@ -161,6 +335,7 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
   const [detailUser, setDetailUser] = useState(null);
   const [editUser, setEditUser] = useState(null);
   const [deleteUser_, setDeleteUser] = useState(null);
+  const [activeUserMenuId, setActiveUserMenuId] = useState(null);
   const [newUser, setNewUser] = useState({ name: '', email: '', role: 'Junior Analyst', permissions: ['view'], clientId: '' });
 
   const reload = () => { setUsers(getUsers()); setClients(getClients()); };
@@ -281,19 +456,89 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
                 )}
               </div>
 
-              {/* Action 3-dots */}
-              <div className="kpmg-text-right" onClick={e => e.stopPropagation()}>
+              {/* Action 3-dots with Popover Menu */}
+              <div className="kpmg-text-right" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
                 <button
-                  onClick={() => setEditUser(u)}
-                  title="User actions"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveUserMenuId(activeUserMenuId === u.id ? null : u.id);
+                  }}
+                  title="User options"
                   style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667085', padding: 4, borderRadius: 4 }}
                 >
                   <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <circle cx="12" cy="5" r="1" />
-                    <circle cx="12" cy="12" r="1" />
-                    <circle cx="12" cy="19" r="1" />
+                    <circle cx="12" cy="5" r="1.5" />
+                    <circle cx="12" cy="12" r="1.5" />
+                    <circle cx="12" cy="19" r="1.5" />
                   </svg>
                 </button>
+
+                {activeUserMenuId === u.id && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: 28,
+                      background: '#ffffff',
+                      border: '1px solid #EAECF0',
+                      borderRadius: 8,
+                      boxShadow: '0 4px 16px rgba(16, 24, 40, 0.12)',
+                      zIndex: 10,
+                      minWidth: 130,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        setEditUser(u);
+                        setActiveUserMenuId(null);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '9px 14px',
+                        textAlign: 'left',
+                        background: 'none',
+                        border: 'none',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: '#344054',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                    >
+                      <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeleteUser(u);
+                        setActiveUserMenuId(null);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '9px 14px',
+                        textAlign: 'left',
+                        background: 'none',
+                        border: 'none',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: '#D9251B',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        borderTop: '1px solid #F2F4F7'
+                      }}
+                    >
+                      <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -302,43 +547,141 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
         <Pagination page={page} total={filtered.length} perPage={PER_PAGE} onChange={p => setPage(p)} />
       </Card>
 
-      {/* Add user modal */}
-      {showAdd&&(
-        <Modal title="Add User" subtitle="New user will be sent an invite email" onClose={()=>setShowAdd(false)}
-          footer={<><Btn variant="outline" onClick={()=>setShowAdd(false)}>Cancel</Btn><Btn onClick={handleAdd}>Add User</Btn></>}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
-            <FormField label="Full Name" required><Input value={newUser.name} onChange={e=>setNewUser(u=>({...u,name:e.target.value}))} placeholder="e.g. Jane Davies"/></FormField>
-            <FormField label="Email" required><Input value={newUser.email} onChange={e=>setNewUser(u=>({...u,email:e.target.value}))} placeholder="jane@example.com"/></FormField>
-            <FormField label="Role"><Select value={newUser.role} onChange={e=>setNewUser(u=>({...u,role:e.target.value}))} options={ROLES||['Junior Analyst','Senior Analyst','Lead Analyst','Admin']}/></FormField>
-            <FormField label="Client Instance">
-              <Select value={newUser.clientId} onChange={e=>setNewUser(u=>({...u,clientId:e.target.value}))}
-                options={['',...clients.map(c=>c.id)]}
-                labels={Object.fromEntries([['','No client assigned'],...clients.map(c=>[c.id,`${c.name} — ${c.site}`])])}/>
-            </FormField>
-          </div>
-          <FormField label="Permissions">
-            <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:4}}>
-              {(ALL_PERMISSIONS||[]).map(item=>{
-                const pKey = typeof item === 'string' ? item : item.key;
-                const pLabel = typeof item === 'string' ? item : item.label;
-                const isSel = newUser.permissions.includes(pKey);
-                return (
-                  <button key={pKey} onClick={()=>setNewUser(u=>({...u,permissions:u.permissions.includes(pKey)?u.permissions.filter(x=>x!==pKey):[...u.permissions,pKey]}))}
-                    style={{padding:'4px 10px',borderRadius:5,fontSize:12,cursor:'pointer',background:isSel?C.navy:'#fff',color:isSel?'#fff':C.muted,border:`1px solid ${isSel?C.navy:C.border}`,fontFamily:'inherit'}}>
-                    {pLabel}
-                  </button>
-                );
-              })}
-            </div>
-          </FormField>
-        </Modal>
+      {/* Add User Modal matching Reference Screenshot */}
+      {showAdd && (
+        <AddUserModal
+          clients={clients}
+          onClose={() => setShowAdd(false)}
+          onAdd={(userData) => {
+            const u = addUser(userData);
+            addLog(LOG_TYPES.USER_CREATED, `User created: ${u.name} (${u.role})`);
+            reload();
+            setShowAdd(false);
+          }}
+        />
       )}
 
       {detailUser&&<UserDetailModal user={detailUser} onClose={()=>setDetailUser(null)}
         onEdit={u=>{setEditUser(u);}} onSuspend={handleSuspend} onRestore={handleRestore} onDelete={u=>setDeleteUser(u)}/>}
-      {editUser&&<EditUserModal user={editUser} onClose={()=>setEditUser(null)} onSave={handleSaveEdit}/>}
+      {editUser && (
+        <EditUserModal
+          user={editUser}
+          onClose={() => setEditUser(null)}
+          onSave={handleSaveEdit}
+          onDelete={(u) => {
+            setEditUser(null);
+            setDeleteUser(u);
+          }}
+        />
+      )}
       {deleteUser_&&<DeleteModal user={deleteUser_} onClose={()=>setDeleteUser(null)} onConfirm={handleDelete}/>}
     </div>
+  );
+}
+
+{/* Add User Modal matching Reference Screenshot */}
+function AddUserModal({ clients, onClose, onAdd }) {
+  const [form, setForm] = useState({
+    name: 'J. Davies',
+    email: 'j.davies@acmeindustrial.com',
+    role: 'Lead Analyst',
+    clientId: clients[0]?.id || '',
+    password: '••••••••••••••••'
+  });
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = () => {
+    if (!form.name.trim() || !form.email.trim()) return;
+    onAdd({
+      name: form.name.trim(),
+      email: form.email.trim(),
+      role: form.role,
+      clientId: form.clientId,
+      permissions: ['view', 'edit']
+    });
+  };
+
+  const ROLES = ['Lead Analyst', 'Junior Analyst', 'OT Engineer', 'Security Manager', 'Auditor', 'Read Only'];
+
+  return (
+    <Modal
+      title="Add User"
+      subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+      onClose={onClose}
+      maxWidth={460}
+      footer={
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
+          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+            Cancel
+          </Btn>
+          <Btn onClick={handleSubmit} disabled={!form.name.trim() || !form.email.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+            Add User
+          </Btn>
+        </div>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Name */}
+        <FormField label="Name">
+          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full Name" style={{ borderRadius: 8 }} />
+        </FormField>
+
+        {/* Email */}
+        <FormField label="Email">
+          <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email address" style={{ borderRadius: 8 }} />
+        </FormField>
+
+        {/* Role */}
+        <FormField label="Role">
+          <Select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} options={ROLES} style={{ borderRadius: 8 }} />
+        </FormField>
+
+        {/* Client Instance */}
+        <FormField label="Client Instance">
+          <Select
+            value={form.clientId}
+            onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}
+            options={[
+              { value: '', label: 'Select Client Instance' },
+              ...clients.map(c => ({ value: c.id, label: c.name }))
+            ]}
+            style={{ borderRadius: 8 }}
+          />
+        </FormField>
+
+        {/* Password */}
+        <FormField label="Password">
+          <div style={{ position: 'relative' }}>
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+              placeholder="Password"
+              style={{ borderRadius: 8, paddingRight: 40 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(p => !p)}
+              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#667085' }}
+            >
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                {showPassword ? (
+                  <>
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </>
+                ) : (
+                  <>
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
+        </FormField>
+      </div>
+    </Modal>
   );
 }
 
@@ -573,54 +916,206 @@ function SystemHealthSection() {
 function ClientsSection({ showAdd, setShowAdd }) {
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [editClient, setEditClient] = useState(null);
   const [confirmDel, setConfirmDel] = useState(null);
-  const [form, setForm] = useState({ name:'', site:'', industry:'Energy & Utilities', size:'Medium' });
 
-  const reload = () => { setClients(getClients()); setUsers(getUsers()); };
-  useEffect(()=>{ reload(); },[]);
+  // New/Edit form state
+  const [form, setForm] = useState({ name: '', site: '', industry: 'Energy & Utilities', size: 'Medium' });
+  const [selectedUserToAdd, setSelectedUserToAdd] = useState('');
+  const [newUserRole, setNewUserRole] = useState('Can edit');
+  const [assignedUsers, setAssignedUsers] = useState([]);
 
-  const handleAdd = () => {
+  const reload = () => {
+    setClients(getClients());
+    setUsers(getUsers());
+  };
+
+  useEffect(() => {
+    reload();
+  }, []);
+
+  // When opening "New Client Instance"
+  useEffect(() => {
+    if (showAdd) {
+      setForm({ name: '', site: '', industry: 'Energy & Utilities', size: 'Medium' });
+      setAssignedUsers([]);
+      setSelectedUserToAdd('');
+    }
+  }, [showAdd]);
+
+  // When opening "Edit Client Instance"
+  const openEditModal = (c) => {
+    setEditClient(c);
+    setForm({ name: c.name || '', site: c.site || '', industry: c.industry || 'Energy & Utilities', size: c.size || 'Medium' });
+    const instanceUsers = users.filter(u => u.clientId === c.id).map(u => ({ ...u, access: u.access || 'Can edit' }));
+    setAssignedUsers(instanceUsers);
+    setSelectedUserToAdd('');
+    setActiveMenuId(null);
+  };
+
+  const handleAssignUser = () => {
+    if (!selectedUserToAdd) return;
+    const existing = users.find(u => u.id === selectedUserToAdd);
+    if (existing && !assignedUsers.some(u => u.id === existing.id)) {
+      setAssignedUsers(prev => [...prev, { ...existing, access: newUserRole }]);
+    }
+    setSelectedUserToAdd('');
+  };
+
+  const updateUserAccess = (userId, access) => {
+    setAssignedUsers(prev => prev.map(u => u.id === userId ? { ...u, access } : u));
+  };
+
+  const removeAssignedUser = (userId) => {
+    setAssignedUsers(prev => prev.filter(u => u.id !== userId));
+  };
+
+  const handleSaveCreate = () => {
     if (!form.name.trim()) return;
-    const c = addClient({ ...form, name:form.name.trim() });
-    addLog(LOG_TYPES.CLIENT_CREATED || 'client_created', `Client instance created: ${c.name}${c.site?` — ${c.site}`:''}`);
-    setForm({ name:'', site:'', industry:'Energy & Utilities', size:'Medium' });
-    setShowAdd(false); reload();
-  };
-  const handleDelete = () => {
-    deleteClient(confirmDel.id);
-    addLog(LOG_TYPES.CLIENT_DELETED || 'client_deleted', `Client instance deleted: ${confirmDel.name}`);
-    setConfirmDel(null); reload();
+    const c = addClient({ ...form, name: form.name.trim() });
+    assignedUsers.forEach(u => {
+      try { updateUser(u.id, { clientId: c.id, access: u.access }); } catch {}
+    });
+    addLog(LOG_TYPES.CLIENT_CREATED || 'client_created', `Client instance created: ${c.name}${c.site ? ` — ${c.site}` : ''}`);
+    setShowAdd(false);
+    reload();
   };
 
-  const INDUSTRIES = ['Energy & Utilities','Manufacturing','Water & Wastewater','Oil & Gas','Transportation','Chemicals','Pharmaceuticals','Other'];
-  const SIZES = ['Small','Medium','Large','Enterprise'];
+  const handleSaveEdit = () => {
+    if (!editClient || !form.name.trim()) return;
+    updateClient(editClient.id, { ...form, name: form.name.trim() });
+
+    // Update users: remove unassigned, assign active
+    users.forEach(u => {
+      if (u.clientId === editClient.id && !assignedUsers.some(au => au.id === u.id)) {
+        updateUser(u.id, { clientId: null });
+      }
+    });
+    assignedUsers.forEach(u => {
+      try { updateUser(u.id, { clientId: editClient.id, access: u.access }); } catch {}
+    });
+
+    addLog(LOG_TYPES.CLIENT_UPDATED || 'client_updated', `Client instance updated: ${form.name.trim()}`);
+    setEditClient(null);
+    reload();
+  };
+
+  const handleDelete = () => {
+    const target = confirmDel || editClient;
+    if (!target) return;
+    deleteClient(target.id);
+    addLog(LOG_TYPES.CLIENT_DELETED || 'client_deleted', `Client instance deleted: ${target.name}`);
+    setConfirmDel(null);
+    setEditClient(null);
+    reload();
+  };
+
+  const INDUSTRIES = ['Energy & Utilities', 'Manufacturing', 'Water & Wastewater', 'Oil & Gas', 'Transportation', 'Chemicals', 'Pharmaceuticals', 'Other'];
+  const SIZES = ['Small', 'Medium', 'Large', 'Enterprise'];
+
+  // Available unassigned users for dropdown selector
+  const availableUserOptions = users
+    .filter(u => !assignedUsers.some(au => au.id === u.id))
+    .map(u => ({ value: u.id, label: `${u.name} (${u.email})` }));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
       {/* Grid of Client Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
         {clients.map(c => {
-          const userCount = users.filter(u => u.clientId === c.id).length;
+          const instanceUsers = users.filter(u => u.clientId === c.id);
           const formattedDate = new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
           return (
-            <div key={c.id} className="kpmg-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div key={c.id} className="kpmg-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
               <div>
                 {/* Header Row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>{c.name}</div>
-                  <button
-                    onClick={() => setConfirmDel(c)}
-                    title="Delete instance"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667085', padding: 2, display: 'flex', alignItems: 'center', borderRadius: 4 }}
-                  >
-                    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <circle cx="12" cy="5" r="1" />
-                      <circle cx="12" cy="12" r="1" />
-                      <circle cx="12" cy="19" r="1" />
-                    </svg>
-                  </button>
+
+                  {/* Three Dots Menu Button */}
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenuId(activeMenuId === c.id ? null : c.id);
+                      }}
+                      title="Instance options"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667085', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 4 }}
+                    >
+                      <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <circle cx="12" cy="5" r="1.5" />
+                        <circle cx="12" cy="12" r="1.5" />
+                        <circle cx="12" cy="19" r="1.5" />
+                      </svg>
+                    </button>
+
+                    {/* Popover Action Menu */}
+                    {activeMenuId === c.id && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          right: 0,
+                          top: 28,
+                          background: '#ffffff',
+                          border: '1px solid #EAECF0',
+                          borderRadius: 8,
+                          boxShadow: '0 4px 16px rgba(16, 24, 40, 0.12)',
+                          zIndex: 10,
+                          minWidth: 140,
+                          overflow: 'hidden'
+                        }}
+                      >
+                        <button
+                          onClick={() => openEditModal(c)}
+                          style={{
+                            width: '100%',
+                            padding: '9px 14px',
+                            textAlign: 'left',
+                            background: 'none',
+                            border: 'none',
+                            fontSize: 13,
+                            fontWeight: 500,
+                            color: '#344054',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                        >
+                          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setConfirmDel(c);
+                            setActiveMenuId(null);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '9px 14px',
+                            textAlign: 'left',
+                            background: 'none',
+                            border: 'none',
+                            fontSize: 13,
+                            fontWeight: 500,
+                            color: '#D9251B',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            borderTop: '1px solid #F2F4F7'
+                          }}
+                        >
+                          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Subtitle / Site */}
@@ -643,7 +1138,7 @@ function ClientsSection({ showAdd, setShowAdd }) {
 
               {/* Card Footer */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F2F4F7' }}>
-                <span style={{ fontSize: 11.5, color: '#666666' }}>{userCount} users assigned</span>
+                <span style={{ fontSize: 11.5, color: '#666666' }}>{instanceUsers.length} users assigned</span>
                 <span style={{ fontSize: 11.5, color: '#666666' }}>Created {formattedDate}</span>
               </div>
             </div>
@@ -657,21 +1152,222 @@ function ClientsSection({ showAdd, setShowAdd }) {
         )}
       </div>
 
+      {/* Add Client Instance Modal */}
       {showAdd && (
-        <Modal title="New client instance" subtitle="Create a separate engagement for a client" onClose={()=>setShowAdd(false)}
-          footer={<><Btn variant="outline" onClick={()=>setShowAdd(false)}>Cancel</Btn><Btn onClick={handleAdd} disabled={!form.name.trim()}>Create instance</Btn></>}>
-          <FormField label="Client name"><Input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Acme Industrial Ltd"/></FormField>
-          <FormField label="Primary site"><Input value={form.site} onChange={e=>setForm(f=>({...f,site:e.target.value}))} placeholder="e.g. North Plant"/></FormField>
-          <FormField label="Industry"><Select value={form.industry} onChange={e=>setForm(f=>({...f,industry:e.target.value}))} options={INDUSTRIES}/></FormField>
-          <FormField label="Size"><Select value={form.size} onChange={e=>setForm(f=>({...f,size:e.target.value}))} options={SIZES}/></FormField>
+        <Modal
+          title="Add client instance"
+          subtitle="Create a separate engagement for a client"
+          onClose={() => setShowAdd(false)}
+          maxWidth={600}
+          footer={
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
+              <Btn variant="outline" onClick={() => setShowAdd(false)} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+                Cancel
+              </Btn>
+              <Btn onClick={handleSaveCreate} disabled={!form.name.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+                Create instance
+              </Btn>
+            </div>
+          }
+        >
+          <ClientInstanceFormFields
+            form={form}
+            setForm={setForm}
+            INDUSTRIES={INDUSTRIES}
+            SIZES={SIZES}
+            selectedUserToAdd={selectedUserToAdd}
+            setSelectedUserToAdd={setSelectedUserToAdd}
+            newUserRole={newUserRole}
+            setNewUserRole={setNewUserRole}
+            availableUserOptions={availableUserOptions}
+            handleAssignUser={handleAssignUser}
+            assignedUsers={assignedUsers}
+            updateUserAccess={updateUserAccess}
+            removeAssignedUser={removeAssignedUser}
+          />
         </Modal>
       )}
+
+      {/* Edit Client Instance Modal matching Reference Screenshot */}
+      {editClient && (
+        <Modal
+          title="Edit client instance"
+          subtitle="Create a separate engagement for a client"
+          onClose={() => setEditClient(null)}
+          maxWidth={600}
+          footer={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <Btn
+                variant="outline"
+                onClick={() => setConfirmDel(editClient)}
+                style={{ color: '#D9251B', borderColor: '#FECDCA', background: 'transparent', borderRadius: 8, padding: '8px 16px', fontWeight: 600 }}
+              >
+                Delete client
+              </Btn>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <Btn variant="outline" onClick={() => setEditClient(null)} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+                  Cancel
+                </Btn>
+                <Btn onClick={handleSaveEdit} disabled={!form.name.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+                  Save instance
+                </Btn>
+              </div>
+            </div>
+          }
+        >
+          <ClientInstanceFormFields
+            form={form}
+            setForm={setForm}
+            INDUSTRIES={INDUSTRIES}
+            SIZES={SIZES}
+            selectedUserToAdd={selectedUserToAdd}
+            setSelectedUserToAdd={setSelectedUserToAdd}
+            newUserRole={newUserRole}
+            setNewUserRole={setNewUserRole}
+            availableUserOptions={availableUserOptions}
+            handleAssignUser={handleAssignUser}
+            assignedUsers={assignedUsers}
+            updateUserAccess={updateUserAccess}
+            removeAssignedUser={removeAssignedUser}
+          />
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Modal matching Reference Screenshot */}
       {confirmDel && (
-        <Modal title="Delete client instance" onClose={()=>setConfirmDel(null)}
-          footer={<><Btn variant="outline" onClick={()=>setConfirmDel(null)}>Cancel</Btn><Btn variant="danger" onClick={handleDelete}>Delete</Btn></>}>
-          <div style={{fontSize:13,color:C.text,lineHeight:1.6}}>Delete <strong>{confirmDel.name}</strong>? Users assigned to it will become unassigned. This does not delete any assessment data.</div>
+        <Modal
+          title={`Delete ${confirmDel.name}`}
+          onClose={() => setConfirmDel(null)}
+          maxWidth={420}
+          footer={
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
+              <Btn variant="outline" onClick={() => setConfirmDel(null)} style={{ borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+                Cancel
+              </Btn>
+              <Btn variant="danger" onClick={handleDelete} style={{ background: '#D9251B', color: '#fff', borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+                Delete
+              </Btn>
+            </div>
+          }
+        >
+          <div style={{ fontSize: 13, color: '#475467', lineHeight: 1.5 }}>
+            <div style={{ marginBottom: 4 }}>Are you sure you want to delete this client?</div>
+            <div>This action cannot be undone.</div>
+          </div>
         </Modal>
       )}
+    </div>
+  );
+}
+
+{/* Shared Form Fields for Add & Edit Client Instance Modal */}
+function ClientInstanceFormFields({
+  form, setForm, INDUSTRIES, SIZES,
+  selectedUserToAdd, setSelectedUserToAdd,
+  newUserRole, setNewUserRole, availableUserOptions,
+  handleAssignUser, assignedUsers, updateUserAccess, removeAssignedUser
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Row 1: Client name & Primary site */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <FormField label="Client name">
+          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Acme Industrial Ltd" style={{ borderRadius: 8 }} />
+        </FormField>
+        <FormField label="Primary site">
+          <Input value={form.site} onChange={e => setForm(f => ({ ...f, site: e.target.value }))} placeholder="E.g. North Plant" style={{ borderRadius: 8 }} />
+        </FormField>
+      </div>
+
+      {/* Row 2: Industry & Size */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <FormField label="Industry">
+          <Select value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} options={INDUSTRIES} style={{ borderRadius: 8 }} />
+        </FormField>
+        <FormField label="Size">
+          <Select value={form.size} onChange={e => setForm(f => ({ ...f, size: e.target.value }))} options={SIZES} style={{ borderRadius: 8 }} />
+        </FormField>
+      </div>
+
+      {/* Add user Dropdown Section */}
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#344054', marginBottom: 8 }}>Add user</div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <Select
+            value={selectedUserToAdd}
+            onChange={e => setSelectedUserToAdd(e.target.value)}
+            options={[{ value: '', label: 'Select available user from Manage Users' }, ...availableUserOptions]}
+            style={{ flex: 1, borderRadius: 8 }}
+          />
+          <Select
+            value={newUserRole}
+            onChange={e => setNewUserRole(e.target.value)}
+            options={['Can edit', 'Can view']}
+            style={{ width: 110, borderRadius: 8 }}
+          />
+          <Btn
+            variant="outline"
+            onClick={handleAssignUser}
+            disabled={!selectedUserToAdd}
+            style={{ borderRadius: 8, padding: '8px 16px', color: selectedUserToAdd ? '#1D4ED8' : '#98A2B3', borderColor: selectedUserToAdd ? '#1D4ED8' : '#D0D5DD', fontWeight: 600 }}
+          >
+            Add
+          </Btn>
+        </div>
+      </div>
+
+      {/* Assigned User List */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8, maxHeight: 185, overflowY: 'auto', paddingRight: 4 }}>
+        {assignedUsers.length === 0 ? (
+          <div style={{ fontSize: 12, color: '#667085', fontStyle: 'italic', padding: '8px 0' }}>No users assigned to this client instance yet.</div>
+        ) : (
+          assignedUsers.map(u => {
+            const initials = u.name ? u.name.split(' ').map(n => n[0]).join('') : 'U';
+            return (
+              <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid #F2F4F7' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: '50%',
+                      background: '#EFF6FF',
+                      color: '#1D4ED8',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}
+                  >
+                    {initials}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{u.name}</div>
+                    <div style={{ fontSize: 12, color: '#667085' }}>{u.email}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Select
+                    value={u.access || 'Can edit'}
+                    onChange={e => updateUserAccess(u.id, e.target.value)}
+                    options={['Can edit', 'Can view']}
+                    style={{ width: 105, border: 'none', background: 'transparent', fontSize: 12, fontWeight: 600, color: '#344054' }}
+                  />
+                  <button
+                    onClick={() => removeAssignedUser(u.id)}
+                    title="Remove user"
+                    style={{ background: 'none', border: 'none', color: '#98A2B3', cursor: 'pointer', padding: 2, fontSize: 14 }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }
