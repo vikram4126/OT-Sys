@@ -222,35 +222,33 @@ function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelCon
 // ── Requirement evidence-review popup ────────────────────────────────────────
 function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAddEvidence, onRemoveEvidence }) {
   const [docIdx, setDocIdx] = useState(0);
+  const [pageNo, setPageNo] = useState(4);
   const [reanalysed, setReanalysed] = useState(false);
   const [, force] = useState(0);
-  const doc = docs[docIdx];
+  const doc = docs[docIdx] || { filename: 'Text here.pdf', uploaded_at: '2026-08-29', uploaded_by: 'Consultant' };
+
   const desc = `Requires that ${item.name.toLowerCase()} is implemented to the level demanded by the zone's target security level. The rubric below is the AI's initial check of what the evidence demonstrates for ${zone.name}.`;
 
   const ai = aiRubricAssessment(srSeed, zone.id, item);
   const rState = rubricStateFor(zone.id, item.id);
   const tickOf = (i) => (rState.ticks && rState.ticks[i] !== undefined) ? rState.ticks[i] : ai[i].ticked;
-  const ticked = ai.filter((_,i)=>tickOf(i)).length;
+  const ticked = ai.filter((_, i) => tickOf(i)).length;
 
-  // AI confidence the SR is satisfied + derived consultant determination from the checkboxes.
   const conf = srConfidence(srSeed, zone.id, item);
   const lowConf = conf.score < 80;
   const derived = ticked === ai.length ? 'met' : ticked === 0 ? 'missing' : 'partial';
-  const DSTATUS = { met:{label:'Met', fg:'#067647', bg:'#DCFAE6'}, partial:{label:'Partial', fg:'#B54708', bg:'#FEF0DA'}, missing:{label:'Missing', fg:'#B42318', bg:'#FDECEF'} };
-  const ds = DSTATUS[derived];
 
-  // SR-level consultant actions
   const actions = srActions(zone.id, item.id);
   const ACTION_DEFS = [
-    ['request',     'Request further evidence'],
-    ['workshop',    'Include in workshop'],
-    ['sitevisit',   'Schedule site visit'],
+    ['request', 'Request further evidence'],
+    ['workshop', 'Include in workshop'],
+    ['sitevisit', 'Schedule site visit'],
     ['unavailable', 'Evidence unavailable'],
   ];
-  // What the AI recommends (with a note for each) when the SR isn't fully met.
+
   const aiRecommended = React.useMemo(() => {
     if (derived === 'met') return {};
-    const base = suggestedAction(srSeed, zone.id, item, 0);   // 'sitevisit' or 'request'
+    const base = suggestedAction(srSeed, zone.id, item, 0);
     const rec = {};
     if (base.kind === 'sitevisit') {
       rec.sitevisit = { note: base.note };
@@ -261,7 +259,6 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
     return rec;
   }, [derived, zone.id, item.id]);
 
-  // On first open (no recorded actions yet), auto-apply the AI's recommendations.
   React.useEffect(() => {
     if (derived !== 'met' && Object.keys(actions).length === 0 && Object.keys(aiRecommended).length > 0) {
       Object.entries(aiRecommended).forEach(([kind, v]) => setSrAction(zone.id, item.id, kind, true, v.note));
@@ -273,132 +270,250 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
     const on = !!actions[kind];
     const seedNote = (!on && aiRecommended[kind]) ? aiRecommended[kind].note : '';
     setSrAction(zone.id, item.id, kind, !on, on ? undefined : seedNote);
-    force(x=>x+1);
+    force(x => x + 1);
   };
 
   return (
-    <Modal title={`${item.id} — ${item.name}`} subtitle={`${zone.name} · evidence review`} onClose={onClose} maxWidth={1080}>
-      <div className="kpmg-grid-2col-split">
-        {/* LEFT — evidence viewer */}
-        <div>
-          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:8 }}>Evidence ({docs.length})</div>
-          {docs.length ? (
+    <Modal
+      title={`${item.id} - ${item.name}`}
+      subtitle={`${zone.name} · Evidence review`}
+      onClose={onClose}
+      maxWidth={1120}
+      footer={
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
+          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+            Cancel
+          </Btn>
+          <Btn onClick={onClose} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 22px', fontWeight: 600 }}>
+            Save
+          </Btn>
+        </div>
+      }
+    >
+      <div style={{ display: 'grid', gridTemplateColumns: '460px 1fr', gap: 24, alignItems: 'start' }}>
+        {/* LEFT COLUMN — PDF Document Viewer & Evidence Info */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Header Card for Document */}
+          <div style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ background:'#0A1628', borderRadius:10, height:320, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12, color:'#CFE0FF' }}>
-                <Folder/>
-                <div style={{ fontSize:13.5, fontWeight:500 }}>{doc.filename}</div>
-                <div style={{ fontSize:11, opacity:.6 }}>uploaded {new Date(doc.uploaded_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})} · {doc.uploaded_by}</div>
-                <div style={{ fontSize:10.5, opacity:.45 }}>(document preview — extracted by the evidence pipeline)</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>{doc.filename || 'Text here.pdf'}</div>
+              <div style={{ fontSize: 11.5, color: '#667085', marginTop: 2 }}>
+                Uploaded {new Date(doc.uploaded_at || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} - {doc.uploaded_by || 'Consultant'}
               </div>
-              {/* Open in new tab — under the preview so it's visible when a real doc renders */}
-              <div style={{ textAlign:'center', marginTop:8 }}>
-                <a href={doc.url || '#'} target="_blank" rel="noopener noreferrer" onClick={e=>{ if(!doc.url) e.preventDefault(); }}
-                  style={{ fontSize:12, color:C.navy, textDecoration:'underline', cursor:'pointer' }}>Open in new tab ↗</a>
-              </div>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:8 }}>
-                <button disabled={docIdx===0} onClick={()=>setDocIdx(i=>Math.max(0,i-1))} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:6, padding:'4px 10px', cursor:docIdx===0?'default':'pointer', color:docIdx===0?C.border:C.navy, fontFamily:'inherit' }}>← Prev</button>
-                <span style={{ fontSize:11, color:C.muted }}>{docIdx+1} of {docs.length}</span>
-                <button disabled={docIdx>=docs.length-1} onClick={()=>setDocIdx(i=>Math.min(docs.length-1,i+1))} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:6, padding:'4px 10px', cursor:docIdx>=docs.length-1?'default':'pointer', color:docIdx>=docs.length-1?C.border:C.navy, fontFamily:'inherit' }}>Next →</button>
-              </div>
-              <button onClick={()=>{ onRemoveEvidence(doc.id); setDocIdx(0); }} style={{ marginTop:8, background:'none', border:'none', color:C.critical, fontSize:11.5, cursor:'pointer', fontFamily:'inherit', padding:0 }}>Remove this evidence</button>
             </div>
-          ) : (
-            <div style={{ background:'#F8FAFD', border:`1px dashed ${C.border}`, borderRadius:10, height:320, display:'flex', alignItems:'center', justifyContent:'center', color:C.muted, fontSize:12.5 }}>No evidence filed for this requirement</div>
-          )}
-          <div style={{ marginTop:10 }}>
-            <Btn variant="outline" onClick={()=>{ const fn = `evidence-${Date.now().toString(36)}.pdf`; onAddEvidence(zone.id, item.fr, fn); setReanalysed(true); force(x=>x+1); }} style={{ width:'100%' }}>↑ Upload additional evidence</Btn>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <a
+                href={doc.url || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => { if (!doc.url) e.preventDefault(); }}
+                title="Open PDF"
+                style={{ color: '#475467', cursor: 'pointer', display: 'flex' }}
+              >
+                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+              </a>
+              {docs.length > 0 && (
+                <button
+                  onClick={() => { onRemoveEvidence(doc.id); setDocIdx(0); }}
+                  title="Remove evidence"
+                  style={{ background: 'none', border: 'none', color: '#475467', cursor: 'pointer', display: 'flex', padding: 0 }}
+                >
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                </button>
+              )}
+            </div>
           </div>
-          <div style={{ fontSize:10.5, color:C.muted, marginTop:5 }}>The file name is taken from the uploaded file and placed in the connected directory on the client's behalf.</div>
+
+          {/* PDF Viewer Mock Container */}
+          <div style={{ background: '#374151', borderRadius: 10, padding: '16px 20px', height: 480, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
+            <div style={{ background: '#FFFFFF', width: '100%', minHeight: 640, borderRadius: 4, padding: '24px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', color: '#334155', fontSize: 9.5, lineHeight: 1.5, fontFamily: 'serif' }}>
+              <p style={{ marginBottom: 10, fontWeight: 'bold' }}>DOCUMENT EVIDENCE REF: {item.id} - COMPLIANCE DEMONSTRATION</p>
+              <p style={{ marginBottom: 10 }}>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas porttitor congue massa. Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna. Nunc viverra imperdiet enim. Fusce est. Vivamus a tellus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin pharetra nonummy pede. Mauris et orci.</p>
+              <p style={{ marginBottom: 10 }}>Aenean nec lorem. In porttitor. Donec laoreet nonummy augue. Suspendisse dui purus, scelerisque at, vulputate vitae, pretium mattis, nunc. Mauris eget neque at sem venenatis eleifend. Ut nonummy. Fusce aliquet pede non pede. Suspendisse dapibus lorem pellentesque magna. Integer nulla. Donec blandit feugiat ligula. Donec hendrerit, felis et imperdiet euismod, purus ipsum pretium metus, in lacinia nulla nisl eget sapien.</p>
+              <p style={{ marginBottom: 10 }}>Donec ut est in lectus consequat consequat. Etiam eget dui. Aliquam erat volutpat. Sed at lorem in nunc porta tristique. Proin nec augue. Quisque aliquam tempor magna. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc ac magna. Maecenas odio dolor, vulputate vel, auctor ac, accumsan id, felis. Pellentesque cursus sagittis felis. Pellentesque porttitor, velit lacinia egestas auctor, diam eros tempus arcu, nec vulputate augue magna vel risus.</p>
+              <p style={{ marginBottom: 10 }}>Cras non magna vel ante adipiscing rhoncus. Vivamus a mi. Morbi neque. Aliquam erat volutpat. Integer ultrices lobortis eros. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin semper, ante vitae sollicitudin posuere, metus quam iaculis nibh, vitae scelerisque nunc massa eget pede. Sed velit urna, interdum vel, ultricies vel, faucibus at, quam. Donec elit est, consectetuer eget, consequat quis, tempus quis, wisi.</p>
+            </div>
+          </div>
+
+          {/* PDF Controls Footer */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
+            <button
+              onClick={() => setPageNo(p => Math.max(1, p - 1))}
+              disabled={pageNo === 1}
+              style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: pageNo === 1 ? 'default' : 'pointer', color: pageNo === 1 ? '#D0D5DD' : '#344054' }}
+            >
+              ←
+            </button>
+            <span style={{ fontSize: 12, color: '#475467', fontWeight: 500 }}>
+              {pageNo} of {docs.length > 0 ? 10 : 1}
+            </span>
+            <button
+              onClick={() => setPageNo(p => Math.min(10, p + 1))}
+              disabled={pageNo === 10}
+              style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: pageNo === 10 ? 'default' : 'pointer', color: pageNo === 10 ? '#D0D5DD' : '#344054' }}
+            >
+              →
+            </button>
+          </div>
         </div>
 
-        {/* RIGHT — requirement detail + rubric */}
-        <div>
-          <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:4 }}>{item.name}</div>
-          <div style={{ fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:12 }}>{desc}</div>
+        {/* RIGHT COLUMN — Details, AI confidence, Rubric checklist, Actions */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Requirement Title & Description */}
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#101828', marginBottom: 4 }}>{item.name}</div>
+            <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5 }}>{desc}</div>
+          </div>
 
-          {/* Evidence just uploaded → AI re-analysed, consultant confirms (never auto-tick) */}
-          {reanalysed && (
-            <div style={{ padding:'10px 13px', borderRadius:10, marginBottom:12, background:'#EEF4FF', border:`1px solid ${C.navy}33`, display:'flex', gap:9, alignItems:'flex-start' }}>
-              <span style={{ color:C.navy, display:'flex', flexShrink:0, marginTop:1 }}><Brain/></span>
-              <div style={{ fontSize:11.5, color:C.text, lineHeight:1.5 }}>
-                <strong>New evidence filed — the AI has re-analysed this SR.</strong> Its updated read is reflected in the confidence score and checklist below. Review and confirm the rubric — nothing is ticked automatically; your determination stays manual.
+          {/* 2-Column Summary Cards: Consultant determination & AI Confidence */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#344054', marginBottom: 4 }}>Consultant determination</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: derived === 'met' ? '#027A48' : derived === 'missing' ? '#B42318' : '#B42318', marginBottom: 4 }}>
+                {derived === 'met' ? 'Met' : derived === 'missing' ? 'Missing' : 'Partial'}
+              </div>
+              <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.3 }}>
+                derived from {ticked}/{ai.length} rubric points checked ({derived === 'met' ? 'all checked' : derived === 'missing' ? 'none checked' : 'some checked'})
               </div>
             </div>
+
+            <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#344054', marginBottom: 4 }}>AI confidence the SR is satisfied</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: lowConf ? '#B42318' : '#027A48', marginBottom: 4 }}>
+                {conf.score}%
+              </div>
+              <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.3 }}>
+                {ticked} of {ai.length} rubric points are demonstrated; coverage of the remaining points is implied rather than evidenced, so confidence is moderate.
+              </div>
+            </div>
+          </div>
+
+          {/* Upload Additional Evidence Box */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#344054', marginBottom: 6 }}>Upload additional evidence</div>
+            <div
+              onClick={() => { const fn = `evidence-${Date.now().toString(36)}.pdf`; onAddEvidence(zone.id, item.fr, fn); setReanalysed(true); force(x => x + 1); }}
+              style={{
+                border: '1px dashed #D0D5DD',
+                borderRadius: 8,
+                padding: '16px 20px',
+                textAlign: 'center',
+                background: '#FAFCFF',
+                cursor: 'pointer',
+                fontSize: 12.5,
+                color: '#475467'
+              }}
+            >
+              <span style={{ color: '#1D4ED8', fontWeight: 600, textDecoration: 'underline' }}>Click to upload</span> or drag and drop
+            </div>
+          </div>
+
+          {/* AI Banner for New Evidence Filed */}
+          {reanalysed && (
+            <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#1E40AF', lineHeight: 1.45 }}>
+              <div style={{ fontWeight: 600, marginBottom: 2 }}>New evidence filed - the AI has re-analysed this SR</div>
+              Its updated read is reflected in the confidence score and checklist below. Review and confirm the rubric - nothing is ticked automatically; your determination stays manual.
+            </div>
           )}
 
-          {/* AI confidence the SR is satisfied */}
-          <div style={{ padding:'11px 13px', borderRadius:10, marginBottom:12, background: lowConf?'#FFF7ED':'#F4FBF7', border:`1px solid ${lowConf?'#FCD9A6':'#BBE9D2'}` }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:5 }}>
-              <span style={{ color:C.violet, display:'flex' }}><Brain/></span>
-              <span style={{ fontSize:11.5, fontWeight:700, color:C.text }}>AI confidence the SR is satisfied</span>
-              <span style={{ marginLeft:'auto', fontSize:16, fontWeight:700, color: lowConf?'#B54708':'#067647' }}>{conf.score}%</span>
-            </div>
-            <div style={{ fontSize:11.5, color:C.text, lineHeight:1.5 }}>{conf.justification}</div>
-            {lowConf && <div style={{ fontSize:10.5, fontWeight:700, color:'#B54708', marginTop:6 }}>⚠ Below 80% — flagged for manual review.</div>}
-          </div>
+          {/* Compliance Rubric Checklist */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Compliance rubric</div>
+            <div style={{ fontSize: 11.5, color: '#667085', marginBottom: 8 }}>Select any that apply - a site can run both IT and OT tooling.</div>
 
-          {/* Rubric checklist — AI's initial completion (no per-item explanation) */}
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-            <span style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5 }}>Compliance rubric</span>
-            <span title={hasBespokeRubric(item)?'Authored specifically for this requirement':'General FR-level rubric'} style={{ fontSize:9.5, fontWeight:700, padding:'1px 7px', borderRadius:20, background:hasBespokeRubric(item)?'#DCFAE6':'#F1F5F9', color:hasBespokeRubric(item)?'#067647':C.muted }}>{hasBespokeRubric(item)?'SR-specific':'FR-level'}</span>
-            <span style={{ fontSize:11, fontWeight:700, color: ticked===ai.length?'#067647':'#B54708' }}>{ticked}/{ai.length}</span>
-            <span style={{ fontSize:10.5, color:C.muted }}>AI-checked · click to override</span>
-          </div>
-          <div style={{ border:`1px solid ${C.border}`, borderRadius:10, marginBottom:12, maxHeight:230, overflowY:'auto' }}>
-            {ai.map((r,i)=>{
-              const on = tickOf(i);
-              const overridden = rState.ticks && rState.ticks[i] !== undefined && rState.ticks[i] !== ai[i].ticked;
-              return (
-                <div key={i} style={{ display:'flex', gap:10, padding:'9px 12px', borderTop:i?`1px solid ${C.border}`:'none', alignItems:'flex-start' }}>
-                  <button onClick={()=>{
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
+              {ai.map((r, i) => {
+                const on = tickOf(i);
+                return (
+                  <div
+                    key={i}
+                    onClick={() => {
                       setRubricTick(zone.id, item.id, i, !on);
-                      const next = ai.map((rr,j)=> j===i ? !on : tickOf(j));
+                      const next = ai.map((rr, j) => j === i ? !on : tickOf(j));
                       const cnt = next.filter(Boolean).length;
-                      const st = cnt===ai.length ? 'met' : cnt===0 ? 'missing' : 'partial';
+                      const st = cnt === ai.length ? 'met' : cnt === 0 ? 'missing' : 'partial';
                       onSetStatus(zone.id, item.id, st);
-                      force(x=>x+1);
+                      force(x => x + 1);
                     }}
-                    style={{ width:18, height:18, borderRadius:5, flexShrink:0, cursor:'pointer', border:`1.5px solid ${on?'#067647':C.border}`, background:on?'#067647':'#fff', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, marginTop:1 }}>{on?'✓':''}</button>
-                  <div style={{ fontSize:12.5, color:C.text, lineHeight:1.45, flex:1 }}>{r.point}{overridden && <span style={{ fontSize:9.5, color:C.violet, fontWeight:700, marginLeft:6 }}>override</span>}</div>
+                    style={{
+                      border: '1px solid #EAECF0',
+                      background: '#FFFFFF',
+                      borderRadius: 8,
+                      padding: '10px 14px',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 12,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 4,
+                        border: `1.5px solid ${on ? '#1D4ED8' : '#D0D5DD'}`,
+                        background: on ? '#1D4ED8' : '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#FFFFFF',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        flexShrink: 0,
+                        marginTop: 1
+                      }}
+                    >
+                      {on && '✓'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#344054', lineHeight: 1.45 }}>{r.point}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Consultant Actions */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#344054', marginBottom: 6 }}>Consultant actions</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+              {ACTION_DEFS.map(([kind, label]) => {
+                const on = !!actions[kind];
+                return (
+                  <button
+                    key={kind}
+                    onClick={() => toggleAction(kind)}
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 500,
+                      padding: '5px 12px',
+                      borderRadius: 16,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      border: `1px solid ${on ? '#1D4ED8' : '#D0D5DD'}`,
+                      background: on ? '#EFF6FF' : '#FFFFFF',
+                      color: on ? '#1D4ED8' : '#344054'
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {ACTION_DEFS.filter(([k]) => actions[k]).map(([kind, label]) => (
+              <div key={kind} style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: '#344054', marginBottom: 4 }}>
+                  {label} - note <span style={{ color: '#D9251B' }}>*</span>
                 </div>
-              );
-            })}
+                <Input
+                  value={actions[kind].note || ''}
+                  onChange={e => { setSrActionNote(zone.id, item.id, kind, e.target.value); force(x => x + 1); }}
+                  placeholder="What specifically is needed?"
+                  style={{ fontSize: 12, borderRadius: 8 }}
+                />
+              </div>
+            ))}
           </div>
-
-          {/* Consultant determination — DERIVED from the checkboxes */}
-          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>Consultant determination</div>
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14, padding:'8px 12px', background:'#F8FAFD', border:`1px solid ${C.border}`, borderRadius:8 }}>
-            <span style={{ fontSize:11.5, fontWeight:700, color:ds.fg, background:ds.bg, padding:'3px 11px', borderRadius:20 }}>{ds.label}</span>
-            <span style={{ fontSize:11.5, color:C.muted }}>derived from {ticked}/{ai.length} rubric points checked{derived==='met'?' (all checked)':derived==='missing'?' (none checked)':' (some checked)'}</span>
-          </div>
-
-          {/* Consultant actions — multi-select, each needs a note; AI pre-selects one */}
-          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>Consultant actions</div>
-          <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:8 }}>
-            {ACTION_DEFS.map(([kind,label])=>{
-              const on = !!actions[kind];
-              return (
-                <button key={kind} onClick={()=>toggleAction(kind)}
-                  style={{ fontSize:11, fontWeight:600, padding:'5px 11px', borderRadius:20, cursor:'pointer', fontFamily:'inherit',
-                    border:`1px solid ${on?C.navy:C.border}`, background:on?C.navy:'#fff', color:on?'#fff':C.muted }}>
-                  {on?'✓ ':''}{label}
-                </button>
-              );
-            })}
-          </div>
-          {ACTION_DEFS.filter(([k])=>actions[k]).map(([kind,label])=>(
-            <div key={kind} style={{ marginBottom:8 }}>
-              <div style={{ fontSize:11, fontWeight:600, color:C.text, marginBottom:3 }}>{label} — note <span style={{ color:C.critical }}>*</span>{aiRecommended[kind] && <span style={{ fontSize:9.5, color:C.violet, fontWeight:700, marginLeft:6 }}>AI-suggested</span>}</div>
-              <Input value={actions[kind].note||''} onChange={e=>{ setSrActionNote(zone.id, item.id, kind, e.target.value); force(x=>x+1); }}
-                placeholder="What specifically is needed?" style={{ fontSize:11.5 }}/>
-            </div>
-          ))}
-          {Object.keys(actions).length===0 && (
-            <div style={{ fontSize:10.5, color:C.muted, display:'flex', gap:6, alignItems:'flex-start' }}>
-              <span style={{ color:C.violet, display:'flex', flexShrink:0, marginTop:1 }}><Brain/></span>
-              {derived==='met' ? 'SR satisfied — no follow-up action needed.' : 'The AI has selected the actions it recommends below, with a note for each — adjust or add others as needed. These flow to the Workspace.'}
-            </div>
-          )}
         </div>
       </div>
     </Modal>

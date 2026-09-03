@@ -1444,37 +1444,66 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
   );
 }
 
-// Type-to-find + chip picker — scales to hundreds of items without a long
-// checkbox list. Type to filter (by label or sublabel), click a match to add
-// it as a chip, click a chip's × to remove it.
-function SearchAdd({ items, selectedIds, onToggle, placeholder, emptyText }) {
+function SearchAdd({ items, selectedIds, onToggle, placeholder, emptyText, hintText }) {
   const [q, setQ] = useState('');
-  const query = q.trim().toLowerCase();
-  const results = query
-    ? items.filter(it => !selectedIds.has(it.id) &&
-        (it.label.toLowerCase().includes(query) || (it.sublabel||'').toLowerCase().includes(query))).slice(0, 8)
-    : [];
   const selected = items.filter(it => selectedIds.has(it.id));
+  const results = q.trim()
+    ? items.filter(it => !selectedIds.has(it.id) && (it.label.toLowerCase().includes(q.toLowerCase()) || (it.sublabel || '').toLowerCase().includes(q.toLowerCase()))).slice(0, 8)
+    : [];
+
   return (
     <div>
-      <Input value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/>
-      {results.length>0 && (
-        <div style={{ border:`1px solid ${C.border}`, borderRadius:8, marginTop:4, maxHeight:170, overflowY:'auto' }}>
-          {results.map(it=>(
-            <div key={it.id} onClick={()=>{ onToggle(it.id); setQ(''); }}
-              style={{ padding:'6px 9px', fontSize:12, cursor:'pointer', borderBottom:`1px solid ${C.border}` }}>
-              <span style={{ fontWeight:600, color:C.text }}>{it.label}</span>
-              {it.sublabel && <span style={{ color:C.muted, marginLeft:6 }}>{it.sublabel}</span>}
+      <Input
+        value={q}
+        onChange={e => setQ(e.target.value)}
+        placeholder={placeholder}
+        style={{ borderRadius: 8, borderColor: '#D0D5DD' }}
+      />
+      {hintText && (
+        <div style={{ fontSize: 12, color: '#667085', marginTop: 4, marginBottom: 4 }}>
+          {hintText}
+        </div>
+      )}
+      {results.length > 0 && (
+        <div style={{ border: `1px solid ${C.border}`, borderRadius: 8, marginTop: 4, maxHeight: 170, overflowY: 'auto', background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+          {results.map(it => (
+            <div
+              key={it.id}
+              onClick={() => { onToggle(it.id); setQ(''); }}
+              style={{ padding: '8px 12px', fontSize: 12, cursor: 'pointer', borderBottom: `1px solid ${C.border}` }}
+            >
+              <span style={{ fontWeight: 600, color: C.text }}>{it.label}</span>
+              {it.sublabel && <span style={{ color: C.muted, marginLeft: 6 }}>{it.sublabel}</span>}
             </div>
           ))}
         </div>
       )}
-      <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:8 }}>
-        {selected.length===0 && <span style={{ fontSize:11.5, color:C.muted, fontStyle:'italic' }}>{emptyText}</span>}
-        {selected.map(it=>(
-          <span key={it.id} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11.5, padding:'3px 8px', borderRadius:14, background:'#EEF2FA', color:C.navy }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+        {selected.length === 0 && <span style={{ fontSize: 12, color: C.muted, fontStyle: 'italic' }}>{emptyText}</span>}
+        {selected.map(it => (
+          <span
+            key={it.id}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 500,
+              padding: '4px 10px',
+              borderRadius: 6,
+              background: '#EFF6FF',
+              color: '#1D4ED8',
+              border: '1px solid #BFDBFE'
+            }}
+          >
             {it.label}
-            <span onClick={()=>onToggle(it.id)} title="Remove" style={{ cursor:'pointer', fontWeight:700 }}>×</span>
+            <span
+              onClick={() => onToggle(it.id)}
+              title="Remove"
+              style={{ cursor: 'pointer', fontWeight: 600, marginLeft: 2, color: '#1D4ED8' }}
+            >
+              ×
+            </span>
           </span>
         ))}
       </div>
@@ -1482,47 +1511,35 @@ function SearchAdd({ items, selectedIds, onToggle, placeholder, emptyText }) {
   );
 }
 
-// Resolve every distinct asset a set of vulnerabilities is actually on
-// (by asset_label / assets field) — used to pull the illustrated path's
-// assets straight from whichever vulnerabilities are picked.
 function assetsForVulns(vulnList, assets) {
   const seen = new Set(); const found = [];
-  (vulnList||[]).forEach(v => {
-    const lbl = (v.asset_label||'').split(',')[0]?.trim().toLowerCase();
-    let a = lbl ? assets.find(x=>x.name.toLowerCase()===lbl) : null;
-    if (!a && Array.isArray(v.assets) && v.assets.length) a = assets.find(x=>v.assets.includes(x.name)||v.assets.includes(x.id));
+  (vulnList || []).forEach(v => {
+    const lbl = (v.asset_label || '').split(',')[0]?.trim().toLowerCase();
+    let a = lbl ? assets.find(x => x.name.toLowerCase() === lbl) : null;
+    if (!a && Array.isArray(v.assets) && v.assets.length) a = assets.find(x => v.assets.includes(x.name) || v.assets.includes(x.id));
     if (a && !seen.has(a.id)) { seen.add(a.id); found.push(a); }
   });
   return found;
 }
 
-// Add a brand-new business risk, or edit an existing one — same controls
-// either way: pick the vulnerabilities behind it (search-to-add, scales to
-// hundreds) and any extra assets to include on the illustrated path. Adding
-// infers the MITRE impact technique + zone from whichever vulnerabilities
-// are picked (severity-weighted majority vote) rather than a free-form
-// description, so every risk stays grounded in the real ATT&CK catalogue.
-// Editing lets you change exactly this: which evidence and which assets
-// drive the kill chain and the path shown — the technique/zone identity of
-// an existing risk doesn't change. Delete = dismiss (restorable).
 function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSave, onDismiss }) {
   const isAdd = mode === 'add';
   const [note, setNote] = useState(leaf?.overrideDescription || '');
   const [exampleAssetId, setExampleAssetId] = useState(leaf?.exampleAssetId || '');
-  const openVulns = (vulns || []).filter(v => !['Closed','Resolved','Mitigated','Accepted Risk'].includes(v.status || ''));
-  const initialVulnIds = leaf?.customVulnIds || (leaf?.sel?.onPathVulns||[]).map(v=>v.vuln_id);
+  const openVulns = (vulns || []).filter(v => !['Closed', 'Resolved', 'Mitigated', 'Accepted Risk'].includes(v.status || ''));
+  const initialVulnIds = leaf?.customVulnIds || (leaf?.sel?.onPathVulns || []).map(v => v.vuln_id);
   const [vulnIds, setVulnIds] = useState(new Set(initialVulnIds));
   const toggleVuln = (id) => setVulnIds(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const selectedVulns = openVulns.filter(v => vulnIds.has(v.vuln_id));
   const vulnAssets = assetsForVulns(selectedVulns, assets);
 
-  const initialExtraAssetIds = (leaf?.customAssetIds || (leaf?.sel?.assetHops||[]).map(h=>h.id))
-    .filter(id => !vulnAssets.some(a=>a.id===id));
+  const initialExtraAssetIds = (leaf?.customAssetIds || (leaf?.sel?.assetHops || []).map(h => h.id))
+    .filter(id => !vulnAssets.some(a => a.id === id));
   const [extraAssetIds, setExtraAssetIds] = useState(new Set(initialExtraAssetIds));
   const toggleAsset = (id) => setExtraAssetIds(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  const pathAssets = [...vulnAssets, ...assets.filter(a=>extraAssetIds.has(a.id) && !vulnAssets.some(v=>v.id===a.id))]
-    .sort((a,b) => (b.level??3) - (a.level??3)); // enterprise → process, entry to target
+  const pathAssets = [...vulnAssets, ...assets.filter(a => extraAssetIds.has(a.id) && !vulnAssets.some(v => v.id === a.id))]
+    .sort((a, b) => (b.level ?? 3) - (a.level ?? 3));
 
   const inferred = (() => {
     if (!selectedVulns.length) return null;
@@ -1542,9 +1559,9 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
   const save = () => {
     const shared = {
       description: note.trim() || null,
-      exampleAssetId: exampleAssetId || (pathAssets[pathAssets.length-1]?.id) || null,
+      exampleAssetId: exampleAssetId || (pathAssets[pathAssets.length - 1]?.id) || null,
       customVulnIds: [...vulnIds],
-      customAssetIds: pathAssets.map(a=>a.id),
+      customAssetIds: pathAssets.map(a => a.id),
     };
     if (isAdd) { onSave({ technique: inferred.technique, zoneId: inferred.zoneId, ...shared }); return; }
     onSave(shared);
@@ -1552,48 +1569,117 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
 
   const vulnItems = openVulns.map(v => ({
     id: v.vuln_id, label: v.cve_id || v.cve || v.vuln_id,
-    sublabel: `${v.title} · ${(v.zones||(v.zone?[v.zone]:[])).map(zid=>zones.find(z=>z.id===zid)?.name||zid).join(', ')}`,
+    sublabel: `${v.title} · ${(v.zones || (v.zone ? [v.zone] : [])).map(zid => zones.find(z => z.id === zid)?.name || zid).join(', ')}`,
   }));
   const assetItems = assets.map(a => ({ id: a.id, label: a.name, sublabel: a.deviceType }));
 
   return (
-    <Modal title={isAdd ? 'Add business risk' : `Edit — ${leaf.technique}`}
-      subtitle={isAdd ? 'Pick the vulnerabilities behind it — the business risk and zone are inferred from the real MITRE ATT&CK catalogue' : 'Change the evidence and assets that drive the kill chain and the illustrated path'}
-      onClose={onClose} maxWidth={600}
-      footer={<>
-        {!isAdd && <button onClick={onDismiss} style={{ marginRight:'auto', background:'none', border:'none', color:C.critical, fontSize:12.5, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Delete (dismiss)</button>}
-        <Btn variant="outline" onClick={onClose}>Cancel</Btn>
-        <Btn onClick={save} disabled={!canSave}>Save</Btn>
-      </>}>
-      <FormField label={`Vulnerabilities behind this risk (${selectedVulns.length})`} required hint="Search by CVE, title, or zone">
-        <SearchAdd items={vulnItems} selectedIds={vulnIds} onToggle={toggleVuln}
-          placeholder="Search open vulnerabilities…" emptyText="No vulnerabilities picked yet."/>
-      </FormField>
-      {isAdd && (
-        inferred ? (
-          <div style={{ fontSize:12.5, color:C.text, lineHeight:1.55, padding:'9px 12px', borderRadius:8, background:'#F4FBF7', border:'1px solid #BBE9D2', margin:'8px 0' }}>
-            → This will create <strong>{inferred.technique}</strong> in <strong>{inferred.zoneName}</strong>.
-          </div>
-        ) : (
-          <div style={{ fontSize:12, color:C.muted, fontStyle:'italic', margin:'8px 0' }}>Pick at least one vulnerability to infer the business risk.</div>
-        )
-      )}
-      <FormField label="Additional path assets" hint="Search to add any hop that belongs on the path but has no specific vulnerability of its own">
-        <SearchAdd items={assetItems} selectedIds={new Set([...extraAssetIds, ...vulnAssets.map(a=>a.id)])}
-          onToggle={(id)=>{ if (vulnAssets.some(a=>a.id===id)) return; toggleAsset(id); }}
-          placeholder="Search assets…" emptyText="Only the vulnerabilities' own assets are on the path."/>
-      </FormField>
-      {pathAssets.length>0 && (
-        <FormField label="Example asset in the kill chain" hint="Which of the assets above represents this risk when you jump to the Purdue model">
-          <Select value={exampleAssetId || pathAssets[pathAssets.length-1]?.id || ''} onChange={e=>setExampleAssetId(e.target.value)}
-            options={pathAssets.map(a=>({value:a.id,label:a.name}))}/>
+    <Modal
+      title={isAdd ? 'Add business risk' : `Edit business risk - ${leaf.technique}`}
+      subtitle={'Change the evidence and assets that drive the kill chain and the illustrated path'}
+      onClose={onClose}
+      maxWidth={580}
+      footer={
+        <div style={{ display: 'flex', gap: 12, width: '100%', alignItems: 'center' }}>
+          {!isAdd && (
+            <Btn
+              variant="outline"
+              onClick={onDismiss}
+              style={{
+                marginRight: 'auto',
+                background: 'transparent',
+                border: '1px solid #FECDCA',
+                color: '#D9251B',
+                borderRadius: 8,
+                padding: '8px 18px',
+                fontWeight: 600
+              }}
+            >
+              Delete
+            </Btn>
+          )}
+          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+            Cancel
+          </Btn>
+          <Btn
+            onClick={save}
+            disabled={!canSave}
+            style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 22px', fontWeight: 600 }}
+          >
+            Save
+          </Btn>
+        </div>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <FormField label="Vulnerabilities behind this risk *">
+          <SearchAdd
+            items={vulnItems}
+            selectedIds={vulnIds}
+            onToggle={toggleVuln}
+            placeholder="Search open vulnerabilities..."
+            hintText="Search by CVE, title, or zone"
+            emptyText="No vulnerabilities picked yet."
+          />
         </FormField>
-      )}
-      <FormField label="Note (optional)" hint="Shown in place of the auto-generated summary in the list">
-        <textarea value={note} onChange={e=>setNote(e.target.value)} rows={2}
-          placeholder="A short note on why this matters, in your own words"
-          style={{ width:'100%', boxSizing:'border-box', padding:'8px 10px', borderRadius:8, border:`1px solid ${C.border}`, fontFamily:'inherit', fontSize:13, resize:'vertical' }}/>
-      </FormField>
+
+        {isAdd && (
+          inferred ? (
+            <div style={{ fontSize: 12.5, color: C.text, lineHeight: 1.55, padding: '9px 12px', borderRadius: 8, background: '#F4FBF7', border: '1px solid #BBE9D2' }}>
+              → This will create <strong>{inferred.technique}</strong> in <strong>{inferred.zoneName}</strong>.
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic' }}>Pick at least one vulnerability to infer the business risk.</div>
+          )
+        )}
+
+        <FormField label="Additional path assets">
+          <SearchAdd
+            items={assetItems}
+            selectedIds={new Set([...extraAssetIds, ...vulnAssets.map(a => a.id)])}
+            onToggle={(id) => { if (vulnAssets.some(a => a.id === id)) return; toggleAsset(id); }}
+            placeholder="Search assets..."
+            hintText="Search to add any hop that belongs on the path but has no specific vulnerability of its own"
+            emptyText="Only the vulnerabilities' own assets are on the path."
+          />
+        </FormField>
+
+        {pathAssets.length > 0 && (
+          <FormField label="Example asset in the kill chain">
+            <Select
+              value={exampleAssetId || pathAssets[pathAssets.length - 1]?.id || ''}
+              onChange={e => setExampleAssetId(e.target.value)}
+              options={pathAssets.map(a => ({ value: a.id, label: a.name }))}
+            />
+            <div style={{ fontSize: 12, color: '#667085', marginTop: 4 }}>
+              Which of the assets above represents this risk when you jump to the Purdue model
+            </div>
+          </FormField>
+        )}
+
+        <FormField label="Note">
+          <textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            rows={3}
+            placeholder="A short note on why this matters, in your own words"
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '10px 12px',
+              borderRadius: 8,
+              border: `1px solid ${C.border}`,
+              fontFamily: 'inherit',
+              fontSize: 13,
+              resize: 'vertical',
+              outline: 'none'
+            }}
+          />
+          <div style={{ fontSize: 12, color: '#667085', marginTop: 4 }}>
+            Shown in place of the auto-generated summary in the list
+          </div>
+        </FormField>
+      </div>
     </Modal>
   );
 }
