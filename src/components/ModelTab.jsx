@@ -1617,7 +1617,7 @@ function SectionZones({ a, onNavigate }) {
           {/* Unassigned assets Card */}
           <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div>
+              <div style={{ flex: 1, marginRight: 12 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Unassigned assets</div>
                 <div style={{ fontSize: 12, color: '#475467' }}>
                   No zone yet - map a matching subnet to place one automatically, or assign it here.
@@ -1625,7 +1625,7 @@ function SectionZones({ a, onNavigate }) {
               </div>
               <Btn
                 onClick={() => setAddingAsset(v => !v)}
-                style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '6px 16px', fontSize: 12, fontWeight: 600 }}
+                style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '6px 14px', fontSize: 12, fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}
               >
                 Add asset
               </Btn>
