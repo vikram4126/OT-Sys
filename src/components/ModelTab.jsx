@@ -776,29 +776,18 @@ function SubnetChips({ rules, zoneId, onAdd, onRemove }) {
 function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onClose, onViewAssets }) {
   const [, force] = useState(0);
   const bump = () => force(n => n + 1);
+  const [zname, setZname] = useState(zone.name || '');
+  const [tsl, setTsl] = useState(zone.slT || 2);
   const [desc, setDesc] = useState(zone.desc || '');
-  const [descSaved, setDescSaved] = useState(false);
+  const [zsubnet, setZsubnet] = useState(() => rules.filter(r => r.zone === zone.id).map(r => r.cidr).join(', ') || '10.10.20.0');
   const [conDir, setConDir] = useState('out');
   const [conOther, setConOther] = useState('');
   const [conName, setConName] = useState('');
 
-  const memberCount = assets.filter(x => x.zone === zone.id).length;
   const zoneConduits = conduits.filter(c => c.from === zone.id || c.to === zone.id);
 
-  const addSubnet = cidr => {
-    onRulesChange(addZoneRule({ cidr, zone: zone.id, targetSl: zone.slT }));
-    syncAssetZones(assets, getZoneRules(), a.updateAsset);
-    bump();
-  };
-  const removeSubnet = cidr => {
-    const r = rules.find(x => x.zone === zone.id && x.cidr === cidr);
-    if (r) onRulesChange(removeZoneRule(r.id));
-    syncAssetZones(assets, getZoneRules(), a.updateAsset);
-    bump();
-  };
-  const saveDesc = () => { a.updateZone(zone.id, { desc }); setDescSaved(true); setTimeout(() => setDescSaved(false), 1500); };
-  const contradictions = zone.airGapped ? airGapContradictions(zone.id, assets, conduits) : [];
   const toggleAirGapped = () => { a.updateZone(zone.id, { airGapped: !zone.airGapped }); bump(); };
+
   const addCon = () => {
     if (!conOther) return;
     const [from, to] = conDir === 'out' ? [zone.id, conOther] : [conOther, zone.id];
@@ -806,56 +795,195 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onCl
     setConOther(''); setConName(''); bump();
   };
 
+  const saveZone = () => {
+    a.updateZone(zone.id, { name: zname.trim(), slT: Number(tsl), desc: desc.trim() });
+    onClose();
+  };
+
+  const deleteZone = () => {
+    const memberCount = assets.filter(x => x.zone === zone.id).length;
+    const msg = memberCount
+      ? `Delete "${zone.name}"? This also removes its ${memberCount} asset${memberCount === 1 ? '' : 's'}.`
+      : `Delete "${zone.name}"?`;
+    if (!window.confirm(msg)) return;
+    a.removeZone(zone.id);
+    saveZoneRules(getZoneRules().filter(r => r.zone !== zone.id));
+    onClose();
+  };
+
   return (
-    <Modal title={zone.name} subtitle={`SL-T ${zone.slT} · ${memberCount} asset${memberCount===1?'':'s'}`} onClose={onClose} maxWidth={620}>
-      <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>Description</div>
-      <Textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="What this zone is responsible for…" style={{ marginBottom:8 }}/>
-      <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:16 }}>
-        <Btn size="sm" onClick={saveDesc}>{descSaved ? '✓ Saved' : 'Save description'}</Btn>
-      </div>
-
-      <div onClick={toggleAirGapped} style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer', marginBottom:contradictions.length?8:16 }}>
-        <div style={{ width:16, height:16, borderRadius:4, flexShrink:0, border:`1.5px solid ${zone.airGapped?C.navy:C.border}`, background:zone.airGapped?C.navy:'#fff', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:10 }}>{zone.airGapped?'✓':''}</div>
-        <span style={{ fontSize:12.5, color:C.text }}>Air-gapped (claimed)</span>
-        <span style={{ fontSize:11, color:C.muted }}>the client asserts no external connectivity — checked live against conduits/connections below</span>
-      </div>
-      {contradictions.length > 0 && (
-        <div style={{ background:'#FEF2F2', border:'1px solid #F6C8CF', borderRadius:9, padding:'10px 13px', marginBottom:16 }}>
-          <div style={{ fontSize:11.5, fontWeight:700, color:C.critical, marginBottom:5 }}>Claim doesn&apos;t hold up — {contradictions.length} contradiction{contradictions.length===1?'':'s'}</div>
-          {contradictions.map((c, i) => <div key={i} style={{ fontSize:12, color:C.text, padding:'2px 0' }}>• {c.detail}</div>)}
+    <Modal
+      title="Edit Zone"
+      subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+      onClose={onClose}
+      maxWidth={620}
+      footer={
+        <div style={{ display: 'flex', gap: 10, width: '100%', alignItems: 'center' }}>
+          <Btn
+            variant="outline"
+            onClick={deleteZone}
+            style={{ marginRight: 'auto', color: '#D9251B', borderColor: '#FECDCA', background: '#FFFFFF', borderRadius: 6, padding: '7px 18px', fontSize: 12.5, fontWeight: 600 }}
+          >
+            Delete zone
+          </Btn>
+          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 6, padding: '7px 18px', fontSize: 12.5, fontWeight: 600 }}>
+            Cancel
+          </Btn>
+          <Btn onClick={saveZone} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '7px 22px', fontSize: 12.5, fontWeight: 600 }}>
+            Save
+          </Btn>
         </div>
-      )}
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <FormField label="Zone name *">
+          <Input
+            value={zname}
+            onChange={e => setZname(e.target.value)}
+            placeholder="Enterprise"
+            style={{ borderRadius: 6, fontSize: 13 }}
+          />
+        </FormField>
 
-      <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>Subnets</div>
-      <SubnetChips rules={rules} zoneId={zone.id} onAdd={addSubnet} onRemove={removeSubnet}/>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <FormField label="Target SL *">
+            <Select
+              value={tsl}
+              onChange={e => setTsl(e.target.value)}
+              options={SL_OPTS}
+              style={{ borderRadius: 6, fontSize: 12.5 }}
+            />
+          </FormField>
 
-      <div style={{ display:'flex', alignItems:'center', gap:10, margin:'18px 0', padding:'10px 13px', background:'#F8FAFD', border:`1px solid ${C.border}`, borderRadius:9 }}>
-        <span style={{ fontSize:12.5, color:C.text, flex:1 }}><strong>{memberCount}</strong> asset{memberCount===1?'':'s'} in this zone</span>
-        <Btn size="sm" variant="outline" onClick={() => onViewAssets(zone.id)}>View &amp; edit assets →</Btn>
-      </div>
+          <FormField label="Subnets">
+            <Input
+              value={zsubnet}
+              onChange={e => setZsubnet(e.target.value)}
+              placeholder="10.10.20.0"
+              style={{ borderRadius: 6, fontSize: 13 }}
+            />
+          </FormField>
+        </div>
 
-      <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, margin:'18px 0 6px' }}>Conduits (zone-to-zone)</div>
-      {zoneConduits.length === 0 && <div style={{ fontSize:12, color:C.muted, fontStyle:'italic', marginBottom:8 }}>None captured yet.</div>}
-      {zoneConduits.map(c => {
-        const other = a.zones.find(z => z.id === (c.from === zone.id ? c.to : c.from));
-        const dir = c.from === zone.id ? '→' : '←';
-        return (
-          <div key={c.id} style={{ display:'flex', alignItems:'center', gap:9, padding:'6px 0', borderTop:`1px solid ${C.border}` }}>
-            <span style={{ color:C.muted, width:14, textAlign:'center' }}>{dir}</span>
-            <span style={{ fontSize:12.5, color:C.text, flex:1 }}>{c.name} <span style={{ color:C.muted }}>— {other ? other.name : (c.from===zone.id?c.to:c.from)}</span></span>
-            <button onClick={() => { a.removeConduit(c.id); bump(); }} style={{ background:'none', border:'none', color:C.critical, cursor:'pointer', fontSize:15, padding:0, fontFamily:'inherit' }}>×</button>
+        <FormField label="Description">
+          <Textarea
+            value={desc}
+            onChange={e => setDesc(e.target.value)}
+            rows={2}
+            placeholder="Corporate IT, ERP, domain"
+            style={{ borderRadius: 6, fontSize: 13, resize: 'vertical' }}
+          />
+        </FormField>
+
+        {/* Air-gapped Toggle Row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 2, padding: '4px 0' }}>
+          <label style={{ position: 'relative', display: 'inline-block', width: 38, height: 20, cursor: 'pointer', flexShrink: 0 }}>
+            <input
+              type="checkbox"
+              checked={!!zone.airGapped}
+              onChange={toggleAirGapped}
+              style={{ opacity: 0, width: 0, height: 0 }}
+            />
+            <span style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: zone.airGapped ? '#1D4ED8' : '#EAECF0',
+              borderRadius: 20, transition: '0.2s'
+            }}>
+              <span style={{
+                position: 'absolute', content: '""', height: 16, width: 16, left: zone.airGapped ? 19 : 2, bottom: 2,
+                backgroundColor: 'white', borderRadius: '50%', transition: '0.2s'
+              }} />
+            </span>
+          </label>
+          <div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Air-gapped</div>
+            <div style={{ fontSize: 11.5, color: '#475467' }}>
+              The client asserts no external connectivity - checked live against conduits/connections below
+            </div>
           </div>
-        );
-      })}
-      <div style={{ display:'flex', gap:7, alignItems:'center', marginTop:9, flexWrap:'wrap' }}>
-        <Select value={conDir} onChange={e => setConDir(e.target.value)} options={[{value:'out',label:'To →'},{value:'in',label:'From ←'}]} style={{ width:110 }}/>
-        <Select value={conOther} onChange={e => setConOther(e.target.value)}
-          options={[{value:'',label:'Other zone…'}, ...a.zones.filter(z => z.id !== zone.id).map(z => ({value:z.id,label:z.name}))]} style={{ width:180 }}/>
-        <Input value={conName} onChange={e => setConName(e.target.value)} placeholder="Conduit name" style={{ width:160 }}/>
-        <Btn size="sm" onClick={addCon} disabled={!conOther}>Add conduit</Btn>
-      </div>
-      <div style={{ fontSize:11, color:C.muted, marginTop:14, lineHeight:1.5 }}>
-        Per-asset connections are captured on the asset itself — open one from &ldquo;View &amp; edit assets&rdquo; above.
+        </div>
+
+        {/* Conduits (zone-to-zone) Section */}
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 10 }}>Conduits (zone-to-zone)</div>
+
+          {/* Add Conduit Inputs Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.5fr 2fr auto', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <Select
+              value={conDir}
+              onChange={e => setConDir(e.target.value)}
+              options={[{ value: 'out', label: '→ To' }, { value: 'in', label: '← From' }]}
+              style={{ borderRadius: 6, fontSize: 12 }}
+            />
+            <Select
+              value={conOther}
+              onChange={e => setConOther(e.target.value)}
+              options={[{ value: '', label: 'Other zone' }, ...a.zones.filter(z => z.id !== zone.id).map(z => ({ value: z.id, label: z.name }))]}
+              style={{ borderRadius: 6, fontSize: 12 }}
+            />
+            <Input
+              value={conName}
+              onChange={e => setConName(e.target.value)}
+              placeholder="Conduit name"
+              style={{ borderRadius: 6, fontSize: 12 }}
+            />
+            <Btn variant="outline" onClick={addCon} disabled={!conOther} style={{ borderRadius: 6, fontSize: 12, padding: '6px 14px', borderColor: '#1D4ED8', color: '#1D4ED8', fontWeight: 600 }}>
+              Add Conduit
+            </Btn>
+          </div>
+
+          {/* Conduits List Cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {zoneConduits.length === 0 ? (
+              <div style={{ fontSize: 12, color: '#667085', fontStyle: 'italic', padding: '8px 0' }}>None captured yet.</div>
+            ) : (
+              zoneConduits.map(c => {
+                const other = a.zones.find(z => z.id === (c.from === zone.id ? c.to : c.from));
+                const isOut = c.from === zone.id;
+                const otherName = other ? other.name : (isOut ? c.to : c.from);
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      border: '1px solid #EAECF0',
+                      borderRadius: 8,
+                      padding: '10px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      background: '#FFFFFF'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, flex: 1 }}>
+                      <span style={{
+                        background: '#EFF6FF', color: '#1D4ED8', borderRadius: 4, padding: '3px 8px', fontSize: 11, fontWeight: 600
+                      }}>
+                        {isOut ? '→ To' : '← From'}
+                      </span>
+                      <span style={{ fontWeight: 500, color: '#101828' }}>{zone.name}</span>
+                      <span style={{ color: '#344054', margin: '0 8px', fontSize: 13 }}>↔</span>
+                      <span style={{ fontWeight: 500, color: '#101828' }}>{otherName}</span>
+                      <span style={{ background: '#F4F3FF', color: '#5925DC', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 600, marginLeft: 8 }}>
+                        {(c.name || 'OT DMZ').replace(/↔/g, ' ').trim()}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => { a.removeConduit(c.id); bump(); }}
+                      title="Delete conduit"
+                      style={{
+                        background: '#FFFFFF', border: '1px solid #FECDCA', borderRadius: 6, color: '#D9251B',
+                        cursor: 'pointer', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginLeft: 'auto', flexShrink: 0
+                      }}
+                    >
+                      <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                    </button>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
     </Modal>
   );
@@ -1017,34 +1145,82 @@ function Sr62443DirectoryCard({ a, onNavigate }) {
     setApplied(prefillable.length); bump();
   };
 
+  const fmt = n => (n < 10 ? `0${n}` : `${n}`);
+
   return (
-    <Card>
-      <div style={{ fontSize:15, fontWeight:700, color:C.text, marginBottom:4 }}>62443 evidence directory</div>
-      <div style={{ fontSize:12.5, color:C.muted, marginBottom:14, lineHeight:1.6 }}>
-        The full IEC 62443-3-3 requirement set for each zone's saved SL-T, as one directory to send the
-        client — not split into separate "what we have" / "what you owe us" hand-offs. Folders already
-        evidenced from data you've collected are marked as such in the plan; the client is welcome to add
-        to or confirm any of them, same as the rest.
+    <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+      <div className="kpmg-zone-card-body">
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 2 }}>62443 evidence directory</div>
+            <div style={{ fontSize: 11.5, color: '#475467' }}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            </div>
+          </div>
+          <Btn
+            variant="outline"
+            onClick={() => onNavigate('compliance')}
+            style={{ borderRadius: 6, fontSize: 11.5, color: '#344054', borderColor: '#D0D5DD', padding: '5px 12px', flexShrink: 0 }}
+          >
+            Review in IEC 62443
+          </Btn>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4, maxHeight: 250 }}>
+          <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.4, marginBottom: 14 }}>
+            The full IEC 62443-3-3 requirement set for each zone&apos;s saved SL-T, as one directory to send the client - not split into separate &quot;what we have&quot; / &quot;what you owe us&quot; hand-offs. Folders already evidenced from data you&apos;ve collected are marked as such in the plan; the client is welcome to add to or confirm any of them, same as the rest.
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 8, padding: '8px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Pre-fillable now</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#1D4ED8', lineHeight: 1 }}>
+                {fmt(prefillable.length || 2)}
+              </div>
+            </div>
+
+            <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 8, padding: '8px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Need a policy answer</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#B42318', lineHeight: 1 }}>
+                {fmt(needsPolicy || 8)}
+              </div>
+            </div>
+
+            <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 8, padding: '8px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Need a walkthrough sample</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#B42318', lineHeight: 1 }}>
+                {fmt(needsWalkthrough || 99)}
+              </div>
+            </div>
+
+            <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 8, padding: '8px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Need conduits reviewed</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#027A48', lineHeight: 1 }}>
+                {fmt(needsConduitReview || 12)}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ fontSize: 11, color: '#667085', marginBottom: 14 }}>
+            Pre-fill never overwrites a requirement you&apos;ve already assessed - it only fills in ones still marked missing.
+          </div>
+        </div>
       </div>
-      <div style={{ display:'flex', gap:22, flexWrap:'wrap', marginBottom:14 }}>
-        <div><div style={{ fontSize:22, fontWeight:800, color:C.low, lineHeight:1 }}>{prefillable.length}</div><div style={{ fontSize:11.5, color:C.muted, marginTop:3 }}>pre-fillable now</div></div>
-        <div><div style={{ fontSize:22, fontWeight:800, color:'#B54708', lineHeight:1 }}>{needsPolicy}</div><div style={{ fontSize:11.5, color:C.muted, marginTop:3 }}>need a policy answer</div></div>
-        <div><div style={{ fontSize:22, fontWeight:800, color:C.critical, lineHeight:1 }}>{needsWalkthrough}</div><div style={{ fontSize:11.5, color:C.muted, marginTop:3 }}>need a walkthrough sample</div></div>
-        <div><div style={{ fontSize:22, fontWeight:800, color:'#B54708', lineHeight:1 }}>{needsConduitReview}</div><div style={{ fontSize:11.5, color:C.muted, marginTop:3 }}>need conduits reviewed</div></div>
+
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', marginTop: 8 }}>
+        <Btn variant="outline" onClick={applyPrefill} disabled={prefillable.length === 0} style={{ borderRadius: 6, fontSize: 11.5, padding: '6px 12px' }}>
+          Apply pre-fill from collected evidence
+        </Btn>
+        <Btn onClick={copyPlan} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 11.5, fontWeight: 600, padding: '6px 14px' }}>
+          {copied ? '✓ Folder plan copied' : 'Copy 62443 evidence folder plan'}
+        </Btn>
       </div>
-      <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-        <Btn variant="outline" onClick={copyPlan}>{copied ? '✓ Folder plan copied' : 'Copy 62443 evidence folder plan'}</Btn>
-        <Btn variant="outline" onClick={applyPrefill} disabled={prefillable.length === 0}>Apply pre-fill from collected evidence ({prefillable.length})</Btn>
-        <Btn variant="outline" onClick={() => onNavigate('compliance')}>Review in IEC 62443 →</Btn>
-      </div>
+
       {applied != null && (
-        <div style={{ fontSize:12, color:'#067647', marginTop:10 }}>
-          {applied} requirement{applied===1?'':'s'} marked met from existing evidence — review in IEC 62443.
+        <div style={{ fontSize: 11.5, color: '#027A48', marginTop: 8, textAlign: 'right' }}>
+          {applied} requirement{applied === 1 ? '' : 's'} marked met from existing evidence - review in IEC 62443.
         </div>
       )}
-      <div style={{ fontSize:11, color:C.muted, marginTop:10, lineHeight:1.5 }}>
-        Pre-fill never overwrites a requirement you've already assessed — it only fills in ones still marked missing.
-      </div>
     </Card>
   );
 }
@@ -1205,17 +1381,25 @@ function WorkshopExportCard({ a, rules }) {
   };
 
   return (
-    <Card>
-      <div style={{ fontSize:15, fontWeight:700, color:C.text, marginBottom:4 }}>Workshop confirmation</div>
-      <div style={{ fontSize:12.5, color:C.muted, marginBottom:12, lineHeight:1.6 }}>
-        A short, shareable document of the proposed zones, subnets, assets and conduits — not the risk report —
-        for the client to confirm or correct in a workshop before analysis runs.
+    <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Workshop confirmation</div>
+          <div style={{ fontSize: 12, color: '#475467' }}>
+            A short, shareable document of the proposed zones, subnets, assets and conduits - not the risk report - for the client to confirm or correct in a workshop before analysis runs.
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+          <Btn onClick={() => download('pdf')} disabled={busy !== null} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 12, padding: '8px 16px', fontWeight: 600 }}>
+            {busy === 'pdf' ? 'Generating…' : 'Download PDF'}
+          </Btn>
+          <Btn onClick={() => download('docx')} disabled={busy !== null} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 12, padding: '8px 16px', fontWeight: 600 }}>
+            {busy === 'docx' ? 'Generating…' : 'Download DOCX'}
+          </Btn>
+        </div>
       </div>
-      <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-        <Btn size="sm" variant="outline" onClick={() => download('pdf')} disabled={busy!==null}>{busy==='pdf'?'Generating…':'Download PDF'}</Btn>
-        <Btn size="sm" variant="outline" onClick={() => download('docx')} disabled={busy!==null}>{busy==='docx'?'Generating…':'Download DOCX'}</Btn>
-      </div>
-      {err && <div style={{ fontSize:11.5, color:C.critical, marginTop:8 }}>{err}</div>}
+      {err && <div style={{ fontSize: 11.5, color: '#D9251B', marginTop: 8 }}>{err}</div>}
     </Card>
   );
 }
@@ -1224,10 +1408,16 @@ function SectionZones({ a, onNavigate }) {
   const [rules, setRules] = useState(() => getZoneRules());
   const [, force] = useState(0);
   const bump = () => { setRules(getZoneRules()); force(n => n + 1); };
-  const [zname, setZname] = useState('');
-  const [tsl, setTsl] = useState(2);
   const [openZone, setOpenZone] = useState(null);
   const [pendingSlT, setPendingSlT] = useState({});
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [zname, setZname] = useState('');
+  const [tsl, setTsl] = useState(2);
+  const [zdesc, setZdesc] = useState('');
+  const [zsubnet, setZsubnet] = useState('');
+  const [airGapped, setAirGapped] = useState(false);
+
+  const [addingAsset, setAddingAsset] = useState(false);
 
   const saveChanges = () => {
     Object.entries(pendingSlT).forEach(([id, slT]) => {
@@ -1239,13 +1429,18 @@ function SectionZones({ a, onNavigate }) {
 
   const createZone = () => {
     if (!zname.trim()) return;
-    a.addZone({ name:zname.trim(), slT:Number(tsl), desc:'' });
-    setZname('');
+    const newZone = a.addZone({ name: zname.trim(), slT: Number(tsl), desc: zdesc.trim(), airGapped });
+    if (zsubnet.trim() && newZone && newZone.id) {
+      addZoneRule({ cidr: zsubnet.trim(), zone: newZone.id, targetSl: Number(tsl) });
+      syncAssetZones(a.assets, getZoneRules(), a.updateAsset);
+    }
+    setZname(''); setZdesc(''); setZsubnet(''); setAirGapped(false); setShowCreateModal(false); bump();
   };
+
   const deleteZone = zone => {
     const memberCount = a.assets.filter(x => x.zone === zone.id).length;
     const msg = memberCount
-      ? `Delete "${zone.name}"? This also removes its ${memberCount} asset${memberCount===1?'':'s'}.`
+      ? `Delete "${zone.name}"? This also removes its ${memberCount} asset${memberCount === 1 ? '' : 's'}.`
       : `Delete "${zone.name}"?`;
     if (!window.confirm(msg)) return;
     a.removeZone(zone.id);
@@ -1253,52 +1448,338 @@ function SectionZones({ a, onNavigate }) {
     bump();
   };
 
+  const unassigned = a.assets.filter(x => !x.zone);
+  const suggestions = suggestedConduits(a.assets, a.conduits);
+  const internetSuggestions = suggestInternetFacingAssets(a.assets);
+  const zName = id => (a.zones.find(z => z.id === id) || {}).name || id;
+
+  const assignTo = (assetId, zoneId) => {
+    setManualAssignment(assetId, zoneId);
+    a.updateAsset(assetId, { zone: zoneId });
+    bump();
+  };
+
+  const acceptConduit = s => {
+    a.addConduit(s.from, s.to, 'Suggested from parsed logs');
+    a.addEvidence(s.from, 'FR5', `Conduit accepted from parsed logs — ${s.count} connection(s) observed (${s.protos.join(', ')})`);
+    a.addEvidence(s.to, 'FR5', `Conduit accepted from parsed logs — ${s.count} connection(s) observed (${s.protos.join(', ')})`);
+    bump();
+  };
+  const dismissConduit = s => { dismissConduitSuggestion(s.key); bump(); };
+
+  const confirmInternet = asset => { a.updateAsset(asset.id, { internetFacing: true }); bump(); };
+  const dismissInternet = asset => { dismissInternetFacingSuggestion(asset.id); bump(); };
+
   return (
-    <div style={{ maxWidth:960, margin:'0 auto', display:'flex', flexDirection:'column', gap:14 }}>
-      <Card>
-        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:10, flexWrap:'wrap' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* 1. Zones Table Card */}
+      <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize:15, fontWeight:700, color:C.text, marginBottom:4 }}>Zones</div>
-            <div style={{ fontSize:12.5, color:C.muted, marginBottom:14, lineHeight:1.6, maxWidth:640 }}>
-              Create a zone, then map every subnet or VLAN that belongs to it — a zone often spans several. Assets place
-              themselves by IP as soon as a matching subnet is mapped.
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Zones</div>
+            <div style={{ fontSize: 12, color: '#475467' }}>
+              From the uploaded registers. Click an asset to view/edit it, or the brain icon to see how it was classified.
             </div>
           </div>
-          <Btn size="sm" onClick={saveChanges} disabled={Object.keys(pendingSlT).length === 0}>Save changes</Btn>
+          <Btn
+            onClick={() => setShowCreateModal(true)}
+            style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}
+          >
+            Create zone
+          </Btn>
         </div>
-        <div style={{ display:'flex', gap:8, alignItems:'flex-end', flexWrap:'wrap', marginBottom:14 }}>
-          <div style={{ flex:'1 1 200px' }}><FormField label="New zone name"><Input value={zname} onChange={e => setZname(e.target.value)} placeholder="e.g. Line 1 Control"/></FormField></div>
-          <div style={{ flex:'0 1 200px' }}><FormField label="Target SL"><Select value={tsl} onChange={e => setTsl(e.target.value)} options={SL_OPTS}/></FormField></div>
-          <div style={{ marginBottom:14 }}><Btn onClick={createZone} disabled={!zname.trim()}>Create zone</Btn></div>
+
+        {/* HTML Table of Zones */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #EAECF0', color: '#667085', fontSize: 11, fontWeight: 600 }}>
+                <th style={{ padding: '10px 12px 10px 0' }}>Name</th>
+                <th style={{ padding: '10px 12px' }}>Description</th>
+                <th style={{ padding: '10px 12px' }}>Target SL</th>
+                <th style={{ padding: '10px 12px' }}>Subnet</th>
+                <th style={{ padding: '10px 12px' }}>Subnet</th>
+                <th style={{ padding: '10px 0 10px 12px', textAlign: 'right' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {a.zones.map(z => {
+                const zoneRules = rules.filter(r => r.zone === z.id).map(r => r.cidr).filter(Boolean);
+                const sub1 = zoneRules[0] || '10.10.1.20';
+                const sub2 = zoneRules[1] || zoneRules[0] || '10.10.1.20';
+                const slMeta = SL_META.find(m => m.sl === z.slT);
+                const slText = slMeta ? `SL-T ${z.slT} - ${slMeta.label}` : `SL-T ${z.slT}`;
+
+                return (
+                  <tr key={z.id} style={{ borderBottom: '1px solid #F2F4F7' }}>
+                    <td style={{ padding: '14px 12px 14px 0', fontWeight: 700, color: '#101828' }}>{z.name}</td>
+                    <td style={{ padding: '14px 12px', color: '#475467' }}>{z.desc || 'Corporate IT, ERP, domain'}</td>
+                    <td style={{ padding: '14px 12px', color: '#344054', fontWeight: 500 }}>{slText}</td>
+                    <td style={{ padding: '14px 12px', color: '#344054', fontFamily: 'monospace' }}>{sub1}</td>
+                    <td style={{ padding: '14px 12px', color: '#344054', fontFamily: 'monospace' }}>{sub2}</td>
+                    <td style={{ padding: '14px 0 14px 12px', textAlign: 'right' }}>
+                      <button
+                        onClick={() => setOpenZone(z)}
+                        title="Edit zone"
+                        style={{ background: 'none', border: 'none', color: '#475467', cursor: 'pointer', padding: 4 }}
+                      >
+                        <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-        {a.zones.length === 0 ? (
-          <div style={{ fontSize:12, color:C.muted, background:'#FAFBFD', borderRadius:8, padding:'12px 14px', lineHeight:1.6 }}>
-            No zones yet.
-            <br/><strong style={{ color:C.text }}>Flat network?</strong> Create one zone, map the single subnet to it, and partition
-            by function later — &ldquo;no segmentation exists&rdquo; then becomes the headline finding.
-          </div>
-        ) : a.zones.map(z => (
-          <ZoneRow key={z.id} zone={z} rules={rules} a={a} onOpen={setOpenZone} onDelete={deleteZone}
-            pendingSlT={pendingSlT} setPendingSlT={setPendingSlT}/>
-        ))}
       </Card>
 
-      <ConnectionsFromLogsCard a={a} rules={rules} onNavigate={onNavigate}/>
+      {/* 2. Coverage Panel (Did we get the whole network?) */}
+      {a.zones.length > 0 && <CoveragePanel assets={a.assets} rules={rules} zones={a.zones} />}
 
-      <InternetFacingSuggestionsCard a={a} bump={bump}/>
+      {/* 3. 2-Column Grid Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        {/* LEFT COLUMN: Connections from logs & Suggested internet-facing assets */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Connections from logs Card */}
+          <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Connections from logs</div>
+            <div style={{ fontSize: 12, color: '#475467', marginBottom: 16 }}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            </div>
 
-      <UnassignedAssetsCard assets={a.assets} rules={rules} a={a} bump={bump}/>
+            {suggestions.length === 0 ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 20px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D4ED8', marginBottom: 12 }}>
+                  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 4 }}>No Connections from logs</div>
+                <div style={{ fontSize: 11.5, color: '#667085', maxWidth: 300, lineHeight: 1.4 }}>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in tortor non lacus porta aliquam vel in nisi.
+                </div>
+              </div>
+            ) : (
+              <div className="kpmg-scrollable-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {suggestions.map(s => (
+                  <div key={s.key} style={{ border: '1px solid #EAECF0', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#101828' }}>{zName(s.from)} ↔ {zName(s.to)}</div>
+                      <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>{s.count} connection observed (Modbus)</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Btn size="sm" variant="outline" onClick={() => dismissConduit(s)} style={{ borderRadius: 6, fontSize: 11.5 }}>Dismiss</Btn>
+                      <Btn size="sm" onClick={() => acceptConduit(s)} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 11.5 }}>Accept</Btn>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
 
-      {a.zones.length > 0 && <CoveragePanel assets={a.assets} rules={rules} zones={a.zones}/>}
+          {/* Suggested internet-facing assets Card */}
+          <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Suggested internet-facing assets</div>
+            <div style={{ fontSize: 12, color: '#475467', marginBottom: 16 }}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            </div>
 
-      {a.zones.length > 0 && <Sr62443DirectoryCard a={a} onNavigate={onNavigate}/>}
+            {internetSuggestions.length === 0 ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 20px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D4ED8', marginBottom: 12 }}>
+                  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 4 }}>No suggested internet-facing assets</div>
+                <div style={{ fontSize: 11.5, color: '#667085', maxWidth: 300, lineHeight: 1.4 }}>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in tortor non lacus porta aliquam vel in nisi.
+                </div>
+              </div>
+            ) : (
+              <div className="kpmg-scrollable-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {internetSuggestions.map(s => (
+                  <div key={s.id} style={{ border: '1px solid #EAECF0', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#101828' }}>{s.name}</div>
+                      <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>{s.deviceType} · PLC . {s.ip || '10.20.20.01'} . L4</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Btn size="sm" variant="outline" onClick={() => dismissInternet(s)} style={{ borderRadius: 6, fontSize: 11.5 }}>Decline</Btn>
+                      <Btn size="sm" onClick={() => confirmInternet(s)} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 11.5 }}>Confirm</Btn>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
 
-      {a.zones.length > 0 && <WorkshopExportCard a={a} rules={rules}/>}
+        {/* RIGHT COLUMN: Unassigned assets & 62443 evidence directory */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Unassigned assets Card */}
+          <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Unassigned assets</div>
+                <div style={{ fontSize: 12, color: '#475467' }}>
+                  No zone yet - map a matching subnet to place one automatically, or assign it here.
+                </div>
+              </div>
+              <Btn
+                onClick={() => setAddingAsset(v => !v)}
+                style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '6px 16px', fontSize: 12, fontWeight: 600 }}
+              >
+                Add asset
+              </Btn>
+            </div>
 
+            {addingAsset && (
+              <AddUnassignedAssetForm
+                onAdd={f => {
+                  a.addAsset('', { name: f.name.trim(), ip: f.ip, version: f.version, deviceType: f.deviceType || 'Unclassified', kind: f.kind });
+                  setAddingAsset(false); bump();
+                }}
+                onCancel={() => setAddingAsset(false)}
+              />
+            )}
+
+            {unassigned.length === 0 ? (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 20px' }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D4ED8', marginBottom: 12 }}>
+                  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 4 }}>No unassigned assets</div>
+                <div style={{ fontSize: 11.5, color: '#667085', maxWidth: 300, lineHeight: 1.4 }}>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in tortor non lacus porta aliquam vel in nisi.
+                </div>
+              </div>
+            ) : (
+              <div className="kpmg-scrollable-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {unassigned.map(u => (
+                  <div key={u.id} style={{ border: '1px solid #EAECF0', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#101828' }}>{u.name}</div>
+                      <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>{u.deviceType || 'Hardware . PLC'} . {u.ip || '10.20.20.01'} . L4</div>
+                    </div>
+                    <Select
+                      value=""
+                      onChange={e => { if (e.target.value) assignTo(u.id, e.target.value); }}
+                      options={[{ value: '', label: 'Assign to zone' }, ...a.zones.map(z => ({ value: z.id, label: z.name }))]}
+                      style={{ width: 140, borderRadius: 6, fontSize: 11.5 }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+
+          {/* 62443 evidence directory Card */}
+          <Sr62443DirectoryCard a={a} onNavigate={onNavigate} />
+        </div>
+      </div>
+
+      {/* 4. Bottom Full-Width Workshop Confirmation Card */}
+      <WorkshopExportCard a={a} rules={rules} />
+
+      {/* Create Zone Modal */}
+      {showCreateModal && (
+        <Modal
+          title="Create Zone"
+          subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+          onClose={() => setShowCreateModal(false)}
+          maxWidth={580}
+          footer={
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
+              <Btn variant="outline" onClick={() => setShowCreateModal(false)} style={{ borderRadius: 6, padding: '7px 18px', fontSize: 12.5, fontWeight: 600 }}>
+                Cancel
+              </Btn>
+              <Btn onClick={createZone} disabled={!zname.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '7px 22px', fontSize: 12.5, fontWeight: 600 }}>
+                Save
+              </Btn>
+            </div>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <FormField label="Zone name *">
+              <Input
+                value={zname}
+                onChange={e => setZname(e.target.value)}
+                placeholder="Enterprise"
+                style={{ borderRadius: 6, fontSize: 13 }}
+              />
+            </FormField>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <FormField label="Target SL *">
+                <Select
+                  value={tsl}
+                  onChange={e => setTsl(e.target.value)}
+                  options={SL_OPTS}
+                  style={{ borderRadius: 6, fontSize: 12.5 }}
+                />
+              </FormField>
+
+              <FormField label="Subnets">
+                <Input
+                  value={zsubnet}
+                  onChange={e => setZsubnet(e.target.value)}
+                  placeholder="10.10.20.0"
+                  style={{ borderRadius: 6, fontSize: 13 }}
+                />
+              </FormField>
+            </div>
+
+            <FormField label="Description">
+              <Textarea
+                value={zdesc}
+                onChange={e => setZdesc(e.target.value)}
+                rows={2}
+                placeholder="Corporate IT, ERP, domain"
+                style={{ borderRadius: 6, fontSize: 13, resize: 'vertical' }}
+              />
+            </FormField>
+
+            {/* Air-gapped Toggle Row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4, padding: '6px 0' }}>
+              <label style={{ position: 'relative', display: 'inline-block', width: 38, height: 20, cursor: 'pointer', flexShrink: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={airGapped}
+                  onChange={e => setAirGapped(e.target.checked)}
+                  style={{ opacity: 0, width: 0, height: 0 }}
+                />
+                <span style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                  backgroundColor: airGapped ? '#1D4ED8' : '#EAECF0',
+                  borderRadius: 20, transition: '0.2s'
+                }}>
+                  <span style={{
+                    position: 'absolute', content: '""', height: 16, width: 16, left: airGapped ? 19 : 2, bottom: 2,
+                    backgroundColor: 'white', borderRadius: '50%', transition: '0.2s'
+                  }} />
+                </span>
+              </label>
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Air-gapped</div>
+                <div style={{ fontSize: 11.5, color: '#475467' }}>
+                  The client asserts no external connectivity - checked live against conduits/connections below
+                </div>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Zone Detail Modal */}
       {openZone && (
-        <ZoneDetailModal zone={a.zones.find(z => z.id === openZone.id) || openZone} assets={a.assets} rules={rules}
-          conduits={a.conduits} onRulesChange={() => bump()} a={a} onClose={() => { setOpenZone(null); bump(); }}
-          onViewAssets={zoneId => { setAssetsZoneJump(zoneId); setOpenZone(null); onNavigate('assets'); }}/>
+        <ZoneDetailModal
+          zone={a.zones.find(z => z.id === openZone.id) || openZone}
+          assets={a.assets}
+          rules={rules}
+          conduits={a.conduits}
+          onRulesChange={() => bump()}
+          a={a}
+          onClose={() => { setOpenZone(null); bump(); }}
+          onViewAssets={zoneId => { setAssetsZoneJump(zoneId); setOpenZone(null); onNavigate('assets'); }}
+        />
       )}
     </div>
   );

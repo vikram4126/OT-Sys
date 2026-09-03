@@ -336,25 +336,31 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
           </div>
 
           {/* PDF Controls Footer */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
-            <button
-              onClick={() => setPageNo(p => Math.max(1, p - 1))}
-              disabled={pageNo === 1}
-              style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: pageNo === 1 ? 'default' : 'pointer', color: pageNo === 1 ? '#D0D5DD' : '#344054' }}
-            >
-              ←
-            </button>
-            <span style={{ fontSize: 12, color: '#475467', fontWeight: 500 }}>
-              {pageNo} of {docs.length > 0 ? 10 : 1}
-            </span>
-            <button
-              onClick={() => setPageNo(p => Math.min(10, p + 1))}
-              disabled={pageNo === 10}
-              style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: pageNo === 10 ? 'default' : 'pointer', color: pageNo === 10 ? '#D0D5DD' : '#344054' }}
-            >
-              →
-            </button>
-          </div>
+          {(() => {
+            const totalPages = docs.length > 0 ? (doc.page_count || 10) : 1;
+            const currentP = Math.min(pageNo, totalPages);
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
+                <button
+                  onClick={() => setPageNo(p => Math.max(1, p - 1))}
+                  disabled={currentP <= 1}
+                  style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentP <= 1 ? 'default' : 'pointer', color: currentP <= 1 ? '#D0D5DD' : '#344054' }}
+                >
+                  ←
+                </button>
+                <span style={{ fontSize: 12, color: '#475467', fontWeight: 600 }}>
+                  {currentP}/{totalPages}
+                </span>
+                <button
+                  onClick={() => setPageNo(p => Math.min(totalPages, p + 1))}
+                  disabled={currentP >= totalPages}
+                  style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentP >= totalPages ? 'default' : 'pointer', color: currentP >= totalPages ? '#D0D5DD' : '#344054' }}
+                >
+                  →
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
         {/* RIGHT COLUMN — Details, AI confidence, Rubric checklist, Actions */}
@@ -435,16 +441,7 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
                       onSetStatus(zone.id, item.id, st);
                       force(x => x + 1);
                     }}
-                    style={{
-                      border: '1px solid #EAECF0',
-                      background: '#FFFFFF',
-                      borderRadius: 8,
-                      padding: '10px 14px',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 12,
-                      cursor: 'pointer'
-                    }}
+                    className="kpmg-rubric-card"
                   >
                     <div
                       style={{

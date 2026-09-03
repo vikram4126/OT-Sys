@@ -3283,3 +3283,76 @@ h3 {
     max-width: 100vw !important;
   }
 }
+
+/* Zone Modeller Component Classes */
+.kpmg-zone-card {
+  height: 100%;
+  min-height: 380px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.kpmg-zone-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.kpmg-scrollable-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 270px;
+  padding-right: 4px;
+}
+
+/* Modal Form & Action Button Classes */
+.kpmg-btn-danger-outline {
+  margin-right: auto;
+  background: transparent !important;
+  border: 1px solid #FECDCA !important;
+  color: #D9251B !important;
+  border-radius: 8px !important;
+  padding: 8px 18px !important;
+  font-weight: 600 !important;
+}
+
+.kpmg-btn-primary-blue {
+  background: #1D4ED8 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  padding: 8px 22px !important;
+  font-weight: 600 !important;
+  border: none;
+}
+
+.kpmg-modal-form-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kpmg-textarea-note {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #EAECF0);
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+}
+
+.kpmg-rubric-card {
+  border: 1px solid #EAECF0;
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}

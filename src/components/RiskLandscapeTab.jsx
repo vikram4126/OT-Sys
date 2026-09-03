@@ -1585,15 +1585,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
             <Btn
               variant="outline"
               onClick={onDismiss}
-              style={{
-                marginRight: 'auto',
-                background: 'transparent',
-                border: '1px solid #FECDCA',
-                color: '#D9251B',
-                borderRadius: 8,
-                padding: '8px 18px',
-                fontWeight: 600
-              }}
+              className="kpmg-btn-danger-outline"
             >
               Delete
             </Btn>
@@ -1604,14 +1596,14 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
           <Btn
             onClick={save}
             disabled={!canSave}
-            style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 22px', fontWeight: 600 }}
+            className="kpmg-btn-primary-blue"
           >
             Save
           </Btn>
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="kpmg-modal-form-gap">
         <FormField label="Vulnerabilities behind this risk *">
           <SearchAdd
             items={vulnItems}
@@ -1663,17 +1655,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
             onChange={e => setNote(e.target.value)}
             rows={3}
             placeholder="A short note on why this matters, in your own words"
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              padding: '10px 12px',
-              borderRadius: 8,
-              border: `1px solid ${C.border}`,
-              fontFamily: 'inherit',
-              fontSize: 13,
-              resize: 'vertical',
-              outline: 'none'
-            }}
+            className="kpmg-textarea-note"
           />
           <div style={{ fontSize: 12, color: '#667085', marginTop: 4 }}>
             Shown in place of the auto-generated summary in the list
