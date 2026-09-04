@@ -68,7 +68,7 @@ const NAV = [
 const TITLES = {
   dashboard: 'Dashboard', model: 'Model', assets: 'Assets',
   vulns: 'Vulnerabilities', risk: 'Risk Landscape', compliance: 'IEC 62443',
-  mitigations: 'Mitigations', report: 'Report', logs: 'Audit Logs', workspace: 'Workspace Settings', admin: 'Admin Portal',
+  mitigations: 'Mitigations', report: 'Assessment Report', logs: 'Audit Logs', workspace: 'Workspace Settings', admin: 'Admin Portal',
 };
 
 const SUBTITLES = {
@@ -79,7 +79,7 @@ const SUBTITLES = {
   vulns: 'Discovered vulnerabilities, risk scores, and overrides',
   risk: 'Visual risk landscape across zones and network segments',
   mitigations: 'Recommended compensating controls and remediation steps',
-  report: 'Generate executive assessment report and export findings',
+  report: 'OT Security Assessment - Acme Utilities',
   logs: 'File uploads, changes, and deletions — who made each change and when',
 };
 

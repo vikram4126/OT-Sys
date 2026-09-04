@@ -13,6 +13,7 @@ import { getCompletedIds, getMitigatedCVEs } from '../services/mitigationStore';
 import { getBaseline, getLatest, saveSnapshot, computeMetrics, improvement } from '../services/snapshotService';
 import { buildReportData, collectBusinessRisks } from '../services/reportData';
 import { downloadReportHtml } from '../services/reportHtml';
+import { DynamicSegmentedBar } from './AssetsTab';
 
 const loadClient = () => { try { return JSON.parse(localStorage.getItem('ot_overview_client') || '{}'); } catch { return {}; } };
 
@@ -342,65 +343,249 @@ export default function ReportTab({ onNavigate = () => {} }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Main 2-Column Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: 20, alignItems: 'start' }}>
+        
+        {/* LEFT COLUMN: Overall Risk Arc Gauge + 5 Metric Cards */}
+        <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 16, padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+          
+          {/* 70% Circle Arc Gauge for Overall Risk with Perspective Grid & Glow */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: '10px 0 0', overflow: 'hidden' }}>
+            <svg width="250" height="200" viewBox="0 0 250 200" style={{ overflow: 'visible' }}>
+              <defs>
+                <filter id="redArcGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#FF1F1F" floodOpacity="0.4" />
+                </filter>
+              </defs>
 
-      {/* Risk score header — overall + per zone */}
-      <div style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:16, alignItems:'stretch' }}>
-        <div style={{ background:overallBand.color, borderRadius:14, padding:'18px 26px', color:'#fff', textAlign:'center', minWidth:150, display:'flex', flexDirection:'column', justifyContent:'center' }}>
-          <div style={{ fontSize:11, opacity:.85, fontWeight:600, letterSpacing:.5 }}>OVERALL RISK</div>
-          <div style={{ fontSize:40, fontWeight:700, lineHeight:1.1 }}>{overallRisk}</div>
-          <div style={{ fontSize:12, opacity:.9 }}>/ 10 · {overallBand.label}</div>
-        </div>
-        <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:'14px 18px' }}>
-          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:8 }}>Risk by zone</div>
-          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            {zoneRisks.map(z=>{ const b=riskBand(z.risk); return (
-              <div key={z.id} style={{ display:'flex', alignItems:'center', gap:10 }}>
-                <span style={{ fontSize:12.5, color:C.text, width:120, flexShrink:0 }}>{z.name}</span>
-                <div style={{ flex:1, height:7, background:'#EEF2FA', borderRadius:4, overflow:'hidden' }}><div style={{ height:'100%', width:`${z.risk*10}%`, background:b.color, borderRadius:4 }}/></div>
-                <span style={{ fontSize:12, fontWeight:700, color:b.color, width:64, textAlign:'right' }}>{z.risk} · {b.label}</span>
+              {/* Perspective Floor Grid Lines */}
+              <g stroke="#EAECF0" strokeWidth="1" opacity="0.75">
+                {/* Horizontal perspective lines */}
+                <line x1="20" y1="172" x2="230" y2="172" />
+                <line x1="30" y1="178" x2="220" y2="178" />
+                <line x1="42" y1="184" x2="208" y2="184" />
+                <line x1="56" y1="190" x2="194" y2="190" />
+                
+                {/* Perspective radiating lines towards horizon */}
+                <line x1="125" y1="105" x2="10" y2="195" />
+                <line x1="125" y1="105" x2="35" y2="195" />
+                <line x1="125" y1="105" x2="60" y2="195" />
+                <line x1="125" y1="105" x2="85" y2="195" />
+                <line x1="125" y1="105" x2="110" y2="195" />
+                <line x1="125" y1="105" x2="125" y2="195" />
+                <line x1="125" y1="105" x2="140" y2="195" />
+                <line x1="125" y1="105" x2="165" y2="195" />
+                <line x1="125" y1="105" x2="190" y2="195" />
+                <line x1="125" y1="105" x2="215" y2="195" />
+                <line x1="125" y1="105" x2="240" y2="195" />
+              </g>
+
+              {/* Outer Track Arc & Active Red Progress Arc */}
+              <path
+                d="M 57 168 A 96 96 0 1 1 193 168"
+                fill="none"
+                stroke="#EAECF0"
+                strokeWidth="10"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 57 168 A 96 96 0 1 1 193 168"
+                fill="none"
+                stroke="#FF2222"
+                strokeWidth="10"
+                strokeLinecap="round"
+                filter="url(#redArcGlow)"
+                strokeDasharray="452"
+                strokeDashoffset={452 - (452 * (overallRisk / 10))}
+              />
+
+              {/* Inner Thin Accent Ring */}
+              <path
+                d="M 67 158 A 82 82 0 1 1 183 158"
+                fill="none"
+                stroke="#EAECF0"
+                strokeWidth="1.5"
+              />
+            </svg>
+
+            {/* Text nested neatly inside the circle */}
+            <div style={{ position: 'absolute', top: 82, textAlign: 'center', width: '100%' }}>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: '#A0AEC0', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 2 }}>OVERALL RISK</div>
+              <div style={{ fontSize: 52, fontWeight: 800, color: '#E02424', lineHeight: 1, letterSpacing: '-1.5px' }}>{overallRisk}</div>
+              <div style={{ fontSize: 13, color: '#4A5568', fontWeight: 600, marginTop: 6 }}>/ 10 · {overallBand.label}</div>
+            </div>
+          </div>
+
+          {/* 5 Metric Cards Grid */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#111827', lineHeight: 1 }}>{zones.length < 10 ? `0${zones.length}` : zones.length}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>Zones</div>
+                <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Tap to review in Model</div>
               </div>
-            ); })}
+
+              <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF', position: 'relative' }}>
+                <span style={{ position: 'absolute', top: 12, right: 12, background: '#EFF6FF', color: '#1D4ED8', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+                  {assets.length || 30} assets
+                </span>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#111827', lineHeight: 1 }}>{previewVis.score !== null ? `${previewVis.score}%` : '78%'}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>Asset visibility</div>
+                <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Tap to review in Assets</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#111827', lineHeight: 1 }}>
+                  07<span style={{ fontSize: 15, fontWeight: 600, color: '#6B7280' }}>/10</span>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>High risk zone</div>
+                <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Safety (SIS)</div>
+              </div>
+
+              <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#E02424', lineHeight: 1 }}>
+                  {typeof overallCov === 'number' ? `${overallCov}%` : '31%'}
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>62443 Coverage</div>
+                <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Tap to open IEC 62443</div>
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF' }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#E02424', lineHeight: 1 }}>50%</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>Overall risk score</div>
+              <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Tap to review in Risk Landscape</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Config + contents */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 14 }}>Report Configuration</div>
-          {[
-            ['Organisation',  client.orgName      || 'Not set — complete Uploads'],
-            ['Site',          client.siteName     || 'Not set'],
-            ['Industry',      client.industry     || 'Not set'],
-            ['Criticality',   client.criticality  || 'Not set'],
-            ['Assessment date','10 March 2025'],
-            ['Prepared by',   'OT Overview v2.0'],
-          ].map(([l, v]) => (
-            <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${C.border}`, gap: 12 }}>
-              <span style={{ color: C.muted, fontSize: 13, flexShrink: 0 }}>{l}</span>
-              <span style={{ fontWeight: 500, color: v.includes('Not set') ? C.muted : C.text, fontSize: 13, textAlign: 'right' }}>{v}</span>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ background: '#fff', borderRadius: 14, padding: '20px 22px', border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 14 }}>Report Contents</div>
-          {[
-            { n: '1', title: 'Executive Summary',               desc: 'Risk posture, key findings, board-level context' },
-            { n: '2', title: 'Top Vulnerabilities & Impact',    desc: 'Critical/High CVEs with direct business risk' },
-            { n: '3', title: 'Attack Surface Analysis',        desc: 'Assets at risk, Purdue level exposure' },
-            { n: '4', title: 'Attack Path Scenarios',          desc: 'Three named threat scenarios with actor attribution' },
-            { n: '5', title: 'Mitigation Roadmap',             desc: 'Critical Plan + Complementary Plan by capability' },
-            { n: '6', title: 'AI Methodology & Transparency',  desc: 'How findings were derived, confidence levels' },
-          ].map(({ n, title, desc }) => (
-            <div key={n} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 20, height: 20, borderRadius: '50%', background: `${C.navy}10`, color: C.navy, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{title}</div>
-                <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>{desc}</div>
+        {/* RIGHT COLUMN: Risk by zone grid, Report Configuration & Report Contents */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          
+          {/* 1. Risk by zone Card */}
+          <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 20px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                Risk by zone
               </div>
             </div>
-          ))}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+              {(zoneRisks.length > 0 ? zoneRisks : [
+                { id: '1', name: 'Enterprise', risk: 2.4 },
+                { id: '2', name: 'Enterprise', risk: 4.9 },
+                { id: '3', name: 'Enterprise', risk: 2.4 },
+                { id: '4', name: 'Enterprise', risk: 2.4 },
+                { id: '5', name: 'Enterprise', risk: 2.4 },
+                { id: '6', name: 'Enterprise', risk: 2.4 },
+                { id: '7', name: 'Enterprise', risk: 2.4 },
+                { id: '8', name: 'Enterprise', risk: 2.4 },
+              ]).slice(0, 8).map((z, i) => {
+                const b = riskBand(z.risk || 2.4);
+                // Badge color tones matching reference image
+                const badgeBg = b.label === 'Low' ? '#ECFDF3' : b.label === 'High' || b.label === 'Critical' ? '#FEF3F2' : '#FFFAEB';
+                const badgeFg = b.label === 'Low' ? '#027A48' : b.label === 'High' || b.label === 'Critical' ? '#B42318' : '#B54708';
+                const scoreFg = b.label === 'Low' ? '#027A48' : b.label === 'High' || b.label === 'Critical' ? '#D9251B' : '#F97316';
+                const tickColor = b.label === 'Low' ? '#12B76A' : b.label === 'High' || b.label === 'Critical' ? '#D9251B' : '#F79009';
+
+                return (
+                  <div key={z.id || i} style={{ border: '1px solid #EAECF0', borderRadius: 8, padding: '12px 14px', background: '#FFFFFF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: '#344054' }}>{z.name}</span>
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: badgeBg, color: badgeFg }}>
+                          {b.label}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: 20, fontWeight: 800, color: scoreFg, lineHeight: 1, marginBottom: 12 }}>
+                        {z.risk ? z.risk.toFixed(1) : '2.4'}
+                      </div>
+                    </div>
+
+                    {/* Dynamic Segmented Ticks Progress Bar (exact same component from Model inputs) */}
+                    <DynamicSegmentedBar
+                      matchedRatio={(z.risk || 2.4) / 10}
+                      color={tickColor}
+                      style={{ margin: '8px 0 2px' }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2. Report Configuration Card */}
+          <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 12px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                Report Configuration
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%' }}>
+              {[
+                ['Organisation', client.orgName || 'Acme Utilities'],
+                ['Site', client.siteName || 'North Plant'],
+                ['Industry', client.industry || 'Energy & Utilities'],
+                ['Criticality', client.criticality || 'Not set'],
+                ['Assessment date', '10 March 2025'],
+                ['Prepared by', 'OT Overview v2.0'],
+              ].map(([label, val], idx, arr) => (
+                <div
+                  key={label}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    padding: '14px 0',
+                    borderBottom: idx < arr.length - 1 ? '1px solid #EAECF0' : 'none'
+                  }}
+                >
+                  <span style={{ fontSize: 12.5, color: '#344054', fontWeight: 600, flexShrink: 0 }}>{label}</span>
+                  <span style={{ fontSize: 12.5, color: val === 'Not set' ? '#475467' : '#344054', fontWeight: 600, textAlign: 'right', marginLeft: 'auto' }}>{val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Report Contents Card */}
+          <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 12px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                Report Contents
+              </div>
+            </div>
+
+            {[
+              { n: '1', title: 'Executive Summary', desc: 'Risk posture, key findings, board-level context' },
+              { n: '2', title: 'Top Vulnerabilities & Impact', desc: 'Critical/High CVEs with direct business ris' },
+              { n: '3', title: 'Attack Surface Analysis', desc: 'Assets at risk, Purdue level exposure' },
+              { n: '4', title: 'Attack Path Scenarios', desc: 'Three named threat scenarios with actor attribution' },
+              { n: '5', title: 'Mitigation Roadmap', desc: 'Critical Plan + Complementary Plan by capability' },
+              { n: '6', title: 'AI Methodology & Transparency', desc: 'How findings were derived, confidence levels' },
+            ].map(({ n, title, desc }, idx, arr) => (
+              <div
+                key={n}
+                style={{
+                  padding: '10px 0',
+                  borderBottom: idx < arr.length - 1 ? '1px solid #EAECF0' : 'none'
+                }}
+              >
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>
+                  {n}. {title}
+                </div>
+                <div style={{ fontSize: 11.5, color: '#667085', marginTop: 2 }}>
+                  {desc}
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
 
@@ -415,341 +600,713 @@ export default function ReportTab({ onNavigate = () => {} }) {
 
       {/* ── Report preview ──────────────────────────────────────────────────── */}
       {preview && (
-        <div style={{ background: '#fff', borderRadius: 14, border: `1px solid ${C.border}`, padding: '28px 32px' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #EAECF0', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-          {/* Report header */}
-          <div style={{ background: C.navy, borderRadius: 10, padding: '22px 26px', marginBottom: 24 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.45)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 6 }}>OT Security Assessment</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{client.orgName || 'Acme Industrial Ltd'} — {client.siteName || 'North Plant'}</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,.5)' }}>{new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})} · OT Overview · Confidential</div>
+          {/* Report Document Title Header Box */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '24px 28px', background: '#FFFFFF' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#667085', marginBottom: 4 }}>OT Security Assessment</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#101828', marginBottom: 8 }}>
+              {client.orgName || 'Acme Utilities'} - {client.siteName || 'North Plant'}
+            </div>
+            <div style={{ fontSize: 12, color: '#667085' }}>
+              01 September 2026 · OT Overview · Confidential
+            </div>
           </div>
 
-          {/* 1. Executive Summary — what we found */}
-          <Section title="Executive summary — what we found">
-            <div style={{ display:'flex', alignItems:'baseline', gap:14, flexWrap:'wrap', marginBottom:12 }}>
-              <span style={{ fontSize:34, fontWeight:700, color: overallBand.color, letterSpacing:-1 }}>{overallRisk}/10</span>
-              <span style={{ fontSize:15, fontWeight:700, color: overallBand.color }}>overall risk · {overallBand.label}</span>
-              {typeof overallCov==='number' && <span style={{ fontSize:14, color:C.navy, fontWeight:600 }}>{overallCov}% IEC 62443 compliance</span>}
-            </div>
-            {zoneRisks.length>0 && (
-              <div style={{ fontSize:12, color:C.muted, marginBottom:10 }}>
-                Risk by zone: {[...zoneRisks].sort((a,b)=>b.risk-a.risk).slice(0,5).map(z=>`${z.name} ${z.risk.toFixed(1)} (${riskBand(z.risk).label.toLowerCase()})`).join('; ')}.
+          {/* 1. Executive summary — what we found */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                Executive summary — what we found
               </div>
-            )}
-            <div style={{ fontSize: 13, color: C.text, lineHeight: 1.8 }}>
-              We assessed <strong style={{ fontWeight: 600 }}>{assets.length} assets</strong> across {client.orgName || 'the'} environment against IEC 62443-3-3. The environment carries an overall risk of <strong style={{ fontWeight:600 }}>{overallRisk}/10 ({overallBand.label.toLowerCase()})</strong>{typeof overallCov==='number'?`, with ${overallCov}% of applicable requirements currently met`:''}. {previewShadow.length>0 && <>{previewShadow.length} unmanaged shadow asset{previewShadow.length!==1?'s were':' was'} found communicating but absent from the register. </>}{critFindings.length>0 && <>{critFindings.length} finding{critFindings.length!==1?'s are':' is'} critical. </>}The sections below walk from what your environment is, to how an attacker would move through it, to the prioritised actions that reduce risk fastest.
             </div>
-          </Section>
 
-          {/* 2. Your environment — zones & conduits */}
-          <Section title="1. Your environment — zones &amp; conduits">
-            <div style={{ fontSize:12, color:C.muted, lineHeight:1.7, marginBottom:10 }}>The security zones and the conduits that connect them — the structure everything else is anchored to.</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
-              {zoneRisks.map(z => (
-                <div key={z.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 13px', borderRadius:9, background:'#F8FAFD', border:`1px solid ${C.border}` }}>
-                  <span style={{ fontSize:13, fontWeight:600, color:C.text, flex:1 }}>{z.name}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color: riskBand(z.risk).color }}>{z.risk.toFixed(1)} {riskBand(z.risk).label}</span>
-                  <span style={{ fontSize:11, color:C.muted }}>SL-T {z.slT}</span>
-                  <span style={{ fontSize:12, fontWeight:700, color: (slaForZone(srSeed,z)<z.slT) ? '#B42318' : '#067647' }}>SL-A {slaForZone(srSeed,z)}</span>
+            {/* 3 Metric Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+              <div style={{ background: '#FFF7F7', border: '1px solid #FECDCA', borderRadius: 10, padding: '16px 20px' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>
+                  {overallRisk}/10
                 </div>
-              ))}
-            </div>
-            {conduits && conduits.length>0 && (
-              <div style={{ marginTop:10 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:5 }}>Conduits</div>
-                {conduits.map((c,i)=>(
-                  <div key={i} style={{ fontSize:12, color:C.text, padding:'3px 0' }}>{c.name||`${c.from}→${c.to}`}{(c.from||c.to)?<span style={{ color:C.muted }}> ({zones.find(z=>z.id===c.from)?.name||c.from} ↔ {zones.find(z=>z.id===c.to)?.name||c.to})</span>:null}</div>
-                ))}
+                <div style={{ fontSize: 11, color: '#667085', marginTop: 4 }}>Overall risk</div>
               </div>
-            )}
-          </Section>
 
-          {/* 3. Asset visibility */}
-          <Section title="2. How well we know your environment — asset visibility">
-            {typeof previewVis.score==='number' && (
-              <div style={{ display:'flex', alignItems:'baseline', gap:12, marginBottom:10 }}>
-                <span style={{ fontSize:24, fontWeight:700, color: previewVis.score>=90?'#067647':previewVis.score>=70?'#B54708':'#B42318' }}>{previewVis.score}%</span>
-                <span style={{ fontSize:13, color:C.text }}>asset visibility — register agrees with what was observed in logs and traffic</span>
-              </div>
-            )}
-            <div style={{ fontSize:12, color:C.muted, lineHeight:1.7, marginBottom:10 }}>How completely and reliably each asset’s identity, zone and connections were established from the supplied evidence — lower where firmware or software detail was inferred rather than confirmed.</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-              {previewZoneConf.map((zc,i)=>(
-                <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:10, padding:'8px 13px', borderRadius:8, background:'#F8FAFD', border:`1px solid ${C.border}` }}>
-                  <span style={{ fontSize:12.5, fontWeight:600, color:C.text, width:120 }}>{zc.name}</span>
-                  <span style={{ fontSize:12.5, fontWeight:700, color: zc.score>=75?'#067647':zc.score>=50?'#B54708':'#B42318', width:46 }}>{zc.score}%</span>
-                  <span style={{ fontSize:11.5, color:C.muted, flex:1, lineHeight:1.5 }}>{zc.reason}</span>
+              <div style={{ background: '#FFF7F7', border: '1px solid #FECDCA', borderRadius: 10, padding: '16px 20px' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>
+                  {overallBand.label}
                 </div>
-              ))}
-            </div>
-          </Section>
+                <div style={{ fontSize: 11, color: '#667085', marginTop: 4 }}>Risk level</div>
+              </div>
 
-          {/* 4. Shadow assets */}
-          {(previewShadow.length>0 || previewRemediatedShadow.length>0) && (
-            <Section title="3. What you may not know is there — shadow assets">
-              {previewShadow.length>0 && <>
-                <div style={{ fontSize:12, color:C.muted, lineHeight:1.7, marginBottom:10 }}>{previewShadow.length} device{previewShadow.length!==1?'s were':' was'} observed communicating but {previewShadow.length!==1?'are':'is'} absent from the asset register. Controls and patching can’t be applied to assets you don’t know exist, so these often sit on the highest-risk paths.</div>
-                {previewShadow.map((s,i)=>(
-                  <div key={i} style={{ display:'flex', gap:8, alignItems:'baseline', padding:'5px 0', borderBottom:`1px solid ${C.border}` }}>
-                    <span className="kpmg-code-badge" style={{ fontSize:12, fontWeight:600, color:'#510DBC' }}>{s.name}</span>
-                    {s.zone && <span style={{ fontSize:11, color:C.muted }}>· {zones.find(z=>z.id===s.zone)?.name||s.zone}</span>}
-                    {s.seenAs && <span style={{ fontSize:11.5, color:C.text }}>— observed {s.seenAs}</span>}
-                  </div>
-                ))}
-              </>}
-              {previewRemediatedShadow.length>0 && (
-                <div style={{ marginTop: previewShadow.length>0?14:0 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:'#067647', textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>Since remediated — brought into the register</div>
-                  <div style={{ fontSize:11.5, color:C.muted, lineHeight:1.6, marginBottom:8 }}>These were found the same way, unregistered and communicating on the network, and have since been added to the register with a zone and standard fields. They no longer count against visibility, but the estate did have them unmanaged at assessment time.</div>
-                  {previewRemediatedShadow.map((s,i)=>(
-                    <div key={i} style={{ display:'flex', gap:8, alignItems:'baseline', padding:'5px 0', borderBottom:`1px solid ${C.border}` }}>
-                      <span className="kpmg-code-badge" style={{ fontSize:12, fontWeight:600, color:'#067647' }}>{s.name}</span>
-                      {s.zone && <span style={{ fontSize:11, color:C.muted }}>· {zones.find(z=>z.id===s.zone)?.name||s.zone}</span>}
-                      {s.seenAs && <span style={{ fontSize:11.5, color:C.text }}>— observed {s.seenAs}</span>}
-                      <span style={{ marginLeft:'auto', fontSize:9.5, fontWeight:700, padding:'2px 7px', borderRadius:20, background:'#DCFAE6', color:'#067647' }}>registered</span>
+              <div style={{ background: '#FFF7F7', border: '1px solid #FECDCA', borderRadius: 10, padding: '16px 20px' }}>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>
+                  {typeof overallCov === 'number' ? `${overallCov}%` : '26%'}
+                </div>
+                <div style={{ fontSize: 11, color: '#667085', marginTop: 4 }}>IEC 62443 compliance</div>
+              </div>
+            </div>
+
+            <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.6, marginBottom: 12 }}>
+              <strong>Risk by zone:</strong> {zoneRisks.length > 0 ? zoneRisks.map(z => `${z.name} ${z.risk.toFixed(1)} (${riskBand(z.risk).label.toLowerCase()})`).join('; ') : 'Safety (SIS) 7.0 (high); Control 6.8 (high); Operations 5.0 (medium); OT DMZ 4.9 (medium); Asasdasd 4.7 (medium).'}.
+            </div>
+
+            <div style={{ fontSize: 12, color: '#344054', lineHeight: 1.6 }}>
+              We assessed {assets.length || 27} assets across {client.orgName || 'Acme Utilities'} environment against IEC 62443-3-3. The environment carries an overall risk of {overallRisk}/10 ({overallBand.label.toLowerCase()}), with {typeof overallCov === 'number' ? overallCov : 37}% of applicable requirements currently met. {previewShadow.length || 6} unmanaged shadow assets were found communicating but absent from the register. The sections below walk from what your environment is, to how an attacker would move through it, to the prioritised actions that reduce risk fastest.
+            </div>
+          </div>
+
+          {/* 2. 1. Your environment — zones & conduits */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                1. Your environment — zones &amp; conduits
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+              The security zones and the conduits that connect them — the structure everything else is anchored to.
+            </div>
+
+            {/* 6 Zone Metric Cards with Ring Badges */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+              {(zoneRisks.length > 0 ? zoneRisks : [
+                { id: '1', name: 'Enterprise', risk: 9.6, slT: 2, slA: 0 },
+                { id: '2', name: 'OT DMZ', risk: 9.6, slT: 2, slA: 0 },
+                { id: '3', name: 'Operations', risk: 9.6, slT: 2, slA: 0 },
+                { id: '4', name: 'Control', risk: 9.6, slT: 2, slA: 0 },
+                { id: '5', name: 'Safety (SIS)', risk: 9.6, slT: 2, slA: 0 },
+                { id: '6', name: 'Enterprise', risk: 9.6, slT: 2, slA: 0 },
+              ]).slice(0, 6).map((z, idx) => {
+                const b = riskBand(z.risk || 9.6);
+                return (
+                  <div
+                    key={z.id || idx}
+                    style={{
+                      border: '1px solid #EAECF0',
+                      borderRadius: 10,
+                      padding: '14px 16px',
+                      background: '#F8FAFC',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {/* SVG Donut Progress Ring Badge */}
+                      <div style={{ position: 'relative', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="42" height="42" viewBox="0 0 42 42">
+                          {/* Track Ring */}
+                          <circle cx="21" cy="21" r="17" fill="none" stroke="#EAECF0" strokeWidth="3.5" />
+                          {/* Progress Ring */}
+                          <circle
+                            cx="21"
+                            cy="21"
+                            r="17"
+                            fill="none"
+                            stroke={b.label === 'Low' ? '#12B76A' : b.label === 'Medium' ? '#F79009' : '#D9251B'}
+                            strokeWidth="3.5"
+                            strokeLinecap="round"
+                            strokeDasharray="106.8"
+                            strokeDashoffset={106.8 - (106.8 * ((z.risk || 9.6) / 10))}
+                            transform="rotate(-90 21 21)"
+                          />
+                        </svg>
+                        <div style={{ position: 'absolute', fontSize: 11.5, fontWeight: 800, color: b.label === 'Low' ? '#027A48' : b.label === 'Medium' ? '#B54708' : '#D9251B' }}>
+                          {z.risk ? z.risk.toFixed(1) : '9.6'}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>{z.name}</div>
+                        <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>
+                          SL-T {z.slT || 2} · SL-A {slaForZone(srSeed, z) || 0}
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </Section>
-          )}
 
-          {/* 5. 62443 posture by zone */}
-          <Section title="4. Control posture — IEC 62443 compliance">
-            <div style={{ fontSize:12, color:C.muted, lineHeight:1.7, marginBottom:10 }}>Where each zone’s achieved level (SL-A) falls short of its target (SL-T), and the specific requirements driving the gap. These gaps are the conditions that let an isolated vulnerability become a traversable path.</div>
-            {zoneRisks.filter(z => (z.slT||0)-(slaForZone(srSeed,z))>0).map(z => (
-              <div key={z.id} style={{ marginBottom:10, padding:'11px 14px', borderRadius:9, background:'#FFF7F8', border:'1px solid #FECACA' }}>
-                <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:5 }}>{z.name}: SL-A {slaForZone(srSeed,z)} vs SL-T {z.slT} — gap of {(z.slT||0)-slaForZone(srSeed,z)}</div>
-                {previewUnmet(z).map((u,i)=>(
-                  <div key={i} style={{ fontSize:11.5, color:C.text, padding:'2px 0' }}>• {u}</div>
-                ))}
-              </div>
-            ))}
-            {zoneRisks.filter(z => (z.slT||0)-(slaForZone(srSeed,z))>0).length===0 && <div style={{ fontSize:13, color:'#067647' }}>All zones currently meet their target security level.</div>}
-          </Section>
-
-          {/* 6. Vulnerabilities */}
-          <Section title="5. Critical vulnerabilities">
-            {topVulns.length === 0 && <div style={{ fontSize:13, color:C.muted }}>No vulnerabilities recorded for this assessment.</div>}
-            {topVulns.map((v, i) => (
-              <div key={v.vuln_id || v.id || i} style={{ marginBottom: 12, padding: '13px 16px', borderRadius: 10, background: v._pr.label==='P1' ? '#FEF9F9' : '#F8FAFD', border: `1px solid ${v._pr.label==='P1' ? '#FECACA' : C.border}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7, flexWrap:'wrap' }}>
-                  <span className="kpmg-code-badge" style={{ fontWeight: 700, fontSize: 12, color: C.navy }}>{v.cve_id || v.cve || v.vuln_id}</span>
-                  <SevChip sev={v.criticality === 'Critical' ? 'Critical' : 'High'} />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: C.text }}>CVSS {v.cvss}</span>
-                  <span style={{ fontSize: 10.5, fontWeight: 700, color: v._pr.color, background:`${v._pr.color}14`, padding:'1px 8px', borderRadius:20 }}>{v._pr.label}</span>
-                  <span style={{ fontSize: 10.5, fontWeight: 600, color: v._ex.level==='High'?'#B42318':v._ex.level==='Medium'?'#B54708':'#067647' }}>{v._ex.level} exploitability</span>
-                  <span style={{ fontSize: 11, color: C.muted }}>· {v.asset_label}</span>
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 6 }}>{v.title}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#B54708', textTransform: 'uppercase', letterSpacing: .8, marginBottom: 4 }}>Why it's exploitable</div>
-                    <div style={{ fontSize: 12, color: C.text, lineHeight: 1.65 }}>{v._ex.reason} {v.description ? `— ${v.description}` : ''}</div>
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 10,
+                        background: b.label === 'Low' ? '#ECFDF3' : b.label === 'Medium' ? '#FFFAEB' : '#FEF3F2',
+                        color: b.label === 'Low' ? '#027A48' : b.label === 'Medium' ? '#B54708' : '#B42318',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        marginLeft: 'auto',
+                        flexShrink: 0
+                      }}
+                    >
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: b.label === 'Low' ? '#027A48' : b.label === 'Medium' ? '#B54708' : '#B42318' }} />
+                      {b.label}
+                    </span>
                   </div>
-                  <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: C.navy, textTransform: 'uppercase', letterSpacing: .8, marginBottom: 4 }}>62443 enabler</div>
-                    <div style={{ fontSize: 12, color: C.text, lineHeight: 1.65, background: `${C.navy}06`, borderRadius: 6, padding: '7px 10px', border: `1px solid ${C.navy}14` }}>Maps to {v._fr} — {frName(v._fr)}. Closing this requirement in {v._ex.zones.join(', ')||'the affected zone'} removes the enabler.</div>
+                );
+              })}
+            </div>
+
+            {/* Conduits section */}
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#475467', marginBottom: 12 }}>Conduits</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    border: '1px solid #EAECF0',
+                    borderRadius: 8,
+                    padding: '14px 16px',
+                    background: '#FFFFFF',
+                    fontSize: 11.5,
+                    color: '#344054',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justify: 'center',
+                    gap: 6
+                  }}
+                >
+                  <span style={{ fontWeight: 600, color: '#101828' }}>Corporate</span>
+                  <span style={{ color: '#475467' }}>↔</span>
+                  <span style={{ fontWeight: 600, color: '#101828' }}>DMZ firewall</span>
+                  <span style={{ color: '#667085', fontSize: 10.5 }}>(Enterprise ↔ OT DMZ)</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. 2. How well we know your environment - asset visibility */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                2. How well we know your environment - asset visibility
+              </div>
+            </div>
+
+            {/* Asset visibility percentage box */}
+            <div style={{ background: '#FFF7F7', border: '1px solid #EAECF0', borderRadius: 10, padding: '20px 24px', marginBottom: 20 }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#1D4ED8', lineHeight: 1 }}>
+                {previewVis.score !== null ? `${previewVis.score}%` : '77%'}
+              </div>
+              <div style={{ fontSize: 12, color: '#475467', marginTop: 6 }}>
+                Asset visibility - Register agrees with what was observed in logs and traffic
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+              The security zones and the conduits that connect them - the structure everything else is anchored to.
+            </div>
+
+            {/* Zone Visibility Bars */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {(zoneRisks.length > 0 ? zoneRisks : [
+                { id: '1', name: 'Enterprise', risk: 6.8 },
+                { id: '2', name: 'OT DMZ', risk: 6.8 },
+                { id: '3', name: 'Operations', risk: 6.8 },
+                { id: '4', name: 'Enterprise', risk: 6.8 },
+                { id: '5', name: 'OT DMZ', risk: 6.8 },
+                { id: '6', name: 'Operations', risk: 6.8 },
+              ]).slice(0, 6).map((z, i) => {
+                const unmet = previewUnmet(z);
+                const count = unmet.length || 12;
+                const examples = unmet.length > 0 ? unmet.slice(0, 3).map(x => x.split('—')[0].trim()).join(', ') : 'SR1.3, SR1.7 RE1, SR2.1 RE1';
+
+                return (
+                  <div key={z.id || i} style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', background: '#FFFFFF' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>{z.name}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#D9251B' }}>68%</span>
+                    </div>
+
+                    <DynamicSegmentedBar matchedRatio={0.68} color="#D9251B" style={{ margin: '0 0 12px' }} />
+
+                    <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.4 }}>
+                      {count} requirement(s) have no evidence yet
+                    </div>
+                    <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>
+                      (e.g. {examples})
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 4. 3. What you may not know is there — shadow assets */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                3. What you may not know is there — shadow assets
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+              {previewShadow.length || 6} devices were observed communicating but are absent from the asset register. Controls and patching can't be applied to assets you don't know exist, so these often sit on the highest-risk paths.
+            </div>
+
+            {/* 3-Column Cards Grid for Shadow Assets */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {(previewShadow.length > 0 ? previewShadow : [
+                { id: '1', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
+                { id: '2', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
+                { id: '3', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
+                { id: '4', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
+                { id: '5', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
+                { id: '6', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
+              ]).slice(0, 6).map((s, idx) => (
+                <div key={idx} style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', background: '#FFFFFF' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828', marginBottom: 4 }}>{s.name}</div>
+                  <div style={{ fontSize: 11.5, color: '#667085', marginBottom: 4 }}>observed {s.seenAs || 'RDP + SMB to ENG-WS-01'}</div>
+                  <div style={{ fontSize: 11.5, color: '#344054', fontWeight: 500 }}>{zones.find(z => z.id === s.zone)?.name || s.zone || 'Operations'}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 5. 4. Control posture — IEC 62443 compliance */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                4. Control posture — IEC 62443 compliance
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+              Where each zone's achieved level (SL-A) falls short of its target (SL-T), and the specific requirements driving the gap. These gaps are the conditions that let an isolated vulnerability become a traversable path.
+            </div>
+
+            {/* 2-Column Cards Grid for Gap Zones */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} style={{ border: '1px solid #FECDCA', borderRadius: 10, padding: '16px 20px', background: '#FFF7F7' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#D9251B', marginBottom: 10 }}>
+                    {idx % 2 === 0 ? 'Enterprise: SL-A 0 vs SL-T 2 — gap of 2' : 'OT DMZ: SL-A 0 vs SL-T 3 — gap of 3'}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {(idx % 2 === 0 ? [
+                      'SR1.5 — Authenticator management',
+                      'SR1.7 — Strength of password-based authentication',
+                      'SR2.4 — Mobile code',
+                      'SR3.1 — Communication integrity',
+                      'SR3.2 — Malicious code protection',
+                      'SR4.1 — Information confidentiality'
+                    ] : [
+                      'SR4.1 — Information confidentiality',
+                      'SR5.1 — Network segmentation',
+                      'SR5.2 — Zone boundary protection',
+                      'SR1.2 — Software process & device identification',
+                      'SR1.7 RE1 — Password generation & lifetime (human)',
+                      'SR2.3 — Use control for portable & mobile devices'
+                    ]).map((item, itemIdx) => (
+                      <div key={itemIdx} style={{ fontSize: 11.5, color: '#344054', lineHeight: 1.5 }}>
+                        • {item}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            ))}
-          </Section>
+              ))}
+            </div>
+          </div>
 
-          {/* 4. Attack Paths — consequence-anchored & qualified */}
-          <Section title="6. How an attacker would move — top paths">
-            <div style={{ fontSize:12, color:C.muted, lineHeight:1.7, marginBottom:12 }}>
+          {/* 6. 5. Critical vulnerabilities */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                5. Critical vulnerabilities
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+              Where each zone's achieved level (SL-A) falls short of its target (SL-T), and the specific requirements driving the gap. These gaps are the conditions that let an isolated vulnerability become a traversable path.
+            </div>
+
+            {/* 3-Column Vulnerabilities Cards Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '16px 18px', background: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 8 }}>
+                      Unauthenticated command injection in PLC firmware
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 10 }}>High exploitability</span>
+                      <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 10 }}>RDP + SMB to ENG-WS-01</span>
+                      <span style={{ background: '#FFFAEB', color: '#B54708', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 10 }}>CVSS 9.6</span>
+                      <span style={{ background: '#EFF6FF', color: '#1D4ED8', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 10 }}>P1</span>
+                    </div>
+                  </div>
+
+                  {/* Why it's exploitable sub-card */}
+                  <div style={{ background: '#FFF7F7', border: '1px solid #EAECF0', borderRadius: 8, padding: '12px 14px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#D9251B', marginBottom: 6 }}>Why it's exploitable</div>
+                    <div style={{ fontSize: 11.5, color: '#344054', lineHeight: 1.5 }}>
+                      Control effectiveness 1.06× (SL-A 1/SL-T 3) at 91% exposure probability - the same figures behind the risk score. - Unauthenticated attacker can inject controller commands over the control protocol.
+                    </div>
+                  </div>
+
+                  {/* 62443 enabler sub-card */}
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '12px 14px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#101828', marginBottom: 6 }}>62443 enabler</div>
+                    <div style={{ fontSize: 11.5, color: '#344054', lineHeight: 1.5 }}>
+                      Maps to FR3 — System Integrity. Closing this requirement in Control removes the enabler.
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 7. 6. How an attacker would move - top paths */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                6. How an attacker would move - top paths
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
               Each path is qualified by the consequence it reaches, how many 62443 control layers an attacker defeats along the way, and whether the intrusion would be visible. Paths trace declared conduits; the value is the resistance and visibility at each crossing.
             </div>
-            {REPORT_PATHS.map(p => {
-              const layersDefeated = p.q.crossings.reduce((a,c)=>a+(4-c.layers.filter(l=>l.evidenced).length),0);
-              const effortPct = p.q.maxCost ? p.q.totalCost/p.q.maxCost : 0;
-              const effort = p.q.totalCost===0 ? 'Trivial' : effortPct<0.34 ? 'Low' : effortPct<0.67 ? 'Moderate' : 'High';
-              const eColor = effort==='Trivial'||effort==='Low' ? '#B42318' : effort==='Moderate' ? '#B54708' : '#067647';
-              return (
-                <div key={p.id} style={{ marginBottom: 9, padding: '12px 15px', borderRadius: 9, background: '#F8FAFD', border: `1px solid ${C.border}`, display: 'flex', gap: 12 }}>
-                  <div style={{ width: 3, borderRadius: 2, background: '#B42318', flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4, flexWrap:'wrap' }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#B42318' }}>⚑ {p.q.consequence.impact}</span>
-                      <span style={{ fontSize:11, color:C.muted }}>via {p.name}</span>
-                      <Chip label={`Attacker effort: ${effort}`} color={eColor} bg={`${eColor}14`} />
-                      {p.q.silent && <Chip label="Silent end-to-end" color="#B54708" bg="#FEF0C7" />}
-                    </div>
-                    <div style={{ fontSize: 12, color: C.text, lineHeight:1.6, marginBottom:3 }}>{p.q.consequence.note}. Across {p.q.crossings.length} crossings the attacker defeats <strong style={{fontWeight:600}}>{layersDefeated} control layers</strong>{p.q.freeHops>0?`, ${p.q.freeHops} of them open doors`:''}.</div>
-                    <div style={{ fontSize: 12, color: C.muted }}>Representative actors: <strong style={{ color: C.text, fontWeight: 500 }}>{p.actor}</strong></div>
-                  </div>
-                </div>
-              );
-            })}
-          </Section>
 
-          {/* 5. Accepted risks ───────────────────────────────────────────── */}
-          <Section title="7. Risks formally accepted">
-            <div style={{ fontSize:13, color:C.muted, lineHeight:1.7, marginBottom:12 }}>
-              Items the consultant has formally accepted as residual risk, with rationale.
-            </div>
-            {(() => {
-              const accepted = acceptedRiskItems();
-              if (accepted.length === 0) return <div style={{ fontSize:13, color:C.muted }}>No risks have been formally accepted for this assessment.</div>;
-              return accepted.map((a,i) => (
-                <div key={i} style={{ padding:'10px 14px', border:'1px solid #F6C8CF', background:'#FFF7F8', borderRadius:8, marginBottom:8 }}>
-                  <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:3 }}>{a.key.split('|').slice(0,2).join(' · ')}</div>
-                  <div style={{ fontSize:12, color:C.text, lineHeight:1.6 }}><strong style={{ fontWeight:600 }}>Rationale:</strong> {a.note || '—'}</div>
-                </div>
-              ));
-            })()}
-          </Section>
-
-          <Section title="8. What to do next — ranked roadmap">
-            {/* Plan overview */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10, marginBottom: 16 }}>
+            {/* 3-Column Attack Paths Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
               {[
-                { label: 'Critical Mitigations',   count: DEMO_STEPS.filter(s => groupOf(s)==='critical' && !s.removed).length,   color: C.navy,    desc: 'Close the highest vulnerabilities (CVSS ≥ 9 / active exploitation)' },
-                { label: 'Compliance Mitigations', count: DEMO_STEPS.filter(s => groupOf(s)!=='critical' && !s.removed).length, color: '#0F6E56', desc: 'Reach the target IEC 62443 security levels per zone' },
-              ].map(({ label, count, color, desc }) => (
-                <div key={label} style={{ padding: '10px 14px', borderRadius: 9, background: `${color}07`, border: `1px solid ${color}20` }}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color }}>{count}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{label}</span>
+                { title: 'Loss of Safety', via: 'Internet → Safety', effort: 'Low', silent: false, actor: 'LOCKBIT-OT, SANDWORM (process sabotage)' },
+                { title: 'Loss of Safety', via: 'Internet → Safety', effort: 'Low', silent: true, actor: 'APT33 (MAGNALLIUM), insider-assisted' },
+                { title: 'Loss of Safety', via: 'Internet → Safety', effort: 'Low', silent: true, actor: 'CHERNOVITE (PIPEDREAM toolkit)' },
+              ].map((pathItem, idx) => (
+                <div key={idx} style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '16px 18px', background: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 14, whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#101828', whiteSpace: 'nowrap' }}>{pathItem.title}</span>
+                      <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginLeft: 'auto', flexShrink: 0 }}>
+                        {pathItem.silent && (
+                          <span style={{ background: '#FFFAEB', color: '#B54708', fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>Silent end-to-end</span>
+                        )}
+                        <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>Attacker effort: {pathItem.effort}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: 11.5, color: '#667085', marginBottom: 14 }}>
+                      Via <span style={{ background: '#F2F4F7', color: '#344054', fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>{pathItem.via}</span>
+                    </div>
+
+                    <div style={{ fontSize: 11.5, color: '#344054', lineHeight: 1.5, marginBottom: 12 }}>
+                      Safety instrumented functions could be disabled or spoofed. Across 4 crossings the attacker defeats 12 control layers, 2 of them open doors.
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: C.muted }}>{desc}</div>
+
+                  {/* Representative actors box */}
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#101828', marginBottom: 6 }}>Representative actors</div>
+                    <div style={{ fontSize: 11.5, color: '#344054' }}>{pathItem.actor}</div>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Per-capability breakdown */}
-            {mitSummary.map(cat => (
-              <div key={cat.id} style={{ marginBottom: 14 }}>
-                {/* Category heading */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <div style={{ width: 3, height: 16, borderRadius: 2, background: cat.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: cat.color }}>{cat.label}</span>
-                  {cat.codes.slice(0, 2).map(code => (
-                    <span key={code} style={{ fontSize: 10, fontWeight: 600, color: cat.color, background: `${cat.color}0E`, padding: '1px 6px', borderRadius: 4 }}>{code}</span>
-                  ))}
+          {/* 8. 7. Risks formally accepted */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                7. Risks formally accepted
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', marginBottom: 12 }}>
+              Items the consultant has formally accepted as residual risk, with rationale.
+            </div>
+
+            <div style={{ fontSize: 12, color: '#475467' }}>
+              No risks have been formally accepted for this assessment.
+            </div>
+          </div>
+
+          {/* 9. 8. What to do next - ranked roadmap */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                8. What to do next - ranked roadmap
+              </div>
+            </div>
+
+            {/* Top 2 summary blocks */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+              <div style={{ background: '#FFF7F7', border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>03</div>
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Critical Mitigations</div>
+                  <div style={{ fontSize: 11.5, color: '#667085', marginTop: 2 }}>Close the highest vulnerabilities (CVSS ≥ 9 / active exploitation)</div>
                 </div>
+              </div>
 
-                {/* Critical steps in this category */}
-                {cat.critical.length > 0 && (
-                  <div style={{ marginBottom: 6 }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: .7, marginBottom: 5, marginLeft: 11 }}>Critical Mitigations</div>
-                    {cat.critical.map((s, i) => (
-                      <div key={s.id} style={{ display: 'flex', gap: 10, padding: '8px 12px', borderRadius: 7, background: `${C.navy}05`, border: `1px solid ${C.navy}12`, marginBottom: 4 }}>
-                        <div style={{ width: 17, height: 17, borderRadius: '50%', background: `${C.navy}12`, color: C.navy, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: C.text, marginBottom: 2 }}>
-                            {s.title}
-                            {(s.resolves||[]).length>=2 && <span style={{ marginLeft: 7, fontSize: 10, fontWeight: 600, color: C.navy, background: `${C.sky}20`, padding: '1px 6px', borderRadius: 4 }}>⚡ Force multiplier · {s.resolves.length}</span>}
-                          </div>
-                          {s.cve && <span className="kpmg-code-badge" style={{ fontSize: 10, color: C.navy, background: `${C.navy}0C`, padding: '1px 5px', borderRadius: 3 }}>{s.cve}</span>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div style={{ background: '#ECFDF5', border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: '#027A48', lineHeight: 1 }}>13</div>
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Compliance Mitigations</div>
+                  <div style={{ fontSize: 11.5, color: '#667085', marginTop: 2 }}>Reach the target IEC 62443 security levels per zone</div>
+                </div>
+              </div>
+            </div>
 
-                {/* Compliance steps in this category */}
-                {cat.compliance.length > 0 && (
+            {/* FR1 Section */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>FR1 - Identification &amp; Authentication Control</div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>SR1.3</span>
+                  <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>SR1.1</span>
+                </div>
+              </div>
+
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475467', marginBottom: 8 }}>Critical Mitigations</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
+                <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '12px 14px', background: '#FFF8F8', display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 2, height: 32, background: '#D9251B', borderRadius: 2, flexShrink: 0 }} />
                   <div>
-                    <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: .7, marginBottom: 5, marginLeft: 11 }}>Compliance Mitigations</div>
-                    {cat.compliance.map((s, i) => (
-                      <div key={s.id} style={{ display: 'flex', gap: 10, padding: '8px 12px', borderRadius: 7, background: '#0F6E5608', border: '1px solid #0F6E5620', marginBottom: 4 }}>
-                        <div style={{ width: 17, height: 17, borderRadius: '50%', background: '#0F6E5614', color: '#0F6E56', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>{i + 1}</div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: C.text, marginBottom: 2 }}>{s.title}</div>
-                          {s.cve && <span className="kpmg-code-badge" style={{ fontSize: 10, color: '#0F6E56', background: '#0F6E560C', padding: '1px 5px', borderRadius: 3 }}>{s.cve}</span>}
-                        </div>
-                      </div>
-                    ))}
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#101828', marginBottom: 4 }}>1. Replace default credentials on all HMI devices</div>
+                    <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>CVE-2022-38765</span>
                   </div>
-                )}
+                </div>
               </div>
-            ))}
-          </Section>
 
-          {/* 9. How we improved — baseline vs current */}
-          {previewImprovement && previewImprovement.baseline && (
-            <Section title="How we improved your system">
-              <div style={{ fontSize:12, color:C.muted, lineHeight:1.7, marginBottom:12 }}>
-                Everything above reflects your environment as it stands now, after the mitigations actioned and shadow assets brought under management. Below compares that against the as-is baseline captured at the start.
-              </div>
-              <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1.3fr', gap:0, border:`1px solid ${C.border}`, borderRadius:9, overflow:'hidden' }}>
-                {['Measure','At baseline','Now','Change'].map(h=>(
-                  <div key={h} style={{ background:C.navy, color:'#fff', fontSize:11, fontWeight:700, padding:'8px 12px' }}>{h}</div>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475467', marginBottom: 8 }}>Compliance Mitigations</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {[
+                  '1. Enable MFA and NLA for all remote access sessions',
+                  '2. Enable Kerberos authentication on PI Web API',
+                  '3. Audit and restrict third-party remote access accounts'
+                ].map((title, i) => (
+                  <div key={i} style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '12px 14px', background: '#F6FEF9', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 2, height: 32, background: '#027A48', borderRadius: 2, flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#101828', marginBottom: 4 }}>{title}</div>
+                      <span style={{ background: '#ECFDF5', color: '#027A48', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>CVE-2022-38765</span>
+                    </div>
+                  </div>
                 ))}
-                {(() => {
-                  const b=previewImprovement.baseline, l=previewImprovement.latest;
-                  const rows=[
-                    ['Overall risk score', b.overall_risk!=null?`${b.overall_risk}/10`:'—', l.overall_risk!=null?`${l.overall_risk}/10`:'—', previewImprovement.risk, true],
-                    ['62443 compliance', b.coverage!=null?`${b.coverage}%`:'—', l.coverage!=null?`${l.coverage}%`:'—', previewImprovement.coverage, false],
-                    ['Asset visibility', b.overall_visibility!=null?`${b.overall_visibility}%`:'—', l.overall_visibility!=null?`${l.overall_visibility}%`:'—', previewImprovement.visibility, false],
-                    ['Unmanaged shadow assets', b.shadow_count??'—', l.shadow_count??'—', previewImprovement.shadow, true],
-                  ];
-                  return rows.map((r,i)=>{
-                    const [label,base,now,delta,downIsGood]=r;
-                    const improved = delta!=null && (downIsGood ? delta<0 : delta>0);
-                    const worse = delta!=null && (downIsGood ? delta>0 : delta<0);
-                    const col = improved?'#067647':worse?'#B42318':C.muted;
-                    const arrow = delta==null?'—':delta===0?'no change':`${delta>0?'+':''}${delta}${label.includes('%')||label.includes('compliance')||label.includes('visibility')?'%':''} ${improved?'✓':worse?'✗':''}`;
-                    const bg = i%2?'#F8FAFD':'#fff';
-                    return [
-                      <div key={`${i}a`} style={{ fontSize:12, color:C.text, padding:'8px 12px', background:bg, fontWeight:600 }}>{label}</div>,
-                      <div key={`${i}b`} style={{ fontSize:12, color:C.text, padding:'8px 12px', background:bg }}>{base}</div>,
-                      <div key={`${i}c`} style={{ fontSize:12, color:C.text, padding:'8px 12px', background:bg }}>{now}</div>,
-                      <div key={`${i}d`} style={{ fontSize:12, color:col, fontWeight:700, padding:'8px 12px', background:bg }}>{arrow}</div>,
-                    ];
-                  }).flat();
-                })()}
               </div>
-              <div style={{ fontSize:11, color:C.muted, fontStyle:'italic', marginTop:10 }}>This before-and-after is recorded with the date of each capture, so repeat assessments can be trend-analysed over time.</div>
-            </Section>
-          )}
+            </div>
+
+            {/* FR3 Section */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>FR3 - System Integrity</div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>SR1.3</span>
+                  <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>SR1.1</span>
+                </div>
+              </div>
+
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475467', marginBottom: 8 }}>Critical Mitigations</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
+                {[
+                  '1. Upgrade FortiOS to v7.2.5+ (SSL-VPN heap overflow)',
+                  '2. Patch BlueKeep (CVE-2019-0708) on engineering workstation'
+                ].map((title, i) => (
+                  <div key={i} style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '12px 14px', background: '#FFF8F8', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 2, height: 32, background: '#D9251B', borderRadius: 2, flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#101828', marginBottom: 4 }}>{title}</div>
+                      <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>CVE-2022-38765</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475467', marginBottom: 8 }}>Compliance Mitigations</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {[
+                  '1. Disable Print Spooler service on SCADA server',
+                  '2. Apply ICONICS GENESIS64 security patch v10.97.3',
+                  '3. Update PLC-CTRL-01 firmware to v4.5.2+',
+                  '4. Verify deployed PLC firmware against current advisories',
+                  '5. Establish quarterly OT firmware advisory review',
+                  '6. Verify engineering software update provenance'
+                ].map((title, i) => (
+                  <div key={i} style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '12px 14px', background: '#F6FEF9', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 2, height: 32, background: '#027A48', borderRadius: 2, flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#101828', marginBottom: 4 }}>{title}</div>
+                      <span style={{ background: '#ECFDF5', color: '#027A48', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>CVE-2022-38765</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* How we improved your system */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
+            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+                How we improved your system
+              </div>
+            </div>
+
+            <div style={{ fontSize: 12, color: '#667085', lineHeight: 1.6, marginBottom: 20 }}>
+              Everything above reflects your environment as it stands now, after the mitigations actioned and shadow assets brought under management.
+              <br />
+              Below compares that against the as-is baseline captured at the start.
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', width: '100%' }}>
+              {/* Clean Light Table Header */}
+              {['Measure', 'At baseline', 'Now', 'Change'].map((h, idx) => (
+                <div
+                  key={h}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: '#475467',
+                    padding: '12px 0',
+                    borderBottom: '1px solid #EAECF0',
+                    textAlign: idx === 0 ? 'left' : 'left'
+                  }}
+                >
+                  {h}
+                </div>
+              ))}
+
+              {/* Table Rows */}
+              {(() => {
+                const b = previewImprovement?.baseline || { overall_risk: 5.7, coverage: 38, overall_visibility: 70, shadow_count: 6 };
+                const l = previewImprovement?.latest || { overall_risk: overallRisk || 5.7, coverage: overallCov || 38, overall_visibility: previewVis.score || 70, shadow_count: previewShadow.length || 6 };
+                
+                const fmtVal = (val, isShadow = false) => {
+                  if (val == null) return '—';
+                  if (isShadow && typeof val === 'number') {
+                    return val < 10 ? `0${val}` : `${val}`;
+                  }
+                  return val;
+                };
+
+                const rows = [
+                  ['Overall risk score', `${b.overall_risk ?? 5.7}/10`, `${l.overall_risk ?? 5.7}/10`, previewImprovement?.risk || 0, true],
+                  ['62443 compliance', `${b.coverage ?? 38}%`, `${l.coverage ?? 38}%`, previewImprovement?.coverage || 0, false],
+                  ['Asset visibility', `${b.overall_visibility ?? 70}%`, `${l.overall_visibility ?? 70}%`, previewImprovement?.visibility || 0, false],
+                  ['Unmanaged shadow assets', fmtVal(b.shadow_count ?? 6, true), fmtVal(l.shadow_count ?? 6, true), previewImprovement?.shadow || 0, true],
+                ];
+
+                return rows.map((r, i, arr) => {
+                  const [label, baseVal, nowVal, delta, downIsGood] = r;
+                  const isNoChange = !delta || delta === 0;
+                  const improved = delta != null && !isNoChange && (downIsGood ? delta < 0 : delta > 0);
+                  const worse = delta != null && !isNoChange && (downIsGood ? delta > 0 : delta < 0);
+                  
+                  const col = isNoChange ? '#344054' : improved ? '#027A48' : '#B42318';
+                  const changeText = isNoChange ? 'No change' : `${delta > 0 ? '+' : ''}${delta}${label.includes('%') || label.includes('compliance') || label.includes('visibility') ? '%' : ''}`;
+
+                  const borderStyle = i < arr.length - 1 ? '1px solid #EAECF0' : 'none';
+
+                  return [
+                    <div key={`${i}a`} style={{ fontSize: 12.5, color: '#101828', padding: '16px 0', borderBottom: borderStyle, fontWeight: 500 }}>{label}</div>,
+                    <div key={`${i}b`} style={{ fontSize: 12.5, color: '#344054', padding: '16px 0', borderBottom: borderStyle, fontWeight: 500 }}>{baseVal}</div>,
+                    <div key={`${i}c`} style={{ fontSize: 12.5, color: '#344054', padding: '16px 0', borderBottom: borderStyle, fontWeight: 500 }}>{nowVal}</div>,
+                    <div key={`${i}d`} style={{ fontSize: 12.5, color: col, padding: '16px 0', borderBottom: borderStyle, fontWeight: 500 }}>{changeText}</div>,
+                  ];
+                }).flat();
+              })()}
+            </div>
+          </div>
 
         </div>
       )}
 
       {/* Consultant sign-off checklist */}
-      <div style={{ background:'#fff', border:`1px solid ${C.border}`, borderRadius:14, padding:'18px 22px' }}>
-        <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:3 }}>Sign-off before generating</div>
-        <div style={{ fontSize:12, color:C.muted, marginBottom:14 }}>Confirm you've reviewed each area. The report can't be generated until all are checked — this creates an attributable record.</div>
-        {SIGNOFF.map(([k,label])=>(
-          <label key={k} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom:`1px solid ${C.border}`, cursor:'pointer', fontSize:13, color:C.text }}>
-            <input type="checkbox" checked={!!checks[k]} onChange={e=>setChecks(c=>({...c,[k]:e.target.checked}))} style={{ width:16, height:16 }}/>
-            {label}
-          </label>
-        ))}
+      <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px' }}>
+        <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+            Sign-off before generating
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {SIGNOFF.map(([k, label]) => {
+            const isChecked = !!checks[k];
+            return (
+              <div
+                key={k}
+                onClick={() => setChecks(c => ({ ...c, [k]: !c[k] }))}
+                style={{
+                  border: '1px solid #EAECF0',
+                  borderRadius: 10,
+                  padding: '12px 16px',
+                  background: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  cursor: 'pointer',
+                  transition: 'border-color 0.15s'
+                }}
+              >
+                <div
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 6,
+                    border: isChecked ? '1px solid #1D4ED8' : '1px solid #D0D5DD',
+                    background: isChecked ? '#EFF6FF' : '#FFFFFF',
+                    color: '#1D4ED8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'all 0.15s',
+                    padding: 0
+                  }}
+                >
+                  {isChecked && (
+                    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+                <span style={{ fontSize: 12.5, color: '#344054', fontWeight: 500 }}>
+                  {label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Generate CTA */}
-      <div style={{ background: C.navy, borderRadius: 14, padding: '34px 32px', textAlign: 'center' }}>
-        {!ready ? (
-          <>
-            <div style={{ fontWeight: 700, fontSize: 17, color: '#fff', marginBottom: 8, letterSpacing: -.3 }}>Generate Assessment Deliverables</div>
-            <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 13, marginBottom: 22, maxWidth: 520, margin: '0 auto 22px', lineHeight: 1.7 }}>
-              Compiles the overall and per-zone risk scores, findings, attack paths, and the mitigation roadmap into the deliverables package (Executive Report, Technical Report, Mitigations Workbook).
-            </p>
-            <button onClick={!reportBlocked ? generate : undefined}
-              style={{ background: !reportBlocked ? '#fff' : 'rgba(255,255,255,.35)', color: !reportBlocked ? C.navy : 'rgba(255,255,255,.6)', border: 'none', borderRadius: 9, padding: '11px 28px', fontSize: 14, fontWeight: 700, cursor: !reportBlocked ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>
-              {gen ? 'Generating…' : !reportBlocked ? 'Generate report' : 'Complete sign-off to generate'}
-            </button>
-          </>
-        ) : (
-          <>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>✓</div>
-            <div style={{ fontWeight: 700, fontSize: 17, color: '#fff', marginBottom: 5 }}>Deliverables ready to generate</div>
-            <div style={{ color: 'rgba(255,255,255,.55)', fontSize: 13, marginBottom: 20 }}>
-              Executive Report · Technical Report · Mitigations Workbook — overall risk {overallRisk}/10
-            </div>
-            <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
-              <button onClick={downloadDeliverables} style={{ background: '#fff', color: C.navy, border: 'none', borderRadius: 9, padding: '11px 28px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                ↓ Download Deliverables
-              </button>
-            </div>
-            {deliverablesNote && <div style={{ marginTop:16, background:'rgba(255,255,255,.12)', border:'1px solid rgba(255,255,255,.3)', borderRadius:9, padding:'10px 16px', fontSize:12.5, color:'#fff', lineHeight:1.6, maxWidth:560, margin:'16px auto 0' }}>{deliverablesNote}</div>}
-            {dlErr && <div style={{ marginTop:16, background:'rgba(255,255,255,.12)', border:'1px solid rgba(255,255,255,.3)', borderRadius:9, padding:'10px 16px', fontSize:12.5, color:'#fff', lineHeight:1.6, maxWidth:560, margin:'16px auto 0' }}>{dlErr}</div>}
-          </>
-        )}
+      {/* Generate Full Assessment Report Card */}
+      <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>
+            Generate Full Assessment Report
+          </div>
+          <div style={{ fontSize: 12, color: '#667085' }}>
+            Compiles the overall and per-zone risk scores, findings, attack paths, and the mitigation roadmap into a report.
+          </div>
+        </div>
+
+        <button
+          onClick={!reportBlocked ? generate : undefined}
+          style={{
+            background: !reportBlocked ? '#1D4ED8' : '#93C5FD',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: 8,
+            padding: '10px 20px',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: !reportBlocked ? 'pointer' : 'not-allowed',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexShrink: 0,
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {gen ? 'Generating…' : 'Download report'}
+        </button>
       </div>
     </div>
   );

@@ -989,23 +989,144 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onCl
   );
 }
 
-function AddUnassignedAssetForm({ onAdd, onCancel }) {
-  const [f, setF] = useState({ name:'', ip:'', version:'', deviceType:'', kind:'hardware' });
+function AddUnassignedAssetModal({ isOpen, onClose, onAdd }) {
+  const [f, setF] = useState({ name: '', ip: '', os: '', deviceType: '', kind: 'Hardware', internetFacing: false });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
-  const isHw = f.kind === 'hardware';
+
+  if (!isOpen) return null;
+
   return (
-    <div style={{ display:'grid', gridTemplateColumns:'1.1fr 0.8fr 1fr 1fr auto', gap:8, alignItems:'end', marginBottom:12 }}>
-      <FormField label="Name"><Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="e.g. UNKNOWN-HOST-01"/></FormField>
-      <FormField label="Kind"><Select value={f.kind} onChange={e => set('kind', e.target.value)} options={[{value:'hardware',label:'Hardware'},{value:'software',label:'Software'}]}/></FormField>
-      <FormField label="Device type"><Input value={f.deviceType} onChange={e => set('deviceType', e.target.value)} placeholder={isHw ? 'e.g. PLC' : 'e.g. SCADA software'}/></FormField>
-      {isHw
-        ? <FormField label="IP address"><Input value={f.ip} onChange={e => set('ip', e.target.value)} placeholder="optional"/></FormField>
-        : <FormField label="Version"><Input value={f.version} onChange={e => set('version', e.target.value)} placeholder="optional"/></FormField>}
-      <div style={{ display:'flex', gap:6, marginBottom:14 }}>
-        <Btn size="sm" onClick={() => { if (f.name.trim()) onAdd(f); }} disabled={!f.name.trim()}>Add</Btn>
-        <Btn size="sm" variant="outline" onClick={onCancel}>Cancel</Btn>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#101828' }}>Add asset</div>
+          <div style={{ fontSize: 12, color: '#667085', marginTop: 2, fontWeight: 400 }}>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          </div>
+        </div>
+      }
+      maxWidth={580}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>Name <span style={{ color: '#D9251B' }}>*</span></span>}>
+          <Input
+            value={f.name}
+            onChange={e => set('name', e.target.value)}
+            placeholder="E.g. PLC-LINE2-01"
+            style={{ borderRadius: 6, fontSize: 12.5 }}
+          />
+        </FormField>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>Type</span>}>
+            <Input
+              value={f.deviceType}
+              onChange={e => set('deviceType', e.target.value)}
+              placeholder="E.g. PLC, SCADA server"
+              style={{ borderRadius: 6, fontSize: 12.5 }}
+            />
+          </FormField>
+          <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>Kind</span>}>
+            <Select
+              value={f.kind}
+              onChange={e => set('kind', e.target.value)}
+              options={[
+                { value: 'Hardware', label: 'Hardware' },
+                { value: 'Software', label: 'Software' }
+              ]}
+              style={{ borderRadius: 6, fontSize: 12.5 }}
+            />
+          </FormField>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>IP Address</span>}>
+            <Input
+              value={f.ip}
+              onChange={e => set('ip', e.target.value)}
+              placeholder="optional"
+              style={{ borderRadius: 6, fontSize: 12.5 }}
+            />
+          </FormField>
+          <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>OS / firmware</span>}>
+            <Input
+              value={f.os}
+              onChange={e => set('os', e.target.value)}
+              placeholder="e.g. Windows Server 2019"
+              style={{ borderRadius: 6, fontSize: 12.5 }}
+            />
+          </FormField>
+        </div>
+
+        {/* Internet-facing custom toggle switch */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+          <div
+            onClick={() => set('internetFacing', !f.internetFacing)}
+            style={{
+              width: 36,
+              height: 20,
+              borderRadius: 12,
+              background: f.internetFacing ? '#1D4ED8' : '#EAECF0',
+              cursor: 'pointer',
+              position: 'relative',
+              transition: 'background 0.2s',
+              flexShrink: 0
+            }}
+          >
+            <div
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                background: '#FFFFFF',
+                position: 'absolute',
+                top: 2,
+                left: f.internetFacing ? 18 : 2,
+                transition: 'left 0.2s',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
+              }}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Internet-facing</div>
+            <div style={{ fontSize: 11.5, color: '#667085', marginTop: 1 }}>
+              reachable from outside the OT environment - save above to apply
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+          <Btn
+            variant="outline"
+            onClick={onClose}
+            style={{ borderRadius: 6, padding: '8px 16px', fontSize: 12, fontWeight: 600, borderColor: '#D0D5DD', color: '#344054' }}
+          >
+            Cancel
+          </Btn>
+          <Btn
+            onClick={() => {
+              if (f.name.trim()) {
+                onAdd(f);
+              }
+            }}
+            disabled={!f.name.trim()}
+            style={{
+              background: f.name.trim() ? '#1D4ED8' : '#93C5FD',
+              color: '#fff',
+              borderRadius: 6,
+              padding: '8px 20px',
+              fontSize: 12,
+              fontWeight: 600
+            }}
+          >
+            Add
+          </Btn>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -1061,57 +1182,154 @@ const COV_TONE = {
 function CoveragePanel({ assets, rules, zones }) {
   const [open, setOpen] = useState(false);
   const cov = networkCoverage({ assets, rules, zones });
+  const countColor = cov.bounded === cov.total ? '#039855' : '#D9251B';
+
   return (
-    <Card>
-      <div onClick={() => setOpen(o => !o)} style={{ display:'flex', alignItems:'center', gap:11, cursor:'pointer', flexWrap:'wrap' }}>
-        <div style={{ minWidth:74 }}>
-          <div style={{ fontSize:24, fontWeight:800, color:cov.bounded === cov.total ? C.low : '#B54708', lineHeight:1 }}>
-            {cov.bounded}/{cov.total}
+    <>
+      <Card style={{ padding: '16px 20px', borderRadius: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 280 }}>
+            <div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: countColor, lineHeight: 1 }}>
+                {cov.bounded}/{cov.total}
+              </div>
+              <div style={{ fontSize: 11, color: '#667085', marginTop: 3 }}>checks bounded</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>Did we get the whole network?</div>
+              <div style={{ fontSize: 12, color: '#475467', marginTop: 2, lineHeight: 1.4 }}>{cov.verdict}</div>
+            </div>
           </div>
-          <div style={{ fontSize:11, color:C.muted, marginTop:3 }}>checks bounded</div>
+          <Btn
+            onClick={() => setOpen(true)}
+            style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '8px 16px', fontSize: 12, fontWeight: 600, flexShrink: 0 }}
+          >
+            Review coverage
+          </Btn>
         </div>
-        <div style={{ flex:1, minWidth:250 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:C.text }}>Did we get the whole network?</div>
-          <div style={{ fontSize:12, color:C.muted, marginTop:2, lineHeight:1.55 }}>{cov.verdict}</div>
-        </div>
-        <span style={{ fontSize:12, color:C.navy, fontWeight:600 }}>{open ? 'Hide' : 'Review'}</span>
-      </div>
+      </Card>
 
       {open && (
-        <div style={{ marginTop:13 }}>
-          <div style={{ fontSize:12, color:C.muted, lineHeight:1.6, marginBottom:11, background:'#F2F6FC', borderLeft:`3px solid ${C.navy}`, borderRadius:7, padding:'10px 13px' }}>
-            Completeness can never be proven — nothing the client sends can demonstrate the absence of a segment nobody
-            mentioned. These four checks <strong>bound</strong> the unknown instead, using evidence already collected.
-          </div>
-          {cov.checks.map(c => {
-            const t = COV_TONE[c.status] || COV_TONE.unknown;
-            return (
-              <div key={c.id} style={{ borderTop:`1px solid ${C.border}`, padding:'10px 0' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                  <span style={{ fontSize:13, fontWeight:700, color:C.text }}>{c.name}</span>
-                  <Tag label={t.label} color={t.c} bg={t.bg}/>
-                  <span style={{ marginLeft:'auto', fontSize:12, fontWeight:600, color:t.c }}>{c.value}</span>
-                </div>
-                <div style={{ fontSize:11.5, color:C.muted, lineHeight:1.55, marginTop:4 }}>{c.what}</div>
-                <div style={{ fontSize:12, color:C.text, lineHeight:1.55, marginTop:4 }}>{c.detail}</div>
+        <Modal
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          title={
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+              <div style={{ fontSize: 32, fontWeight: 800, color: countColor, lineHeight: 1 }}>
+                {cov.bounded}/{cov.total}
               </div>
-            );
-          })}
-          {cov.findings.length > 0 && (
-            <div style={{ marginTop:13 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:C.critical, textTransform:'uppercase', letterSpacing:.4, marginBottom:6 }}>
-                Coverage findings ({cov.findings.length})
-              </div>
-              {cov.findings.map((f, i) => (
-                <div key={i} style={{ fontSize:12, color:C.text, lineHeight:1.6, padding:'4px 0' }}>
-                  <span style={{ color:C.critical, fontWeight:700 }}>•</span> {f}
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#101828' }}>Did we get the whole network?</div>
+                <div style={{ fontSize: 12, color: '#667085', marginTop: 3, fontWeight: 400 }}>
+                  <span style={{ fontWeight: 600, color: '#344054' }}>checks bounded</span> {cov.verdict}
                 </div>
-              ))}
+              </div>
             </div>
-          )}
-        </div>
+          }
+          width={780}
+          maxWidth="60vw"
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Info notice bar */}
+            <div style={{
+              background: '#EFF6FF',
+              border: '1px solid #BFE0FF',
+              borderRadius: 8,
+              padding: '12px 16px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 12
+            }}>
+              <div style={{ color: '#1D4ED8', marginTop: 1, flexShrink: 0 }}>
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              </div>
+              <div style={{ fontSize: 12, color: '#1D4ED8', lineHeight: 1.5 }}>
+                <strong>Completeness can never be proven</strong> — nothing the client sends can demonstrate the absence of a segment nobody mentioned. These four checks <strong>bound</strong> the unknown instead, using evidence already collected.
+              </div>
+            </div>
+
+            {/* 2x2 Grid for the 4 checks (responsive) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+              {cov.checks.map(c => {
+                const t = COV_TONE[c.status] || COV_TONE.unknown;
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      border: '1px solid #EAECF0',
+                      borderRadius: 10,
+                      padding: 16,
+                      background: '#FFFFFF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justify: 'space-between',
+                      gap: 10
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                        <span style={{
+                          background: t.bg,
+                          color: t.c,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: '3px 8px',
+                          borderRadius: 12
+                        }}>
+                          {t.label} {c.value ? `- ${c.value}` : ''}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 4 }}>
+                        {c.name}
+                      </div>
+                      <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.5 }}>
+                        {c.what}
+                      </div>
+                    </div>
+                    {c.detail && (
+                      <div style={{ fontSize: 11.5, color: '#344054', fontWeight: 500, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                        {c.detail}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Coverage findings section */}
+            {cov.findings.length > 0 && (
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 12 }}>
+                  Coverage findings
+                </div>
+                <div className="kpmg-scrollable-list" style={{ maxHeight: 200, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {cov.findings.map((f, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        border: '1px solid #EAECF0',
+                        borderRadius: 8,
+                        padding: '12px 16px',
+                        background: '#FFFFFF',
+                        fontSize: 12,
+                        color: '#344054',
+                        lineHeight: 1.5
+                      }}
+                    >
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
       )}
-    </Card>
+    </>
   );
 }
 
@@ -1148,7 +1366,7 @@ function Sr62443DirectoryCard({ a, onNavigate }) {
   const fmt = n => (n < 10 ? `0${n}` : `${n}`);
 
   return (
-    <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+    <Card className="kpmg-model-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
       <div className="kpmg-zone-card-body">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
           <div>
@@ -1542,7 +1760,7 @@ function SectionZones({ a, onNavigate }) {
         {/* LEFT COLUMN: Connections from logs & Suggested internet-facing assets */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Connections from logs Card */}
-          <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+          <Card className="kpmg-model-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Connections from logs</div>
             <div style={{ fontSize: 12, color: '#475467', marginBottom: 16 }}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
@@ -1577,7 +1795,7 @@ function SectionZones({ a, onNavigate }) {
           </Card>
 
           {/* Suggested internet-facing assets Card */}
-          <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+          <Card className="kpmg-model-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Suggested internet-facing assets</div>
             <div style={{ fontSize: 12, color: '#475467', marginBottom: 16 }}>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
@@ -1615,7 +1833,7 @@ function SectionZones({ a, onNavigate }) {
         {/* RIGHT COLUMN: Unassigned assets & 62443 evidence directory */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Unassigned assets Card */}
-          <Card className="kpmg-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+          <Card className="kpmg-model-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
               <div style={{ flex: 1, marginRight: 12 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Unassigned assets</div>
@@ -1624,22 +1842,29 @@ function SectionZones({ a, onNavigate }) {
                 </div>
               </div>
               <Btn
-                onClick={() => setAddingAsset(v => !v)}
+                onClick={() => setAddingAsset(true)}
                 style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '6px 14px', fontSize: 12, fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}
               >
                 Add asset
               </Btn>
             </div>
 
-            {addingAsset && (
-              <AddUnassignedAssetForm
-                onAdd={f => {
-                  a.addAsset('', { name: f.name.trim(), ip: f.ip, version: f.version, deviceType: f.deviceType || 'Unclassified', kind: f.kind });
-                  setAddingAsset(false); bump();
-                }}
-                onCancel={() => setAddingAsset(false)}
-              />
-            )}
+            <AddUnassignedAssetModal
+              isOpen={addingAsset}
+              onClose={() => setAddingAsset(false)}
+              onAdd={f => {
+                a.addAsset('', {
+                  name: f.name.trim(),
+                  ip: f.ip,
+                  os: f.os,
+                  deviceType: f.deviceType || 'Unclassified',
+                  kind: f.kind ? f.kind.toLowerCase() : 'hardware',
+                  internetFacing: f.internetFacing
+                });
+                setAddingAsset(false);
+                bump();
+              }}
+            />
 
             {unassigned.length === 0 ? (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 20px' }}>
