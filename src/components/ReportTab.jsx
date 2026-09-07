@@ -590,7 +590,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
       </div>
 
       {/* Preview toggle */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
         <button onClick={() => setPreview(!preview)}
           style={{ padding: '7px 16px', borderRadius: 8, background: preview ? C.navy : '#fff', border: `1px solid ${preview ? C.navy : C.border}`, fontSize: 12, fontWeight: 500, cursor: 'pointer', color: preview ? '#fff' : C.text, fontFamily: 'inherit' }}>
           {preview ? 'Hide Preview' : 'Preview Report Content'}
