@@ -35,32 +35,38 @@ const GearLogo = () => (
   </svg>
 );
 
-// Nav icons for section headers
-const GroupGear = () => <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#475467" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>;
-const GroupAnalysis = () => <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#475467" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>;
-const GroupReports = () => <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#475467" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>;
+// Helper to render public folder SVG icons
+const PublicIcon = ({ name, size = 16, style }) => (
+  <img
+    src={`${process.env.PUBLIC_URL || ''}/icons/${name}`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ flexShrink: 0, display: 'block', ...style }}
+  />
+);
 
 // Nav — the assessment journey, end to end
 const NAV = [
   {
-    label: 'Assessment', GroupIcon: GroupGear, items: [
-      { id: 'dashboard', label: 'Dashboard', Icon: Dashboard },
-      { id: 'model', label: 'Model', Icon: Upload },
-      { id: 'assets', label: 'Assets', Icon: Network },
-      { id: 'compliance', label: 'IEC 62443', Icon: Compliance },
+    label: 'Assessment', groupIconName: 'Assessment.svg', items: [
+      { id: 'dashboard', label: 'Dashboard', iconName: 'Dashboard.svg' },
+      { id: 'model', label: 'Model', iconName: 'Model.svg' },
+      { id: 'assets', label: 'Assets', iconName: 'Assets.svg' },
+      { id: 'compliance', label: 'IEC 62443', iconName: 'IEC 62443.svg' },
     ]
   },
   {
-    label: 'Analysis', GroupIcon: GroupAnalysis, items: [
-      { id: 'vulns', label: 'Vulnerabilities', Icon: Vuln, badge: 4 },
-      { id: 'risk', label: 'Risk Landscape', Icon: Network },
-      { id: 'mitigations', label: 'Mitigations', Icon: Mitigation },
+    label: 'Analysis', groupIconName: 'Analysis.svg', items: [
+      { id: 'vulns', label: 'Vulnerabilities', iconName: 'Vulnerabilities.svg', badge: 4 },
+      { id: 'risk', label: 'Risk Landscape', iconName: 'Risk Landscape.svg' },
+      { id: 'mitigations', label: 'Mitigations', iconName: 'Mitigation.svg' },
     ]
   },
   {
-    label: 'Reports', GroupIcon: GroupReports, items: [
-      { id: 'report', label: 'Report', Icon: Report },
-      { id: 'logs', label: 'Audit Logs', Icon: LogsIcon },
+    label: 'Reports', groupIconName: 'Reports.svg', items: [
+      { id: 'report', label: 'Report', iconName: 'Report.svg' },
+      { id: 'logs', label: 'Audit Logs', iconName: 'Audit Logs.svg' },
     ]
   },
 ];
@@ -139,7 +145,7 @@ export default function App() {
               <div key={sec.label} className="kpmg-sidebar-group">
                 <div className="kpmg-sidebar-group-title" onClick={() => toggleGroup(sec.label)}>
                   <div className="kpmg-sidebar-group-left">
-                    <sec.GroupIcon />
+                    <PublicIcon name={sec.groupIconName} size={16} />
                     <span>{sec.label}</span>
                   </div>
                   <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2" strokeLinecap="round" className={`kpmg-sidebar-group-arrow ${isOpen ? 'open' : ''}`}>
@@ -155,7 +161,7 @@ export default function App() {
                         <div key={item.id} onClick={() => !isLocked && handleSetTab(item.id)}
                           className={`kpmg-sidebar-item ${active ? 'active' : ''} ${isLocked ? 'locked' : ''}`}>
                           <div className="kpmg-sidebar-item-inner">
-                            <item.Icon />
+                            <PublicIcon name={item.iconName} size={16} />
                             <span>{item.label}</span>
                           </div>
                           {isLocked && <span className="kpmg-sidebar-lock">🔒</span>}

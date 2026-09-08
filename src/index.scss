@@ -22,14 +22,14 @@ $subtext-color: #666666;
 $border-color: #e5e5e5;
 $placeholder-color: #666666;
 
-$theme-critical: #E8284B;
-$theme-high: #F07D00;
+$theme-critical: #ED2124;
+$theme-high: #f97316;
 $theme-bg: #F0F4FB;
 $theme-surface: #FFFFFF;
 
-$score-green: #0d8770;
-$score-orange: #f97216;
-$score-red: #be113c;
+$score-green: #098e7e;
+$score-orange: #f97316;
+$score-red: #ED2124;
 
 :root {
   /* KPMG Primary Palette */
@@ -80,6 +80,262 @@ $score-red: #be113c;
   /* Global UI Colors */
   --popup-close-color: var(--subtext-color);
   --popup-subtitle-color: var(--subtext-color);
+
+  /* Design System Spec Variables */
+  --ds-text-default: #475467;
+  --ds-text-header: #101828;
+  --ds-text-subheader: #475467;
+  --ds-text-body: #475467;
+  --ds-border-default: #D0D5DD;
+  --ds-border-light: #EAECF0;
+  --ds-blue-primary: #1E49E2;
+
+  /* Badge Color Variables (Spec Sheet) */
+  --badge-cobalt-text: #1E49E2;
+  --badge-cobalt-bg: #EEF2FF;
+
+  --badge-purple-text: #7213EA;
+  --badge-purple-bg: #F9F5FF;
+
+  --badge-green-text: #098E7E;
+  --badge-green-bg: #F0FDF4;
+
+  --badge-red-text: #BE123C;
+  --badge-red-bg: #FFF1F2;
+
+  --badge-amber-text: #A16207;
+  --badge-amber-bg: #FAF8E4;
+
+  --badge-radius: 16px;
+}
+
+/* ==========================================================================
+   DESIGN SYSTEM SPECIFICATION UTILITY CLASSES (Matching Spec Sheet)
+   ========================================================================== */
+
+/* Typography Base Defaults */
+body {
+  color: #475467;
+}
+
+.ds-header-title {
+  color: #101828 !important;
+}
+
+.ds-subheader-title,
+.ds-body-text {
+  color: #475467 !important;
+}
+
+/* 1. Primary Button */
+.btn-primary, .ds-btn-primary {
+  background-color: #1E49E2 !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  border: none !important;
+  font-weight: 500;
+}
+
+/* 2. Secondary Button */
+.btn-secondary, .ds-btn-secondary {
+  background-color: #FFFFFF !important;
+  color: #1D2939 !important;
+  border: 1px solid #D0D5DD !important;
+  border-radius: 8px !important;
+  font-weight: 500;
+}
+
+/* 3. Text Link Button */
+.btn-text-link, .ds-btn-text-link {
+  color: #1E49E2 !important;
+  text-decoration: underline !important;
+  text-decoration-color: #1E49E2 !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+/* 4. Destructive Primary Button */
+.btn-destructive-primary, .ds-btn-destructive-primary, .kpmg-btn-danger, .kpmg-btn-destructive {
+  background-color: #ED2124 !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  border: none !important;
+  font-weight: 500;
+}
+
+.btn-destructive-primary:hover, .ds-btn-destructive-primary:hover, .kpmg-btn-danger:hover {
+  background-color: #D61B1E !important;
+}
+
+/* 5. Destructive Secondary Button */
+.btn-destructive-secondary, .ds-btn-destructive-secondary, .kpmg-btn-danger-outline {
+  background-color: #FFFFFF !important;
+  color: #ED2124 !important;
+  border: 1px solid #ED2124 !important;
+  border-radius: 8px !important;
+  font-weight: 500;
+}
+
+.btn-destructive-secondary:hover, .ds-btn-destructive-secondary:hover, .kpmg-btn-danger-outline:hover {
+  background-color: #FEF2F2 !important;
+  border-color: #ED2124 !important;
+  color: #ED2124 !important;
+}
+
+/* 6. Success Button */
+.btn-success, .ds-btn-success {
+  background-color: #098e7e !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  border: none !important;
+  font-weight: 500;
+}
+
+/* 7. Main Navigation Header */
+.nav-item-main, .ds-nav-main {
+  background-color: #FFFFFF !important;
+  color: #101828 !important;
+  border: 1px solid #EAECF0 !important;
+  border-radius: 12px !important;
+}
+
+/* 8. Child Navigation Item - Active */
+.nav-item-child-active, .ds-nav-child-active {
+  background-color: #F5F8FF !important;
+  color: #1E49E2 !important;
+  border: 1px solid #D1E0FF !important;
+  border-radius: 12px !important;
+}
+
+/* 9. Child Navigation Item - Inactive */
+.nav-item-child-inactive, .ds-nav-child-inactive {
+  background-color: #FFFFFF !important;
+  color: #101828 !important;
+  border: none !important;
+  border-radius: 12px !important;
+}
+
+/* 10-12. Status Meters */
+.status-meter-red { active-color: #ED2124; default-color: #F2F4F7; border-radius: 8px; }
+.status-meter-orange { active-color: #f97316; default-color: #F2F4F7; border-radius: 8px; }
+.status-meter-green { active-color: #098e7e; default-color: #F2F4F7; border-radius: 8px; }
+
+/* 13. Badges (Using CSS Variables) */
+.badge-cobalt, .badge-primary, .ds-badge-cobalt {
+  color: var(--badge-cobalt-text) !important;
+  background-color: var(--badge-cobalt-bg) !important;
+  border-radius: var(--badge-radius) !important;
+}
+
+.badge-purple, .ds-badge-purple {
+  color: var(--badge-purple-text) !important;
+  background-color: var(--badge-purple-bg) !important;
+  border-radius: var(--badge-radius) !important;
+}
+
+.badge-green, .badge-teal, .ds-badge-green {
+  color: var(--badge-green-text) !important;
+  background-color: var(--badge-green-bg) !important;
+  border-radius: var(--badge-radius) !important;
+}
+
+.badge-coral, .badge-red, .ds-badge-red {
+  color: var(--badge-red-text) !important;
+  background-color: var(--badge-red-bg) !important;
+  border-radius: var(--badge-radius) !important;
+}
+
+.badge-amber, .badge-yellow, .ds-badge-amber {
+  color: var(--badge-amber-text) !important;
+  background-color: var(--badge-amber-bg) !important;
+  border-radius: var(--badge-radius) !important;
+}
+
+/* Additional CVEs Modal Utility Classes */
+.cve-badge-red, .kpmg-cve-badge-red {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--badge-red-text, #BE123C) !important;
+  background-color: var(--badge-red-bg, #FFF1F2) !important;
+  border: 1px solid #FECDD3 !important;
+  border-radius: 12px;
+  padding: 2px 8px;
+  display: inline-block;
+}
+
+.cve-item-card, .kpmg-cve-item-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color, #EAECF0);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background-color: #ffffff;
+}
+
+.cve-actions-group, .kpmg-cve-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* 14. Tabs */
+.tab-inactive, .ds-tab-inactive {
+  color: #667085 !important;
+}
+
+.tab-active, .ds-tab-active {
+  color: #1E49E2 !important;
+  border-bottom: 2px solid #1E49E2 !important;
+}
+
+.tab-divider-line, .ds-tab-divider {
+  border-bottom: 1px solid #EAECF0 !important;
+}
+
+/* 15. Info Alert / Message Box Container */
+.info-alert-box, .ds-info-alert {
+  background-color: #F0F4FE !important;
+  color: #18223F !important;
+  border-radius: 8px !important;
+}
+
+/* 16. Form Inputs & Selects */
+.form-input-field, .ds-input {
+  border: 1px solid #D0D5DD !important;
+  background-color: #FFFFFF !important;
+  color: #101828 !important;
+  border-radius: 8px !important;
+}
+.form-input-field::placeholder, .ds-input::placeholder {
+  color: #667085 !important;
+}
+
+.form-label, .ds-label {
+  color: #344054 !important;
+}
+
+.form-required-asterisk, .ds-required {
+  color: #D92D20 !important;
+}
+
+/* 17. Modal Header */
+.ds-modal-header {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #EAECF0 !important;
+}
+.ds-modal-title {
+  color: #101828 !important;
+}
+.ds-modal-subtitle {
+  color: #475467 !important;
+}
+.ds-modal-close-icon {
+  color: #667085 !important;
 }
 
 /* Global Headings (#333333) */
@@ -252,18 +508,34 @@ h3 {
   justify-content: space-between;
   font-size: 13px;
   font-weight: 600;
-  color: #344054;
+  color: #111111 !important;
   padding: 8px 12px;
   cursor: pointer;
-  border-radius: 8px;
-  border: 1px solid #EAEBF0;
-  background: #ffffff;
+  border-radius: 12px !important;
+  border: 1px solid #e5e5e5 !important;
+  background: #ffffff !important;
   transition: all 0.15s ease;
+
+  span {
+    color: #111111 !important;
+  }
+
+  img, svg, i {
+    color: #222222 !important;
+    stroke: #222222 !important;
+    filter: brightness(0) saturate(100%) invert(11%) sepia(0%) saturate(0%) contrast(95%) !important;
+  }
+
+  .kpmg-sidebar-group-arrow,
+  svg.kpmg-sidebar-group-arrow {
+    stroke: #222222 !important;
+    filter: none !important;
+  }
 }
 
 .kpmg-sidebar-group-title:hover {
-  background: #F8FAFD;
-  border-color: #D0D5DD;
+  background: #F8FAFD !important;
+  border-color: #D0D5DD !important;
 }
 
 .kpmg-sidebar-item {
@@ -272,23 +544,45 @@ h3 {
   gap: 10px;
   font-size: 13.5px;
   font-weight: 500;
-  color: #475467;
+  color: #333333 !important;
+  background: #ffffff !important;
+  border: 1px solid transparent !important;
   padding: 8px 12px 8px 24px;
   border-radius: 8px;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s ease;
+
+  span {
+    color: #333333 !important;
+  }
+
+  img, svg, i {
+    color: #333333 !important;
+    stroke: #333333 !important;
+    filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) contrast(90%) !important;
+  }
 }
 
 .kpmg-sidebar-item:hover {
-  background: #F8FAFD;
-  color: #101828;
+  background: #f9f9f9 !important;
+  color: #1e49e2 !important;
 }
 
 .kpmg-sidebar-item.active {
-  background: #EFF6FF;
-  color: #00338D;
-  font-weight: 600;
+  color: #1e49e2 !important;
+  background: #f9f9f9 !important;
+  border: 1px solid #e5e5e5 !important;
+
+  span {
+    color: #1e49e2 !important;
+  }
+
+  img, svg, i {
+    color: #1e49e2 !important;
+    stroke: #1e49e2 !important;
+    filter: brightness(0) saturate(100%) invert(23%) sepia(87%) saturate(3015%) hue-rotate(227deg) brightness(97%) contrast(95%) !important;
+  }
 }
 
 .kpmg-sidebar-footer {
@@ -397,9 +691,10 @@ h3 {
 .kpmg-segmented-bar {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 3px;
-  height: 24px;
-  margin: 14px 0 12px 0;
+  height: 22px;
+  margin: 10px 0 8px 0;
   width: 100%;
   box-sizing: border-box;
 }
@@ -409,14 +704,18 @@ h3 {
 }
 
 .kpmg-segmented-bar-wide {
-  gap: 4px !important;
+  gap: 3px !important;
 }
 
 .kpmg-bar-tick {
-  flex: 1 1 0%;
-  height: 100%;
-  border-radius: 4px;
+  width: 4px !important;
+  min-width: 4px !important;
+  max-width: 4px !important;
+  flex: 0 0 4px !important;
+  height: 22px !important;
+  border-radius: 9999px;
   transition: opacity 0.2s, background-color 0.2s;
+  box-sizing: border-box;
 }
 
 .kpmg-bar-tick-active-risk {
@@ -424,7 +723,7 @@ h3 {
 }
 
 .kpmg-bar-tick-muted {
-  background: #D5D9E2;
+  background: #EAECF0;
 }
 
 /* Zone Grid & Asset Visibility Panel */
@@ -654,6 +953,9 @@ h3 {
   font-weight: 600;
   padding: 2px 10px;
   border-radius: 12px;
+  margin-left: 12px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .kpmg-badge-danger {
@@ -728,7 +1030,7 @@ h3 {
 }
 
 .kpmg-btn-primary {
-  background: #00338D;
+  background: #1E49E2;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -743,7 +1045,7 @@ h3 {
 }
 
 .kpmg-btn-primary:hover {
-  background: #00266B;
+  background: #183CB8;
 }
 
 .kpmg-segmented-bar-container {
@@ -1099,6 +1401,9 @@ h3 {
   background: #FEF3F2;
   padding: 2px 8px;
   border-radius: 10px;
+  margin-left: 10px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .kpmg-conns-text {
@@ -1433,12 +1738,12 @@ h3 {
   transition: all 0.2s ease;
 
   &.blue {
-    background: #EFF6FF;
-    border-color: #B2DDFF;
-    color: #175CD3;
+    background: #F0F4FE;
+    border-color: #1E49E2;
+    color: #18223F;
 
     svg {
-      stroke: #175CD3;
+      stroke: #1E49E2;
     }
   }
 
@@ -1694,6 +1999,7 @@ h3 {
   font-weight: 500;
   padding: 3px 10px;
   white-space: nowrap;
+  margin-left: 10px;
 }
 
 .kpmg-bar-track {
@@ -3355,4 +3661,47 @@ h3 {
   align-items: flex-start;
   gap: 12px;
   cursor: pointer;
+}
+
+/* ExplainModal Linked CVE Breakdown Card & Table */
+.kpmg-explain-cve-card {
+  background: #FFFFFF;
+  border: 1px solid var(--theme-border, #EAECF0);
+  border-radius: 8px;
+  padding: 14px 0 0 0;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.kpmg-explain-cve-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 12px;
+  padding: 0 16px;
+}
+
+.kpmg-explain-cve-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+
+.kpmg-explain-cve-table thead tr {
+  border-top: 1px solid var(--theme-border, #EAECF0);
+  border-bottom: 1px solid var(--theme-border, #EAECF0);
+  text-align: left;
+  color: #64748B;
+  font-weight: 600;
+  background: #FAFAFC;
+}
+
+.kpmg-explain-cve-table th {
+  padding: 8px 16px;
+  font-weight: 600;
+}
+
+.kpmg-explain-cve-table td {
+  padding: 10px 16px;
+  color: #0F172A;
 }

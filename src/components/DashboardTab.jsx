@@ -10,18 +10,8 @@ import {
 } from '../services/assessmentStore';
 
 // Reusable Segmented Risk Ticks component matching SCSS design classes
-const RiskTickBar = ({ score, totalTicks = 48 }) => {
-  const activeCount = Math.round((score / 10) * totalTicks);
-  return (
-    <div className="kpmg-segmented-bar">
-      {Array.from({ length: totalTicks }).map((_, idx) => (
-        <div
-          key={idx}
-          className={`kpmg-bar-tick ${idx < activeCount ? 'kpmg-bar-tick-active-risk' : 'kpmg-bar-tick-muted'}`}
-        />
-      ))}
-    </div>
-  );
+const RiskTickBar = ({ score }) => {
+  return <DynamicSegmentedBar score={score} />;
 };
 
 // Calculate top risk assets mapped to vulnerability scores

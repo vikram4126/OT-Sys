@@ -30,9 +30,9 @@ import { addLog, LOG_TYPES } from '../services/logService';
 
 const SL_OPTS = SL_META.map(m => ({ value: m.sl, label: `SL-T ${m.sl} · ${m.label}` }));
 const SECTIONS = [
-  { id:'scope',  label:'Scope & context' },
-  { id:'inputs', label:'Model inputs' },
-  { id:'zones',  label:'Zone modeller' },
+  { id: 'scope', label: 'Scope & context' },
+  { id: 'inputs', label: 'Model inputs' },
+  { id: 'zones', label: 'Zone modeller' },
 ];
 const SECTION_KEY = 'ot_model_section_v1';
 
@@ -193,13 +193,13 @@ function SectionScope({ company, setCompany, onSaved }) {
 
   const ok = f.name && f.industry && f.scale;
   const save = () => {
-    setCompany({ name:f.name, industry:f.industry, scale:f.scale, size:f.scale, primarySite:f.site });
-    setDrop({ ...getDrop(), tooling:tools, link });
+    setCompany({ name: f.name, industry: f.industry, scale: f.scale, size: f.scale, primarySite: f.site });
+    setDrop({ ...getDrop(), tooling: tools, link });
     onSaved();
   };
   const copyPlan = () => {
-    const txt = folderPlanText({ name:f.name });
-    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+    const txt = folderPlanText({ name: f.name });
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => { });
     setCopied(true); setTimeout(() => setCopied(false), 2200);
   };
 
@@ -428,13 +428,13 @@ function SectionScope({ company, setCompany, onSaved }) {
    tile, a "scan all", and a highlight when a scan finds something changed
    since the group was last scanned.                                       */
 const QUALITY = [
-  { k:RECEIVED_QUALITY.COMPLETE, label:'Complete', color:C.low, bg:'#E7F7EF' },
-  { k:RECEIVED_QUALITY.PARTIAL,  label:'Partial',  color:C.high, bg:'#FEF2E8' },
-  { k:RECEIVED_QUALITY.NA,       label:'N/A',      color:C.muted, bg:'#F1F1EF' },
+  { k: RECEIVED_QUALITY.COMPLETE, label: 'Complete', color: C.low, bg: '#E7F7EF' },
+  { k: RECEIVED_QUALITY.PARTIAL, label: 'Partial', color: C.high, bg: '#FEF2E8' },
+  { k: RECEIVED_QUALITY.NA, label: 'N/A', color: C.muted, bg: '#F1F1EF' },
 ];
 const MISSING_MARK = [
-  { k:EVIDENCE_STATUS.UNAVAILABLE, label:'Not available', color:C.high, bg:'#FEF2E8' },
-  { k:EVIDENCE_STATUS.NA,          label:'N/A here',      color:C.muted, bg:'#F1F1EF' },
+  { k: EVIDENCE_STATUS.UNAVAILABLE, label: 'Not available', color: C.high, bg: '#FEF2E8' },
+  { k: EVIDENCE_STATUS.NA, label: 'N/A here', color: C.muted, bg: '#F1F1EF' },
 ];
 
 function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
@@ -751,23 +751,25 @@ function SubnetChips({ rules, zoneId, onAdd, onRemove }) {
   const [cidr, setCidr] = useState('');
   const cidrs = rules.filter(r => r.zone === zoneId).map(r => r.cidr).filter(Boolean);
   return (
-    <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8 }}>
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
       {cidrs.map(c => (
-        <span key={c} style={{ display:'inline-flex', alignItems:'center', gap:6, background:'#EAF1FB', color:C.navy,
-          borderRadius:7, padding:'3px 9px', fontSize:11.5, fontFamily:'inherit' }}>
+        <span key={c} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EAF1FB', color: C.navy,
+          borderRadius: 7, padding: '3px 9px', fontSize: 11.5, fontFamily: 'inherit'
+        }}>
           {c}
-          <button onClick={() => onRemove(c)} style={{ background:'none', border:'none', color:C.navy, cursor:'pointer', fontSize:13, padding:0, fontFamily:'inherit' }}>×</button>
+          <button onClick={() => onRemove(c)} style={{ background: 'none', border: 'none', color: C.navy, cursor: 'pointer', fontSize: 13, padding: 0, fontFamily: 'inherit' }}>×</button>
         </span>
       ))}
-      {cidrs.length === 0 && !adding && <span style={{ fontSize:11.5, color:C.muted }}>No subnets mapped yet</span>}
+      {cidrs.length === 0 && !adding && <span style={{ fontSize: 11.5, color: C.muted }}>No subnets mapped yet</span>}
       {adding ? (
-        <span style={{ display:'inline-flex', gap:5, alignItems:'center' }}>
-          <Input value={cidr} onChange={e => setCidr(e.target.value)} placeholder="10.10.20.0/24" style={{ width:150, padding:'3px 8px', fontSize:11.5 }}/>
+        <span style={{ display: 'inline-flex', gap: 5, alignItems: 'center' }}>
+          <Input value={cidr} onChange={e => setCidr(e.target.value)} placeholder="10.10.20.0/24" style={{ width: 150, padding: '3px 8px', fontSize: 11.5 }} />
           <Btn size="sm" onClick={() => { if (cidr.trim()) { onAdd(cidr.trim()); setCidr(''); setAdding(false); } }}>Add</Btn>
-          <button onClick={() => { setAdding(false); setCidr(''); }} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontFamily:'inherit' }}>cancel</button>
+          <button onClick={() => { setAdding(false); setCidr(''); }} style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontFamily: 'inherit' }}>cancel</button>
         </span>
       ) : (
-        <button onClick={() => setAdding(true)} style={{ background:'none', border:`1px dashed ${C.border}`, borderRadius:7, padding:'3px 10px', fontSize:11.5, color:C.navy, cursor:'pointer', fontFamily:'inherit' }}>+ subnet</button>
+        <button onClick={() => setAdding(true)} style={{ background: 'none', border: `1px dashed ${C.border}`, borderRadius: 7, padding: '3px 10px', fontSize: 11.5, color: C.navy, cursor: 'pointer', fontFamily: 'inherit' }}>+ subnet</button>
       )}
     </div>
   );
@@ -822,7 +824,7 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onCl
           <Btn
             variant="outline"
             onClick={deleteZone}
-            style={{ marginRight: 'auto', color: '#D9251B', borderColor: '#FECDCA', background: '#FFFFFF', borderRadius: 6, padding: '7px 18px', fontSize: 12.5, fontWeight: 600 }}
+            style={{ marginRight: 'auto', color: '#ED2124', borderColor: '#ED2124', background: '#FFFFFF', borderRadius: 6, padding: '7px 18px', fontSize: 12.5, fontWeight: 600 }}
           >
             Delete zone
           </Btn>
@@ -1140,29 +1142,29 @@ function UnassignedAssetsCard({ assets, rules, a, bump }) {
     bump();
   };
   const addAsset = f => {
-    a.addAsset('', { name:f.name.trim(), ip:f.ip, version:f.version, deviceType:f.deviceType || 'Unclassified', kind:f.kind });
+    a.addAsset('', { name: f.name.trim(), ip: f.ip, version: f.version, deviceType: f.deviceType || 'Unclassified', kind: f.kind });
     setAdding(false); bump();
   };
 
   return (
     <Card>
-      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
-        <span style={{ color:C.critical, display:'flex' }}><AlertCircle/></span>
-        <span style={{ fontSize:13.5, fontWeight:700, color:C.text }}>Unassigned assets ({unassigned.length})</span>
-        <Btn size="sm" variant="outline" style={{ marginLeft:'auto' }} onClick={() => setAdding(v => !v)}>{adding ? 'Cancel' : '+ Add asset'}</Btn>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+        <span style={{ color: C.critical, display: 'flex' }}><AlertCircle /></span>
+        <span style={{ fontSize: 13.5, fontWeight: 700, color: C.text }}>Unassigned assets ({unassigned.length})</span>
+        <Btn size="sm" variant="outline" style={{ marginLeft: 'auto' }} onClick={() => setAdding(v => !v)}>{adding ? 'Cancel' : '+ Add asset'}</Btn>
       </div>
-      <div style={{ fontSize:11.5, color:C.muted, marginBottom:10 }}>No zone yet — map a matching subnet to place one automatically, or assign it here.</div>
-      {adding && <AddUnassignedAssetForm onAdd={addAsset} onCancel={() => setAdding(false)}/>}
+      <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 10 }}>No zone yet — map a matching subnet to place one automatically, or assign it here.</div>
+      {adding && <AddUnassignedAssetForm onAdd={addAsset} onCancel={() => setAdding(false)} />}
       {unassigned.length === 0 ? (
-        <div style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>Every asset has a zone.</div>
+        <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic' }}>Every asset has a zone.</div>
       ) : unassigned.map(u => (
-        <div key={u.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderTop:`1px solid ${C.border}`, flexWrap:'wrap' }}>
-          <span style={{ fontSize:12.5, fontWeight:600, color:C.text }}>{u.name}</span>
-          <Tag label={u.kind === 'software' ? 'Software' : 'Hardware'} color={C.muted} bg="#F1F1EF"/>
-          <span style={{ fontSize:11, color:C.muted }}>{u.kind === 'software' ? (u.version || 'no version') : (u.ip || 'no IP')}</span>
-          <span style={{ fontSize:11.5, color:C.muted, flex:1, minWidth:160 }}>{reasonFor(assets, rules, u.id)}</span>
+        <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{u.name}</span>
+          <Tag label={u.kind === 'software' ? 'Software' : 'Hardware'} color={C.muted} bg="#F1F1EF" />
+          <span style={{ fontSize: 11, color: C.muted }}>{u.kind === 'software' ? (u.version || 'no version') : (u.ip || 'no IP')}</span>
+          <span style={{ fontSize: 11.5, color: C.muted, flex: 1, minWidth: 160 }}>{reasonFor(assets, rules, u.id)}</span>
           <Select value="" onChange={e => { if (e.target.value) assignTo(u.id, e.target.value); }}
-            options={[{value:'',label:'Assign to zone…'}, ...a.zones.map(z => ({value:z.id,label:z.name}))]} style={{ width:170 }}/>
+            options={[{ value: '', label: 'Assign to zone…' }, ...a.zones.map(z => ({ value: z.id, label: z.name }))]} style={{ width: 170 }} />
         </div>
       ))}
     </Card>
@@ -1173,10 +1175,10 @@ function UnassignedAssetsCard({ assets, rules, a, bump }) {
    Completeness cannot be proven. What we can do is bound the unknown, and
    say plainly which parts remain unbounded.                               */
 const COV_TONE = {
-  ok:      { c:C.low,      bg:'#E7F7EF', label:'Accounted for' },
-  partial: { c:'#B54708',  bg:'#FEF7EE', label:'Partly bounded' },
-  gap:     { c:C.critical, bg:'#FDECEA', label:'Gap found' },
-  unknown: { c:C.muted,    bg:'#F1F1EF', label:'Cannot evaluate' },
+  ok: { c: C.low, bg: '#E7F7EF', label: 'Accounted for' },
+  partial: { c: '#B54708', bg: '#FEF7EE', label: 'Partly bounded' },
+  gap: { c: C.critical, bg: '#FDECEA', label: 'Gap found' },
+  unknown: { c: C.muted, bg: '#F1F1EF', label: 'Cannot evaluate' },
 };
 
 function CoveragePanel({ assets, rules, zones }) {
@@ -1352,7 +1354,7 @@ function Sr62443DirectoryCard({ a, onNavigate }) {
 
   const copyPlan = () => {
     const txt = sr62443FolderPlanText(a.zones, a.srSeed, a.company?.name, a.assets, a.conduits);
-    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => { });
     setCopied(true); setTimeout(() => setCopied(false), 2200);
   };
   const applyPrefill = () => {
@@ -1447,19 +1449,19 @@ function ZoneRow({ zone, rules, a, onOpen, onDelete, pendingSlT, setPendingSlT }
   const displayedSlT = pendingSlT[zone.id] ?? zone.slT;
   const unsaved = pendingSlT[zone.id] !== undefined && pendingSlT[zone.id] !== zone.slT;
   return (
-    <div style={{ border:`1px solid ${unsaved ? '#FCD9A6' : C.border}`, borderRadius:10, padding:'11px 13px', marginBottom:9 }}>
-      <div style={{ display:'flex', alignItems:'center', gap:9, flexWrap:'wrap' }}>
-        <Network/>
-        <span style={{ fontSize:13.5, fontWeight:700, color:C.text, flex:1, minWidth:120 }}>{zone.name}</span>
-        {unsaved && <Tag label="Unsaved" color="#B54708" bg="#FEF0C7"/>}
-        <Select value={displayedSlT} onChange={e => setPendingSlT(p => ({ ...p, [zone.id]:Number(e.target.value) }))} options={SL_OPTS} style={{ width:180 }}/>
+    <div style={{ border: `1px solid ${unsaved ? '#FCD9A6' : C.border}`, borderRadius: 10, padding: '11px 13px', marginBottom: 9 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+        <Network />
+        <span style={{ fontSize: 13.5, fontWeight: 700, color: C.text, flex: 1, minWidth: 120 }}>{zone.name}</span>
+        {unsaved && <Tag label="Unsaved" color="#B54708" bg="#FEF0C7" />}
+        <Select value={displayedSlT} onChange={e => setPendingSlT(p => ({ ...p, [zone.id]: Number(e.target.value) }))} options={SL_OPTS} style={{ width: 180 }} />
         <Btn size="sm" variant="outline" onClick={() => onOpen(zone)}>View / edit</Btn>
-        <button onClick={() => onDelete(zone)} title="Delete zone" style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:17, fontFamily:'inherit' }}>×</button>
+        <button onClick={() => onDelete(zone)} title="Delete zone" style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 17, fontFamily: 'inherit' }}>×</button>
       </div>
-      {zone.desc && <div style={{ fontSize:11.5, color:C.muted, marginTop:6, lineHeight:1.5 }}>{zone.desc}</div>}
+      {zone.desc && <div style={{ fontSize: 11.5, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>{zone.desc}</div>}
       <SubnetChips rules={rules} zoneId={zone.id}
-        onAdd={cidr => { addZoneRule({ cidr, zone:zone.id, targetSl:zone.slT }); syncAssetZones(a.assets, getZoneRules(), a.updateAsset); a.rescan(); }}
-        onRemove={cidr => { const r = rules.find(x => x.zone===zone.id && x.cidr===cidr); if (r) removeZoneRule(r.id); syncAssetZones(a.assets, getZoneRules(), a.updateAsset); a.rescan(); }}/>
+        onAdd={cidr => { addZoneRule({ cidr, zone: zone.id, targetSl: zone.slT }); syncAssetZones(a.assets, getZoneRules(), a.updateAsset); a.rescan(); }}
+        onRemove={cidr => { const r = rules.find(x => x.zone === zone.id && x.cidr === cidr); if (r) removeZoneRule(r.id); syncAssetZones(a.assets, getZoneRules(), a.updateAsset); a.rescan(); }} />
     </div>
   );
 }
@@ -1491,36 +1493,36 @@ function ConnectionsFromLogsCard({ a, rules, onNavigate }) {
 
   return (
     <Card>
-      <div style={{ fontSize:15, fontWeight:700, color:C.text, marginBottom:4 }}>Connections from logs</div>
-      <div style={{ fontSize:12.5, color:C.muted, marginBottom:12, lineHeight:1.6 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 4 }}>Connections from logs</div>
+      <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>
         Derives asset-to-asset connections from the network evidence already collected (traffic capture,
         neighbour tables, switch/firewall configs) — still fully editable per-asset, same as a manual
         connection. Also surfaces endpoints the evidence implies but the register doesn't have, as shadow
         assets (see Assets → visibility score). Cross-zone connections become conduit suggestions below.
       </div>
       {!available && (
-        <div style={{ fontSize:12, color:C.muted, background:'#FAFBFD', borderRadius:8, padding:'10px 13px', marginBottom:12 }}>
+        <div style={{ fontSize: 12, color: C.muted, background: '#FAFBFD', borderRadius: 8, padding: '10px 13px', marginBottom: 12 }}>
           Mark capture, neighbour tables or switch/firewall configs as received in Model inputs to enable parsing.
         </div>
       )}
-      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14, flexWrap:'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
         <Btn size="sm" onClick={parse} disabled={!available}>Parse logs</Btn>
-        {last && <span style={{ fontSize:11.5, color:C.muted }}>Last parsed {new Date(last.at).toLocaleString()}</span>}
-        {result && <span style={{ fontSize:11.5, color:'#067647' }}>
-          {result.connectionsAdded} new connection{result.connectionsAdded===1?'':'s'}, {result.shadowAssetsAdded} new shadow asset{result.shadowAssetsAdded===1?'':'s'} found
+        {last && <span style={{ fontSize: 11.5, color: C.muted }}>Last parsed {new Date(last.at).toLocaleString()}</span>}
+        {result && <span style={{ fontSize: 11.5, color: '#067647' }}>
+          {result.connectionsAdded} new connection{result.connectionsAdded === 1 ? '' : 's'}, {result.shadowAssetsAdded} new shadow asset{result.shadowAssetsAdded === 1 ? '' : 's'} found
         </span>}
-        <Btn size="sm" variant="outline" style={{ marginLeft:'auto' }} onClick={() => onNavigate('assets')}>Review connections in Assets →</Btn>
+        <Btn size="sm" variant="outline" style={{ marginLeft: 'auto' }} onClick={() => onNavigate('assets')}>Review connections in Assets →</Btn>
       </div>
 
-      <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: .5, marginBottom: 6 }}>
         Suggested conduits ({suggestions.length})
       </div>
       {suggestions.length === 0 ? (
-        <div style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>None outstanding — parse logs after collecting network evidence, or all suggestions have been reviewed.</div>
+        <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic' }}>None outstanding — parse logs after collecting network evidence, or all suggestions have been reviewed.</div>
       ) : suggestions.map(s => (
-        <div key={s.key} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderTop:`1px solid ${C.border}`, flexWrap:'wrap' }}>
-          <span style={{ fontSize:12.5, fontWeight:600, color:C.text }}>{zName(s.from)} ↔ {zName(s.to)}</span>
-          <span style={{ fontSize:11.5, color:C.muted, flex:1, minWidth:160 }}>{s.count} connection{s.count===1?'':'s'} observed ({s.protos.join(', ')})</span>
+        <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{zName(s.from)} ↔ {zName(s.to)}</span>
+          <span style={{ fontSize: 11.5, color: C.muted, flex: 1, minWidth: 160 }}>{s.count} connection{s.count === 1 ? '' : 's'} observed ({s.protos.join(', ')})</span>
           <Btn size="sm" onClick={() => accept(s)}>Accept</Btn>
           <Btn size="sm" variant="outline" onClick={() => dismiss(s)}>Dismiss</Btn>
         </div>
@@ -1542,14 +1544,14 @@ function InternetFacingSuggestionsCard({ a, bump }) {
   if (suggestions.length === 0) return null;
   return (
     <Card>
-      <div style={{ fontSize:15, fontWeight:700, color:C.text, marginBottom:4 }}>Suggested internet-facing assets ({suggestions.length})</div>
-      <div style={{ fontSize:12.5, color:C.muted, marginBottom:12, lineHeight:1.6 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 4 }}>Suggested internet-facing assets ({suggestions.length})</div>
+      <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>
         Flagged by device role or Purdue position — confirm or dismiss each one rather than tagging every asset by hand.
       </div>
       {suggestions.map(s => (
-        <div key={s.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderTop:`1px solid ${C.border}`, flexWrap:'wrap' }}>
-          <span style={{ fontSize:12.5, fontWeight:600, color:C.text }}>{s.name}</span>
-          <span style={{ fontSize:11.5, color:C.muted, flex:1, minWidth:160 }}>{s.deviceType} · {zName(s.zone)} · L{s.level}</span>
+        <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{s.name}</span>
+          <span style={{ fontSize: 11.5, color: C.muted, flex: 1, minWidth: 160 }}>{s.deviceType} · {zName(s.zone)} · L{s.level}</span>
           <Btn size="sm" onClick={() => confirm(s)}>Confirm</Btn>
           <Btn size="sm" variant="outline" onClick={() => dismiss(s)}>Dismiss</Btn>
         </div>
@@ -2011,19 +2013,19 @@ function SectionZones({ a, onNavigate }) {
 }
 
 /* ── Root ──────────────────────────────────────────────────────────────── */
-export default function ModelTab({ onNavigate = () => {} }) {
+export default function ModelTab({ onNavigate = () => { } }) {
   const a = useAssessment();
   const [section, setSection] = useState(() => localStorage.getItem(SECTION_KEY) || 'scope');
   useEffect(() => { localStorage.setItem(SECTION_KEY, section); }, [section]);
   const prog = collectionProgress();
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-      <BaselineBar a={a}/>
-      <SectionNav section={section} setSection={setSection} company={a.company} prog={prog} zonesCount={a.zones.length}/>
-      {section === 'scope'  && <SectionScope company={a.company} setCompany={a.setCompany} onSaved={() => setSection('inputs')}/>}
-      {section === 'inputs' && <SectionInputs/>}
-      {section === 'zones'  && <SectionZones a={a} onNavigate={onNavigate}/>}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <BaselineBar a={a} />
+      <SectionNav section={section} setSection={setSection} company={a.company} prog={prog} zonesCount={a.zones.length} />
+      {section === 'scope' && <SectionScope company={a.company} setCompany={a.setCompany} onSaved={() => setSection('inputs')} />}
+      {section === 'inputs' && <SectionInputs />}
+      {section === 'zones' && <SectionZones a={a} onNavigate={onNavigate} />}
     </div>
   );
 }

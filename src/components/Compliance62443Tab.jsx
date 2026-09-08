@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { C } from '../theme';
 import { Card, Btn, Modal, Input, Select } from './UI';
-import { Folder, Brain } from './Icons';
+import { Folder, Brain, PageIcon } from './Icons';
 import WorkspaceTab from './WorkspaceTab';
 import {
   useAssessment, FR_CATALOGUE, requiredItems, itemStatus, SR_STATUS,
@@ -308,9 +308,9 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
                 rel="noopener noreferrer"
                 onClick={e => { if (!doc.url) e.preventDefault(); }}
                 title="Open PDF"
-                style={{ color: '#475467', cursor: 'pointer', display: 'flex' }}
+                style={{ color: '#475467', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
               >
-                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+                <PageIcon name="Open.svg" size={16} />
               </a>
               {docs.length > 0 && (
                 <button
@@ -344,9 +344,9 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
                 <button
                   onClick={() => setPageNo(p => Math.max(1, p - 1))}
                   disabled={currentP <= 1}
-                  style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentP <= 1 ? 'default' : 'pointer', color: currentP <= 1 ? '#D0D5DD' : '#344054' }}
+                  style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentP <= 1 ? 'default' : 'pointer', opacity: currentP <= 1 ? 0.4 : 1 }}
                 >
-                  ←
+                  <PageIcon name="arrow-left.svg" size={16} />
                 </button>
                 <span style={{ fontSize: 12, color: '#475467', fontWeight: 600 }}>
                   {currentP}/{totalPages}
@@ -354,9 +354,9 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
                 <button
                   onClick={() => setPageNo(p => Math.min(totalPages, p + 1))}
                   disabled={currentP >= totalPages}
-                  style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentP >= totalPages ? 'default' : 'pointer', color: currentP >= totalPages ? '#D0D5DD' : '#344054' }}
+                  style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentP >= totalPages ? 'default' : 'pointer', opacity: currentP >= totalPages ? 0.4 : 1 }}
                 >
-                  →
+                  <PageIcon name="arrow-right.svg" size={16} />
                 </button>
               </div>
             );
@@ -568,7 +568,6 @@ export default function Compliance62443Tab() {
         <span style={{ fontSize:14, fontWeight:700, color:C.text }}>{zone.name}</span>
         <span style={{ fontSize:12, color:C.muted }}>target SL-T {zone.slT}</span>
         <span style={{ fontSize:16, fontWeight:700, color:slColor(slaForZone(srSeed,zone)) }}>SL-A {slaForZone(srSeed,zone)}</span>
-        <Btn size="sm" variant="outline" onClick={()=>setAssetOpen(zone)} style={{ marginLeft:'auto' }}>Assets ({assetsForZone(assets,zone.id).length})</Btn>
       </div>
 
       <div style={{ padding:'9px 16px', background:'#FFFFFF', borderBottom:`1px solid ${C.border}`, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5 }}>IEC 62443-3-3 requirements</div>
@@ -595,10 +594,12 @@ export default function Compliance62443Tab() {
               const evCount = evList.length;
               const hasNextRE = items[idx + 1] && items[idx + 1].isRE;
 
+              const iconName = s === 'met' ? 'Met.svg' : s === 'missing' ? 'Missing.svg' : 'partical.svg';
+
               const st = {
-                dot: s==='met'?'#067647':s==='missing'?'#B42318':'#F79009',
+                dot: s==='met'?'#098e7e':s==='missing'?'#ED2124':'#f97316',
                 bg: s==='met'?'#ECFDF3':s==='missing'?'#FEF3F2':'#FFFAEB',
-                fg: s==='met'?'#067647':s==='missing'?'#B42318':'#B54708',
+                fg: s==='met'?'#098e7e':s==='missing'?'#ED2124':'#f97316',
                 border: s==='met'?'#ABEFC6':s==='missing'?'#FECDCA':'#FEDF89',
                 label: s==='met'?'Met':s==='missing'?'Missing':'Partial'
               };
@@ -666,7 +667,7 @@ export default function Compliance62443Tab() {
                       />
                     )}
 
-                    {/* Rounded Rectangle Badge with Hollow Ring */}
+                    {/* Rounded Rectangle Badge with Status Circle Dot */}
                     <div
                       style={{
                         width: 24,
@@ -680,15 +681,7 @@ export default function Compliance62443Tab() {
                         zIndex: 1
                       }}
                     >
-                      <span
-                        style={{
-                          width: 13,
-                          height: 13,
-                          borderRadius: '50%',
-                          border: `2px solid ${st.dot}`,
-                          background: 'transparent'
-                        }}
-                      />
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: st.dot, display: 'inline-block' }} />
                     </div>
                   </div>
 
@@ -719,11 +712,11 @@ export default function Compliance62443Tab() {
                         borderRadius: 12,
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: 5,
+                        gap: 6,
                         whiteSpace: 'nowrap'
                       }}
                     >
-                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: st.fg }} />
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: st.dot, display: 'inline-block', flexShrink: 0 }} />
                       {st.label}
                     </span>
                   </div>
@@ -768,13 +761,6 @@ export default function Compliance62443Tab() {
 
   return (
     <div className="kpmg-page-stack">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <button onClick={()=>setActionsOpen(true)} className="kpmg-btn-primary" style={{ flexShrink:0, boxShadow:'0 2px 8px rgba(0,51,141,.2)' }}>
-          <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Actions{actionCount>0 && <span style={{ fontSize:12, fontWeight:700, background:'rgba(255,255,255,.25)', padding:'1px 8px', borderRadius:20 }}>{actionCount}</span>}
-        </button>
-      </div>
-
       <ZoneDiagram zones={zones} conduits={conduits} srSeed={srSeed} assets={assets} sel={sel}
         onSelZone={z=>setSel({type:'zone',id:z.id})} onSelConduit={c=>setSel({type:'conduit',id:c.id})}/>
 

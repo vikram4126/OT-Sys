@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { C } from '../theme';
 import { Card, Tag, Btn, Modal, FormField, Input, Select, Pagination } from './UI';
+import { PageIcon } from './Icons';
 import { getLogs, seedDemoLogs } from '../services/logService';
 import { getUsers, addUser, updateUser, deleteUser, suspendUser, restoreUser, ALL_PERMISSIONS, ROLES,
          getClients, addClient, updateClient, deleteClient } from '../services/userService';
@@ -187,7 +188,7 @@ function EditUserModal({ user, onClose, onSave, onDelete }) {
           <Btn
             variant="outline"
             onClick={() => onDelete(user)}
-            style={{ color: '#D9251B', borderColor: '#FECDCA', background: 'transparent', borderRadius: 8, padding: '8px 16px', fontWeight: 600 }}
+            style={{ color: '#ED2124', borderColor: '#ED2124', background: 'transparent', borderRadius: 8, padding: '8px 16px', fontWeight: 600 }}
           >
             Delete User
           </Btn>
@@ -308,7 +309,7 @@ function DeleteModal({ user, onClose, onConfirm }) {
           <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
             Cancel
           </Btn>
-          <Btn variant="danger" onClick={() => onConfirm(user)} style={{ background: '#D9251B', color: '#fff', borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+          <Btn variant="danger" onClick={() => onConfirm(user)} style={{ background: '#ED2124', color: '#fff', borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
             Delete
           </Btn>
         </div>
@@ -829,34 +830,36 @@ function AllLogsSection() {
   );
 }
 
-const GridFourIcon = ({ color = "#175CD3", size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round">
-    <rect x="3" y="3" width="7" height="7" rx="1" />
-    <rect x="14" y="3" width="7" height="7" rx="1" />
-    <rect x="14" y="14" width="7" height="7" rx="1" />
-    <rect x="3" y="14" width="7" height="7" rx="1" />
-  </svg>
+// Helper to render system health SVG icons
+const StatusHealthIcon = ({ name, size = 16, style }) => (
+  <img
+    src={`${process.env.PUBLIC_URL || ''}/icons/${name}`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ flexShrink: 0, display: 'block', ...style }}
+  />
 );
 
 // ── System Health ─────────────────────────────────────────────────────────────
 function SystemHealthSection() {
   const services = [
-    { label: 'Asset inventory', note: 'Responding normally' },
-    { label: 'Database', note: 'SQLite — read/write healthy' },
-    { label: 'File upload storage', note: 'Write permissions confirmed' },
-    { label: 'Session store', note: 'Active · 8hr TTL' },
-    { label: 'CSRF protection', note: 'Enabled on all mutating endpoints' },
-    { label: 'Rate limiting', note: '120/min anon · 300/min authenticated' },
-    { label: 'CORS policy', note: 'localhost:3000 only' },
-    { label: 'Audit logging', note: 'All actions captured' },
+    { label: 'Asset inventory', note: 'Responding normally', icon: 'Tick.svg' },
+    { label: 'Database', note: 'SQLite — read/write healthy', icon: 'Tick.svg' },
+    { label: 'File upload storage', note: 'Write permissions confirmed', icon: 'Tick.svg' },
+    { label: 'Session store', note: 'Active · 8hr TTL', icon: 'Tick.svg' },
+    { label: 'CSRF protection', note: 'Enabled on all mutating endpoints', icon: 'Tick.svg' },
+    { label: 'Rate limiting', note: '120/min anon · 300/min authenticated', icon: 'Tick.svg' },
+    { label: 'CORS policy', note: 'localhost:3000 only', icon: 'Tick.svg' },
+    { label: 'Audit logging', note: 'All actions captured', icon: 'Tick.svg' },
   ];
 
   const legends = [
-    { label: 'Maintenance' },
-    { label: 'No Issues' },
-    { label: 'Notice' },
-    { label: 'Incident' },
-    { label: 'Outage' },
+    { label: 'No Issues', icon: 'Tick.svg' },
+    { label: 'Maintenance', icon: 'Maintenance.svg' },
+    { label: 'Notice', icon: 'Notice.svg' },
+    { label: 'Incident', icon: 'Incident.svg' },
+    { label: 'Outage', icon: 'Outage.svg' },
   ];
 
   return (
@@ -868,7 +871,7 @@ function SystemHealthSection() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
             {legends.map(l => (
               <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#475467', fontWeight: 500 }}>
-                <GridFourIcon size={14} color="#175CD3" />
+                <StatusHealthIcon name={l.icon} size={15} />
                 <span>{l.label}</span>
               </div>
             ))}
@@ -901,7 +904,7 @@ function SystemHealthSection() {
                   <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>{s.note}</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                  <GridFourIcon size={16} color="#175CD3" />
+                  <StatusHealthIcon name={s.icon} size={18} />
                 </div>
               </div>
             );
@@ -1200,7 +1203,7 @@ function ClientsSection({ showAdd, setShowAdd }) {
               <Btn
                 variant="outline"
                 onClick={() => setConfirmDel(editClient)}
-                style={{ color: '#D9251B', borderColor: '#FECDCA', background: 'transparent', borderRadius: 8, padding: '8px 16px', fontWeight: 600 }}
+                style={{ color: '#ED2124', borderColor: '#ED2124', background: 'transparent', borderRadius: 8, padding: '8px 16px', fontWeight: 600 }}
               >
                 Delete client
               </Btn>
@@ -1244,7 +1247,7 @@ function ClientsSection({ showAdd, setShowAdd }) {
               <Btn variant="outline" onClick={() => setConfirmDel(null)} style={{ borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
                 Cancel
               </Btn>
-              <Btn variant="danger" onClick={handleDelete} style={{ background: '#D9251B', color: '#fff', borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+              <Btn variant="danger" onClick={handleDelete} style={{ background: '#ED2124', color: '#fff', borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
                 Delete
               </Btn>
             </div>
@@ -1372,12 +1375,23 @@ function ClientInstanceFormFields({
   );
 }
 
+// Helper to render public folder SVG icons
+const PublicIcon = ({ name, size = 16, style }) => (
+  <img
+    src={`${process.env.PUBLIC_URL || ''}/icons/${name}`}
+    alt=""
+    width={size}
+    height={size}
+    style={{ flexShrink: 0, display: 'block', ...style }}
+  />
+);
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 const NAV = [
-  {id:'clients',label:'Client Instances',Icon:ClientsIcon},
-  {id:'users',  label:'Manage Users',  Icon:UsersIcon},
-  {id:'logs',   label:'All Logs',      Icon:LogsIcon},
-  {id:'health', label:'System Health', Icon:HealthIcon},
+  { id: 'clients', label: 'Client Instances', iconName: 'Client Instances.svg' },
+  { id: 'users',   label: 'Manage Users',     iconName: 'Manage Users.svg' },
+  { id: 'logs',    label: 'All Logs',         iconName: 'Audit Logs.svg' },
+  { id: 'health',  label: 'System Health',    iconName: 'System Health.svg' },
 ];
 
 const SUBTITLES = {
@@ -1413,7 +1427,7 @@ export default function AdminPortal({ onExit }) {
           <div className="kpmg-sidebar-group">
             <div className="kpmg-sidebar-group-title" onClick={() => setIsGroupOpen(!isGroupOpen)}>
               <div className="kpmg-sidebar-group-left">
-                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#475467" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <PublicIcon name="Administration.svg" size={16} />
                 <span>Administration</span>
               </div>
               <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2" strokeLinecap="round" className={`kpmg-sidebar-group-arrow ${isGroupOpen ? 'open' : ''}`}>
@@ -1427,7 +1441,7 @@ export default function AdminPortal({ onExit }) {
                   return (
                     <div key={n.id} onClick={() => setTab(n.id)} className={`kpmg-sidebar-item ${active ? 'active' : ''}`}>
                       <div className="kpmg-sidebar-item-inner">
-                        <n.Icon />
+                        <PublicIcon name={n.iconName} size={16} />
                         <span>{n.label}</span>
                       </div>
                     </div>
@@ -1474,13 +1488,19 @@ export default function AdminPortal({ onExit }) {
               </span>
 
               {tab === 'clients' && (
-                <Btn onClick={() => setShowAddClient(true)} style={{ background: '#1E49E2', color: '#fff', padding: '8px 18px', borderRadius: 8, fontWeight: 500 }}>
-                  + New client instance
+                <Btn onClick={() => setShowAddClient(true)} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 18px', borderRadius: 8, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, display: 'block' }}>
+                    <path d="M9.16699 10.8346H5.00033C4.76421 10.8346 4.5663 10.7548 4.40658 10.5951C4.24685 10.4353 4.16699 10.2374 4.16699 10.0013C4.16699 9.76519 4.24685 9.56727 4.40658 9.40755C4.5663 9.24783 4.76421 9.16797 5.00033 9.16797H9.16699V5.0013C9.16699 4.76519 9.24685 4.56727 9.40658 4.40755C9.5663 4.24783 9.76421 4.16797 10.0003 4.16797C10.2364 4.16797 10.4344 4.24783 10.5941 4.40755C10.7538 4.56727 10.8337 4.76519 10.8337 5.0013V9.16797H15.0003C15.2364 9.16797 15.4344 9.24783 15.5941 9.40755C15.7538 9.56727 15.8337 9.76519 15.8337 10.0013C15.8337 10.2374 15.7538 10.4353 15.5941 10.5951C15.4344 10.7548 15.2364 10.8346 15.0003 10.8346H10.8337V15.0013C10.8337 15.2374 10.7538 15.4353 10.5941 15.5951C10.4344 15.7548 10.2364 15.8346 10.0003 15.8346C9.76421 15.8346 9.5663 15.7548 9.40658 15.5951C9.24685 15.4353 9.16699 15.2374 9.16699 15.0013V10.8346Z" fill="#ffffff"/>
+                  </svg>
+                  <span>New client instance</span>
                 </Btn>
               )}
               {tab === 'users' && (
-                <Btn onClick={() => setShowAddUser(true)} style={{ background: '#1E49E2', color: '#fff', padding: '8px 18px', borderRadius: 8, fontWeight: 500 }}>
-                  + Add User
+                <Btn onClick={() => setShowAddUser(true)} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 18px', borderRadius: 8, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, display: 'block' }}>
+                    <path d="M9.16699 10.8346H5.00033C4.76421 10.8346 4.5663 10.7548 4.40658 10.5951C4.24685 10.4353 4.16699 10.2374 4.16699 10.0013C4.16699 9.76519 4.24685 9.56727 4.40658 9.40755C4.5663 9.24783 4.76421 9.16797 5.00033 9.16797H9.16699V5.0013C9.16699 4.76519 9.24685 4.56727 9.40658 4.40755C9.5663 4.24783 9.76421 4.16797 10.0003 4.16797C10.2364 4.16797 10.4344 4.24783 10.5941 4.40755C10.7538 4.56727 10.8337 4.76519 10.8337 5.0013V9.16797H15.0003C15.2364 9.16797 15.4344 9.24783 15.5941 9.40755C15.7538 9.56727 15.8337 9.76519 15.8337 10.0013C15.8337 10.2374 15.7538 10.4353 15.5941 10.5951C15.4344 10.7548 15.2364 10.8346 15.0003 10.8346H10.8337V15.0013C10.8337 15.2374 10.7538 15.4353 10.5941 15.5951C10.4344 15.7548 10.2364 15.8346 10.0003 15.8346C9.76421 15.8346 9.5663 15.7548 9.40658 15.5951C9.24685 15.4353 9.16699 15.2374 9.16699 15.0013V10.8346Z" fill="#ffffff"/>
+                  </svg>
+                  <span>Add User</span>
                 </Btn>
               )}
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { C, getScoreColor, getScoreClass } from '../theme';
 import { Card, Btn, Modal, Select, Input, FormField } from './UI';
-import { Network, AlertCircle, Brain } from './Icons';
+import { Network, AlertCircle, Brain, PageIcon } from './Icons';
 import {
   useAssessment, assetConnections, addConnection, updateConnection, removeConnection,
   shadowAssetsForZone, allShadowAssets, promoteShadowAsset, resetShadowAssets, assetKind,
@@ -145,17 +145,24 @@ export default function AssetsTab() {
 /* ── Asset visibility ─────────────────────────────────────────────────────
    Plain arithmetic, no model: how far the client's records agree with what
    we observed. Every number is clickable back to its assets.              */
-export function DynamicSegmentedBar({ matchedRatio, registerRatio = 0, shadowRatio = 0, color, style, fillCard }) {
+export function DynamicSegmentedBar({
+  score,
+  matchedRatio,
+  registerRatio = 0,
+  shadowRatio = 0,
+  color,
+  style
+}) {
   const containerRef = useRef(null);
-  const [ticksCount, setTicksCount] = useState(40);
+  const [ticksCount, setTicksCount] = useState(30);
 
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
         const width = entry.contentRect.width;
-        // Each tick unit = 5px width + 4px gap = 9px.
-        const computedTicks = Math.max(5, Math.floor((width + 4) / 9));
+        // Each tick unit = 4px width + 3px gap = 7px.
+        const computedTicks = Math.max(5, Math.floor((width + 3) / 7));
         setTicksCount(computedTicks);
       }
     });
@@ -163,36 +170,48 @@ export function DynamicSegmentedBar({ matchedRatio, registerRatio = 0, shadowRat
     return () => observer.disconnect();
   }, []);
 
-  const matched = Math.round((matchedRatio || 0) * ticksCount);
-  const register = Math.round((registerRatio || 0) * ticksCount);
-  const shadow = Math.max(0, ticksCount - matched - register);
+  const ratio = matchedRatio !== undefined ? matchedRatio : (score !== undefined ? (score > 1 ? score / 10 : score) : 0);
+  const activeCount = Math.round((ratio || 0) * ticksCount);
 
-  if (color) {
+  const getAutoColor = (valRatio) => {
+    if (color) return color;
+    const scoreVal = valRatio * 10;
+    if (scoreVal >= 7) return '#D9251B'; // Red for high risk
+    if (scoreVal >= 4) return '#F97316'; // Orange for medium risk
+    return '#027A48';                    // Green for low risk
+  };
+
+  const activeColor = getAutoColor(ratio);
+
+  if (registerRatio > 0 || shadowRatio > 0) {
+    const matched = Math.round((matchedRatio || 0) * ticksCount);
+    const register = Math.round((registerRatio || 0) * ticksCount);
+    const shadow = Math.max(0, ticksCount - matched - register);
     return (
-      <div ref={containerRef} className="kpmg-segmented-bar kpmg-segmented-bar-wide" style={style}>
-        {Array.from({ length: ticksCount }).map((_, i) => (
-          <div
-            key={`t-${i}`}
-            className="kpmg-bar-tick"
-            style={{
-              background: i < matched ? color : '#D5D9E2'
-            }}
-          />
+      <div ref={containerRef} className="kpmg-segmented-bar" style={{ justifyContent: 'flex-start', ...style }}>
+        {Array.from({ length: matched }).map((_, i) => (
+          <div key={`m-${i}`} className="kpmg-bar-tick kpmg-bar-tick-matched" />
+        ))}
+        {Array.from({ length: register }).map((_, i) => (
+          <div key={`r-${i}`} className="kpmg-bar-tick kpmg-bar-tick-register" />
+        ))}
+        {Array.from({ length: shadow }).map((_, i) => (
+          <div key={`s-${i}`} className="kpmg-bar-tick kpmg-bar-tick-shadow" />
         ))}
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="kpmg-segmented-bar kpmg-segmented-bar-wide" style={style}>
-      {Array.from({ length: matched }).map((_, i) => (
-        <div key={`m-${i}`} className="kpmg-bar-tick kpmg-bar-tick-matched" />
-      ))}
-      {Array.from({ length: register }).map((_, i) => (
-        <div key={`r-${i}`} className="kpmg-bar-tick kpmg-bar-tick-register" />
-      ))}
-      {Array.from({ length: shadow }).map((_, i) => (
-        <div key={`s-${i}`} className="kpmg-bar-tick kpmg-bar-tick-shadow" />
+    <div ref={containerRef} className="kpmg-segmented-bar" style={{ justifyContent: 'flex-start', ...style }}>
+      {Array.from({ length: ticksCount }).map((_, i) => (
+        <div
+          key={`t-${i}`}
+          className="kpmg-bar-tick"
+          style={{
+            background: i < activeCount ? activeColor : '#EAECF0'
+          }}
+        />
       ))}
     </div>
   );
@@ -1080,8 +1099,8 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
             onClick={() => { removeAsset(asset.id); onClose(); }}
             style={{
               background: '#ffffff',
-              border: '1px solid #FDA29B',
-              color: '#D9251B',
+              border: '1px solid #ED2124',
+              color: '#ED2124',
               fontSize: 13,
               fontWeight: 500,
               padding: '8px 16px',
@@ -1208,8 +1227,8 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
         {/* Connection Section Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Connection</h3>
-          <Btn variant="outline" onClick={() => setAdding(a => !a)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
-            {adding ? 'Cancel' : '+ Add connections'}
+          <Btn variant="outline" onClick={() => setAdding(a => !a)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500, display: 'inline-flex', alignItems: 'center' }}>
+            {adding ? 'Cancel' : <><PageIcon name="Add.svg" size={14} style={{ marginRight: 6 }} /> Add connections</>}
           </Btn>
         </div>
 

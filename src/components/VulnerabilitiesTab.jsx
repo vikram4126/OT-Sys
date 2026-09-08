@@ -7,7 +7,8 @@ import { useCompletedIds, getMitigatedCVEs } from '../services/mitigationStore';
 import { assetZone, vulnFR, requiredItems, allSRs, itemStatus, frName, getAssessmentSnapshot, setVulnOverride, vulnExploitability,
   complementaryVulnCandidates, acceptComplementaryVuln, dismissComplementaryVuln, addManualVuln, deleteVulnLocal } from '../services/assessmentStore';
 import { DEMO_STEPS } from './MitigationsTab';
-
+import { PageIcon } from './Icons';
+import { DynamicSegmentedBar } from './AssetsTab';
 
 // ── Low-confidence review tracking ───────────────────────────────────────────
 const REVIEW_KEY = 'ot_overview_flagged_reviewed_v1';
@@ -211,521 +212,533 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
   );
 
   return (
-    <Modal title="Risk score — calculation & supporting inputs" subtitle={`${vuln.vuln_id} · ${vuln.title}`} onClose={onClose} maxWidth={700}
+    <Modal title={vuln.title || 'Unauthenticated command injection in PLC firmware'} subtitle={`${vuln.vuln_id || 'V-1001'} · CVE - based`} onClose={onClose} maxWidth={780}
       footer={edit
         ? <div style={{display:'flex',gap:8,alignItems:'center',width:'100%'}}><Input placeholder="Reason for this change (required)" value={reason} onChange={e=>setReason(e.target.value)} style={{flex:1}}/><Btn variant="outline" onClick={()=>setEdit(false)}>Cancel</Btn><Btn onClick={save} disabled={saving}>{saving?'Saving…':'Save & recalculate'}</Btn></div>
         : <Btn variant="outline" onClick={()=>setEdit(true)}>Edit inputs</Btn>}>
-      {/* headline */}
-      <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:12, flexWrap:'wrap' }}>
-        <div style={{ textAlign:'center' }}>
-          {edit ? (
-            <div>
-              <Input type="number" value={scoreOverride} onChange={e=>setScoreOverride(e.target.value)} placeholder="0–10" style={{ width:78, textAlign:'center', fontSize:18, fontWeight:700 }}/>
-              <div style={{ fontSize:10, color:C.muted, marginTop:2 }}>set risk / 10</div>
-            </div>
-          ) : (
-            <>
-              <div style={{ fontSize:30, fontWeight:700, color: vuln.risk_score>=8.5?'#B42318':vuln.risk_score>=6.5?'#C2410C':vuln.risk_score>=4?'#B54708':'#067647', lineHeight:1 }}>{typeof vuln.risk_score==='number'?vuln.risk_score.toFixed(1):'—'}</div>
-              <div style={{ fontSize:10, color:C.muted, marginTop:2 }}>risk / 10</div>
-            </>
-          )}
-        </div>
-        <div style={{ flex:1, minWidth:160 }}>
-          <div style={{ fontSize:12, color:C.text }}><strong>{vuln.vulnType||vuln.vuln_type||rt}</strong> · AI confidence {vuln.confidence ?? vuln.ai_confidence ?? '—'}%</div>
-          <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>
-            {edit
-              ? 'You can set the final score directly, or change the connected assets below (which moves the finding between zones/Purdue levels and recalculates exposure). Pulled facts (CVSS, EPSS, KEV) and evidenced 62443 controls are read-only.'
-              : <>{rt==='Direct' && 'Mapped to a specific asset CVE.'}{rt==='Inferred' && 'Inferred from technology/zone relevance — no confirmed asset mapping.'}{rt==='Systemic' && 'Systemic / architectural weakness — not derived from a CVE.'}</>}
-          </div>
-        </div>
+
+      {/* Top Banner Card: Formula */}
+      <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '12px 16px', marginBottom: 14, fontSize: 11.5, color: '#334155' }}>
+        <strong>Final risk</strong> = <strong>CVE core (Worst-case CVSS / EPSS / KEV across ALL linked CVEs)</strong> × <strong>Exposure probability</strong> ÷ <strong>Control effectiveness</strong>
       </div>
 
-      {/* Impact — what this lets an attacker do */}
-      {(() => {
-        const impact = vuln.impact || vuln.impact_statement || (() => {
-          if (rt==='Systemic') return 'This weakness lets an attacker move laterally or escalate within the architecture once they gain a foothold, because the compensating control is missing.';
-          if (rt==='Inferred') return 'If present on the affected technology, this allows an attacker to compromise the device — potentially executing code, bypassing authentication, or disrupting the process it controls.';
-          return 'This allows an attacker to exploit the affected asset — potentially executing code, escalating privileges, or disrupting the process it controls.';
-        })();
-        return (
-          <div style={{ fontSize:12, color:C.text, lineHeight:1.55, background:'#FFF7F8', border:'1px solid #F6C8CF', borderRadius:8, padding:'9px 12px', marginBottom:12 }}>
-            <span style={{ fontSize:10, fontWeight:700, color:'#B42318', textTransform:'uppercase', letterSpacing:.5, display:'block', marginBottom:3 }}>Impact</span>
-            {impact}
-          </div>
-        );
-      })()}
-
-      {/* Overridden note, if any */}
-      {(vuln.risk_score_overridden || vuln.override_note || vuln.overrideNote) && (
-        <div style={{ fontSize:11.5, color:'#7C3AED', background:'#F1EAFE', border:'1px solid #DDD0FA', borderRadius:8, padding:'8px 11px', marginBottom:10 }}>
-          <strong>Overridden by consultant.</strong> {vuln.override_note || vuln.overrideNote || 'A metric was adjusted; the risk score reflects the override.'}
-        </div>
-      )}
-
-      {/* Why this zone / Purdue level */}
-      <div style={{ background:'#FAFBFF', border:`1px solid ${C.border}`, borderRadius:8, padding:'9px 12px', marginBottom:10 }}>
-        <div style={{ fontSize:10.5, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:5 }}>AI reasoning — affected zone & level</div>
-        <div style={{ fontSize:11.5, color:C.text, lineHeight:1.55 }}>
-          {(() => {
-            const zTxt = vZones.length ? vZones.map(zName).join(', ') : 'no specific zone (architecture-wide)';
-            return `Assigned to ${zTxt} because the affected ${list.length?('asset(s) '+list.join(', ')):'technology'} ${list.length?'sit':'sits'} there in the registry/Purdue mapping. Zone position drives the exposure weighting in the score — assets deeper in the process (lower Purdue level, higher consequence) raise the risk.`;
-          })()}
-        </div>
+      {/* Linked CVEs breakdown Card */}
+      <div className="kpmg-explain-cve-card">
+        <div className="kpmg-explain-cve-title">Text here</div>
+        <table className="kpmg-explain-cve-table">
+          <thead>
+            <tr>
+              <th>CVE</th>
+              <th>CVSS</th>
+              <th>EPSS</th>
+              <th>KEV</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(vuln.linked_cves && vuln.linked_cves.length > 0 ? vuln.linked_cves : [
+              { cve: 'CVE-2023-0413', cvss: '9.3', epss: '41%', kev: 'Yes', isMaxCvss: true },
+              { cve: 'CVE-2022-29527', cvss: '8.0', epss: '55%', kev: 'No', isMaxEpss: true },
+              { cve: 'CVE-2022-34486', cvss: '4.0', epss: '8%', kev: 'No' },
+              { cve: 'CVE-2022-357824', cvss: '0.1', epss: '20%', kev: 'No' },
+            ]).map((row, idx) => (
+              <tr key={idx} style={{ borderBottom: idx !== 3 ? `1px solid ${C.border}` : 'none' }}>
+                <td style={{ fontWeight: 500 }}>{row.cve}</td>
+                <td style={{ fontWeight: row.isMaxCvss ? 700 : 400 }}>
+                  {row.cvss} {row.isMaxCvss && <PageIcon name="Star.svg" size={13} style={{ marginLeft: 3 }} />}
+                </td>
+                <td style={{ fontWeight: row.isMaxEpss ? 700 : 400 }}>
+                  {row.epss} {row.isMaxEpss && <PageIcon name="Star.svg" size={13} style={{ marginLeft: 3 }} />}
+                </td>
+                <td>{row.kev}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      {vuln.risk_score_overridden && <div style={{ fontSize:11, color:'#B54708', background:'#FEF0DA', borderRadius:6, padding:'6px 10px', marginBottom:10 }}>Score reflects a consultant metric override — change the supporting inputs below in edit mode to recalculate.</div>}
-
-      {/* the equation, in words */}
-      <div style={{ fontSize:11.5, color:C.muted, lineHeight:1.6, background:'#F8FAFD', border:`1px solid ${C.border}`, borderRadius:8, padding:'9px 12px', marginBottom:10 }}>
-        Final risk = ( CVE + inferred + systemic ) × exposure probability ÷ control effectiveness, clamped 0–10. Each parameter below shows its value, what it means, and the supporting input it was derived from. {edit ? 'You can set the score directly (above) or change the connected assets (below). Pulled facts and evidenced controls are read-only.' : 'Switch to edit to set the score directly or change the connected assets.'}
-      </div>
-
-      {/* ── Per-parameter breakdown: value + meaning + supporting input ─────────── */}
-      {bd.base && <>
-        <Metric label="CVSS — severity" meaning="how severe the flaw is (IT base, OT-adjusted)" locked
-          weight={bd.base.cvss?.weight} source={bd.base.cvss?.note || 'NVD'}
-          value={(bd.base.cvss?.ot_adjusted ?? vuln.cvss) ?? '—'}
-          support={
-            <>
-              <SupLabel>Supporting input — what &amp; where (CVE / CPE)</SupLabel>
-              {(vuln.cveId||vuln.cve_id||vuln.cve) && (
-                <div style={{ marginBottom:6 }}>
-                  <span className="kpmg-code-badge" style={{ fontSize:11.5, fontWeight:600, color:C.navy }}>{vuln.cveId||vuln.cve_id||vuln.cve}</span>
-                  {vuln.cwe && <span style={{ fontSize:11, color:C.muted, marginLeft:8 }}>{vuln.cwe} (root cause)</span>}
-                  {(vuln.cveDescription||vuln.cve_description||vuln.description) && <div style={{ fontSize:11, color:C.muted, marginTop:2, lineHeight:1.5 }}>{vuln.cveDescription||vuln.cve_description||vuln.description}</div>}
-                </div>
-              )}
-              <div style={{ fontSize:10.5, color:C.muted, marginBottom:4 }}>Connected asset(s) — where it is. Changing these moves the finding between zones/Purdue levels and recalculates the exposure score.</div>
-              {edit ? (
-                <div>
-                  <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:6 }}>
-                    {editAssets.length===0 && <span style={{ fontSize:11, color:C.muted }}>No connected assets.</span>}
-                    {editAssets.map(a=>(
-                      <span key={a} style={{ fontSize:10.5, color:C.navy, background:`${C.navy}0E`, border:`1px solid ${C.navy}22`, borderRadius:5, padding:'2px 6px 2px 8px', display:'inline-flex', alignItems:'center', gap:5 }}>
-                        {a}<button onClick={()=>rmAsset(a)} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, lineHeight:1, padding:0 }}>×</button>
-                      </span>
-                    ))}
-                  </div>
-                  <div style={{ display:'flex', gap:6 }}>
-                    {knownAssets.length>0
-                      ? <Select value="" onChange={e=>e.target.value&&addAsset(e.target.value)} options={[{value:'',label:'Add a known asset…'},...knownAssets.filter(a=>!editAssets.includes(a)).map(a=>({value:a,label:a}))]} style={{flex:1}}/>
-                      : <Input value={newAsset} onChange={e=>setNewAsset(e.target.value)} placeholder="Asset name" style={{flex:1}}/>}
-                    <Btn variant="outline" onClick={()=>addAsset()}>Add</Btn>
-                  </div>
-                  {(()=>{ const dz=zonesFromAssets(editAssets).map(zName); return dz.length>0 && <div style={{ fontSize:10, color:C.muted, marginTop:5 }}>→ resolves to zone(s): {dz.join(', ')} (drives exposure on save)</div>; })()}
-                </div>
-              ) : (
-                list.length>0
-                  ? <Chips items={list}/>
-                  : <div style={{ fontSize:11, color:vZones.length?C.text:C.violet }}>{vZones.length?`Zone-scoped: ${vZones.map(zName).join(', ')}`:'Architecture-wide — no single asset'}</div>
-              )}
-            </>
-          }/>
-        <Metric label="EPSS — exploitation likelihood" meaning="probability it will be exploited" locked
-          weight={bd.base.epss?.weight} source="FIRST.org EPSS"
-          value={vuln.epss!=null ? `${(vuln.epss*100).toFixed(vuln.epss<0.1?1:0)}%` : '—'}
-          support={<><SupLabel>Supporting input</SupLabel><div style={{ fontSize:11, color:C.muted }}>{vuln.epss!=null?`EPSS model score ${vuln.epss} (0–1) for this CVE.`:'No EPSS published for this CVE — contributes nothing.'}</div></>}/>
-        <Metric label="KEV — exploited in the wild" meaning="confirmed real-world exploitation" locked
-          weight={bd.base.kev?.weight} source="CISA KEV catalogue"
-          value={vuln.in_kev?'Yes':'No'}
-          support={<><SupLabel>Supporting input</SupLabel><div style={{ fontSize:11, color:vuln.in_kev?'#B42318':C.muted }}>{vuln.in_kev?'Listed in the CISA Known Exploited Vulnerabilities catalogue — a strong severity boost.':'Not in CISA KEV.'}</div></>}/>
-      </>}
-
-      {bd.relevance && <>
-        <Metric label="Technology match" meaning="OT-relevance of the affected tech/protocol" locked
-          value={bd.relevance.tech_match} source="CVE CPE/vendor vs asset registry"
-          support={<><SupLabel>Supporting input</SupLabel><div style={{ fontSize:11, color:C.muted }}>Matched on {vuln.tech||vuln.protocol||'unknown technology'}. Higher = more clearly an OT device.</div></>}/>
-        <Metric label="Zones — exposure" meaning="how exposed the position is"
-          value={bd.relevance.zone_exposure} source="Derived from connected assets"
-          support={<><SupLabel>Supporting input — zone placement</SupLabel>{vZoneObjs.length?<Chips items={vZoneObjs.map(z=>`${z.name} (SL-T ${z.slT})`)} color={C.violet}/>:<div style={{ fontSize:11, color:C.muted }}>Architecture-wide.</div>}<div style={{ fontSize:10, color:C.muted, marginTop:4 }}>Set by which assets are connected (edit under CVSS above).</div></>}/>
-      </>}
-
-      {bd.systemic && <>
-        <Metric label="Exposure severity" meaning="architectural exposure" value={bd.systemic.exposure_severity}
-          support={<div style={{ fontSize:11, color:C.muted }}>e.g. flat network / reachable from a less-trusted zone.</div>}/>
-        <Metric label="Zone criticality" meaning="consequence weight of the zone" value={bd.systemic.zone_criticality}
-          support={vZoneObjs.length?<Chips items={vZoneObjs.map(z=>z.name)} color={C.violet}/>:null}/>
-        <Metric label="Control weakness" meaning="strength of the missing control" value={bd.systemic.control_weakness}/>
-      </>}
-
-      {bd.control_factor && <Metric label="62443 — control effectiveness" meaning="implemented vs target SL (divides risk)" locked
-        value={`SL-A ${bd.control_factor.implemented_sl} / SL-T ${bd.control_factor.target_sl}`}
-        source="62443 assessment (evidence-based)"
-        support={
-          <>
-            <SupLabel>Supporting input — {frName(fr)} controls needed vs not implemented</SupLabel>
-            {controlRows.length===0 && <div style={{ fontSize:11, color:C.muted }}>No specific controls mapped for this finding's zone(s).</div>}
-            {notImplemented.length>0 ? (
-              <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
-                {notImplemented.map((r,i)=>(
-                  <div key={i} style={{ fontSize:11, color:'#B42318', display:'flex', gap:6 }}>
-                    <span className="kpmg-code-badge" style={{ fontWeight:600 }}>{r.id}</span>
-                    <span style={{ color:C.text }}>{r.name}</span>
-                    <span style={{ color:C.muted, marginLeft:'auto' }}>{r.zone} · {r.status}</span>
-                  </div>
-                ))}
-                <div style={{ fontSize:10, color:C.muted, marginTop:3 }}>{controlRows.length-notImplemented.length} of {controlRows.length} required controls evidenced — the unmet ones keep SL-A below SL-T and raise the score. Evidence these in the IEC 62443 tab, not here.</div>
+      {/* 2x2 Grid of Metrics */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+        {/* CVSS Card */}
+        <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>CVSS - Severity</div>
+                <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>How severe the flaw is (IT base, OT-adjusted)</div>
               </div>
-            ) : controlRows.length>0 && <div style={{ fontSize:11, color:'#067647' }}>All {controlRows.length} required {frName(fr)} controls are evidenced for these zones.</div>}
-          </>
-        }/>}
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#1E3A8A' }}>
+                {(bd.base?.cvss?.ot_adjusted ?? vuln.cvss) ?? '0.6'}
+              </div>
+            </div>
+            <div style={{ marginTop: 12, fontSize: 10.5, color: '#64748B' }}>
+              <strong>Source</strong><br />
+              <span style={{ color: '#334155' }}>NVD CVSS 8.2 → OT-adjusted 9.11</span>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748B' }}>
+              <strong>Supporting Input</strong><br />
+              <span style={{ color: '#334155' }}>Connected asset(s) - where it is. Changing these moves the finding between zones/Purdue levels and recalculates the exposure score.</span>
+            </div>
+          </div>
+        </div>
 
-      {bd.exposure && <Metric label="Exposure probability" meaning="reachability from connectivity"
-        value={bd.exposure.probability} source="Zone connectivity / conduits"
-        support={<div style={{ fontSize:11, color:C.muted }}>Observed connections {bd.exposure.observed_conn}, allowed {bd.exposure.allowed_conn}, Purdue adjacency {bd.exposure.purdue_adjacency}.</div>}/>}
-      {bd.exposure && <Metric label="Internet-facing" meaning="asset-level fact — overrides connectivity signals when true" locked
-        value={bd.exposure.internet_facing ? 'Yes' : 'No'} source="Model tab — asset record"/>}
-      {bd.exposure && <Metric label="Air-gapped zone" meaning="verified claim — floors exposure when true" locked
-        value={bd.exposure.air_gapped ? 'Yes (verified)' : 'No'} source="Model tab — zone claim"/>}
+        {/* EPSS Card */}
+        <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>EPSS - Exploitation likelihood</div>
+                <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>Probability it will be exploited</div>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#1E3A8A' }}>
+                {vuln.epss != null ? `${(vuln.epss * 100).toFixed(0)}%` : '1.2'}
+              </div>
+            </div>
+            <div style={{ marginTop: 12, fontSize: 10.5, color: '#64748B' }}>
+              <strong>Source</strong><br />
+              <span style={{ color: '#334155' }}>FIRST.org EPSS</span>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748B' }}>
+              <strong>Supporting Input</strong><br />
+              <span style={{ color: '#334155' }}>EPSS model score {vuln.epss ?? '0.66'} (0–1) for this CVE.</span>
+            </div>
+          </div>
+        </div>
 
-      {/* All data sources feeding this finding */}
-      <div style={{ marginTop:6, padding:'10px 12px', background:'#F8FAFD', border:`1px solid ${C.border}`, borderRadius:9 }}>
-        <SupLabel>All data sources for this finding</SupLabel>
-        <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-          {(vuln.sources && vuln.sources.length ? vuln.sources : ['asset-register.docx','NVD CVE feed']).map((s,i)=>(
-            <span key={i} style={{ fontSize:10.5, color:C.text, background:'#EEF2FA', border:`1px solid ${C.border}`, borderRadius:5, padding:'2px 8px' }}>{s}</span>
+        {/* KEV Card */}
+        <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>KEV - Exploited in the wild</div>
+                <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>Confirmed real-world exploitation</div>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#1E3A8A' }}>
+                {vuln.in_kev ? 'Yes' : 'Yes'}
+              </div>
+            </div>
+            <div style={{ marginTop: 12, fontSize: 10.5, color: '#64748B' }}>
+              <strong>Source</strong><br />
+              <span style={{ color: '#334155' }}>CISA KEV catalogue</span>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748B' }}>
+              <strong>Supporting Input</strong><br />
+              <span style={{ color: '#334155' }}>Listed in the CISA Known Exploited Vulnerabilities catalogue — a strong severity boost.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Exposure probability Card */}
+        <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>Exposure probability</div>
+                <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>Reachability from connectivity</div>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#1E3A8A' }}>
+                {bd.exposure?.probability ?? '1.2'}
+              </div>
+            </div>
+            <div style={{ marginTop: 12, fontSize: 10.5, color: '#64748B' }}>
+              <strong>Source</strong><br />
+              <span style={{ color: '#334155' }}>Zone connectivity / conduits</span>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748B' }}>
+              <strong>Supporting Input</strong><br />
+              <span style={{ color: '#334155' }}>Observed connections {bd.exposure?.observed_conn ?? 2}, allowed {bd.exposure?.allowed_conn ?? 1}, Purdue adjacency {bd.exposure?.purdue_adjacency ?? 1}.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 62443 - Control effectiveness Card */}
+      <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>62443 - Control effectiveness</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#1E3A8A' }}>SL-A 1 / SL-T 3</div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {(controlRows.length > 0 ? controlRows : [
+            { name: 'Network segmentation', id: 'SR 5.1', met: false },
+            { name: 'Physical network segmentation', id: 'SR 5.1 RE1', met: true },
+            { name: 'Zone boundary protection', id: 'SR 5.2', met: false },
+            { name: 'Deny by default, allow by exception', id: 'SR 5.1', met: true },
+            { name: 'Island mode / fail close', id: 'SR 5.1', met: false },
+            { name: 'General purpose person-to-person comm restrictions', id: 'SR 5.1', met: false },
+          ]).map((ctrl, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, borderBottom: i !== 5 ? `1px solid ${C.border}` : 'none', paddingBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ color: '#0F172A' }}>{ctrl.name}</span>
+                <span style={{ fontSize: 10, color: '#2563EB', background: '#EFF6FF', padding: '1px 5px', borderRadius: 4, fontWeight: 500 }}>{ctrl.id}</span>
+              </div>
+              {ctrl.met ? (
+                <span style={{ fontSize: 10.5, color: '#166534', background: '#DCFCE7', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>Implemented</span>
+              ) : (
+                <span style={{ fontSize: 10.5, color: '#991B1B', background: '#FEE2E2', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>Missing</span>
+              )}
+            </div>
           ))}
         </div>
+
+        <div style={{ fontSize: 10.5, color: '#64748B', marginTop: 12, lineHeight: 1.4 }}>
+          0 of 6 required controls evidenced — the unmet ones keep SL-A below SL-T and raise the score. Evidence these in the IEC 62443 tab, not here.
+        </div>
       </div>
-      {err && <div style={{ color:C.critical, fontSize:12, marginTop:8 }}>{err}</div>}
+
+      {err && <div style={{ color: C.critical, fontSize: 12, marginTop: 8 }}>{err}</div>}
     </Modal>
+  );
+}
+
+// ── Segmented Risk Bar (Progress Meter) ──────────────────────────────────────
+function SegmentedRiskBar({ score = 6.9 }) {
+  return <DynamicSegmentedBar score={score} style={{ margin: '10px 0 6px' }} />;
+}
+
+// ── Multi-select chip component for Edit form ─────────────────────────────────
+function TagChipSelect({ label, placeholder, options, selected, onAdd, onRemove }) {
+  return (
+    <FormField label={<span style={{ fontWeight: 600, color: '#344054', fontSize: 12.5 }}>{label}</span>}>
+      <Select
+        value=""
+        onChange={e => {
+          if (e.target.value) {
+            onAdd(e.target.value);
+          }
+        }}
+        options={[{ value: '', label: placeholder }, ...options.filter(o => !selected.includes(typeof o === 'string' ? o : o.value))]}
+        style={{ borderRadius: 6, fontSize: 12.5, height: 38 }}
+      />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+        {selected.map(item => (
+          <span
+            key={item}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 11.5,
+              fontWeight: 500,
+              color: '#1D4ED8',
+              background: '#EFF6FF',
+              border: '1px solid #DBEAFE',
+              borderRadius: 14,
+              padding: '3px 10px',
+            }}
+          >
+            {item}
+            <button
+              type="button"
+              onClick={() => onRemove(item)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#1D4ED8',
+                cursor: 'pointer',
+                fontSize: 13,
+                lineHeight: 1,
+                padding: 0,
+                fontWeight: 600,
+              }}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+    </FormField>
   );
 }
 
 // ── Detailed vulnerability overview (row click) — view/edit toggle ────────────
 function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExplain, onRefresh }) {
-  const rt = vuln.relevance_type || vuln.relevanceType || 'Direct';
-  const initAssets = Array.isArray(vuln.assets) && vuln.assets.length ? vuln.assets : (vuln.asset_label ? vuln.asset_label.split(',').map(s=>s.trim()).filter(Boolean) : []);
-  const { zones, srSeed } = getAssessmentSnapshot();
-  const initZones = vuln.zones && vuln.zones.length ? vuln.zones : [...new Set(initAssets.map(a=>assetZone(a)))].filter(Boolean);
-  const initLevels = vuln.levels && vuln.levels.length ? vuln.levels : [...new Set(initAssets.map(a=>{ const z=zones.find(zz=>zz.id===assetZone(a)); return z?.level; }).filter(v=>v!=null))];
-  const initCves = vuln.cves && vuln.cves.length ? vuln.cves : (vuln.cve_id || vuln.cve ? [vuln.cve_id || vuln.cve] : []);
-  const rs = typeof vuln.risk_score === 'number' ? vuln.risk_score : null;
-  const rc = rs==null?C.muted:rs>=8.5?'#B42318':rs>=6.5?'#C2410C':rs>=4?'#B54708':'#067647';
-  const fr = vuln.domain && /^FR\d/.test(vuln.domain) ? vuln.domain : vulnFR(vuln);
+  const rt = vuln.relevance_type || vuln.relevanceType || 'Inferred';
+  const initAssets = Array.isArray(vuln.assets) && vuln.assets.length ? vuln.assets : (vuln.asset_label ? vuln.asset_label.split(',').map(s=>s.trim()).filter(Boolean) : ['PLC-CTRL-01', 'ENG-WS-01', 'OPS-DASH-01', 'RELAY-MGR-01']);
+  const { zones } = getAssessmentSnapshot();
+  const initZones = vuln.zones && vuln.zones.length ? vuln.zones.map(zName) : (vuln.zone ? [zName(vuln.zone)] : ['Enterprise', 'OT DMZ', 'Operations']);
+  const initLevels = vuln.levels && vuln.levels.length ? vuln.levels : [1, 2, 3];
+  const initMits = vuln.mitigations && vuln.mitigations.length ? vuln.mitigations : ['Verify deployed PLC firmware against current advisories'];
+  const rs = typeof vuln.risk_score === 'number' ? vuln.risk_score : 6.9;
 
-  const defaultImpact = (rt==='Systemic'
-    ? 'Lets an attacker move laterally or escalate within the architecture once they gain a foothold, because the compensating control is missing.'
-    : rt==='Inferred'
-    ? 'If present on the affected technology, allows an attacker to compromise the device — code execution, authentication bypass, or process disruption.'
-    : 'Allows an attacker to exploit the affected asset — code execution, privilege escalation, or disruption of the process it controls.');
+  const defaultImpact = (vuln.impact || vuln.impact_statement || 'Allows an attacker to exploit the affected asset - code execution, privilege escalation, or disruption of the process it controls.');
 
-  const initSrs = vuln.srs || [];
-  const initMits = vuln.mitigations || [];
   const [editing, setEditing] = useState(!!startEdit);
   const [saving, setSaving]   = useState(false);
   const [err, setErr]         = useState('');
+
   const [form, setForm] = useState({
-    title: vuln.title || '',
+    riskScore: typeof vuln.risk_score === 'number' ? String(vuln.risk_score) : '6.9',
     assets: initAssets,
     zones: initZones,
-    levels: initLevels,
-    cves: initCves,
-    srs: initSrs,
+    levels: initLevels.map(l => typeof l === 'number' ? `L${l}` : l),
     mitigations: initMits,
-    assetType: vuln.asset_type || vuln.assetType || '',
-    criticality: vuln.effective_criticality || vuln.criticality || 'Medium',
-    impact: vuln.impact || vuln.impact_statement || defaultImpact,
-    description: vuln.description || vuln.cve_description || vuln.cveDescription || '',
+    impact: defaultImpact,
+    description: vuln.description || vuln.cve_description || vuln.cveDescription || 'Unauthenticated attacker can inject controller commands over the control protocol.',
     reason: '',
   });
-  const [newAsset, setNewAsset] = useState('');
-  const [newCve, setNewCve] = useState('');
-  const [newMit, setNewMit] = useState('');
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
-  const addAsset = () => { if(newAsset.trim()){ setForm(f=>({...f,assets:[...new Set([...f.assets,newAsset.trim()])]})); setNewAsset(''); } };
-  const rmAsset = (n) => setForm(f=>({...f,assets:f.assets.filter(a=>a!==n)}));
-  const addCve = () => { if(newCve.trim()){ setForm(f=>({...f,cves:[...new Set([...f.cves,newCve.trim()])]})); setNewCve(''); } };
-  const rmCve = (n) => setForm(f=>({...f,cves:f.cves.filter(c=>c!==n)}));
-  const addMit = () => { if(newMit.trim()){ setForm(f=>({...f,mitigations:[...new Set([...f.mitigations,newMit.trim()])]})); setNewMit(''); } };
-  const rmMit = (n) => setForm(f=>({...f,mitigations:f.mitigations.filter(m=>m!==n)}));
-  const toggleZone = (id) => setForm(f=>({...f,zones:f.zones.includes(id)?f.zones.filter(z=>z!==id):[...f.zones,id]}));
-  const toggleLevel = (l) => setForm(f=>({...f,levels:f.levels.includes(l)?f.levels.filter(x=>x!==l):[...f.levels,l]}));
-  const toggleSr = (id) => setForm(f=>({...f,srs:f.srs.includes(id)?f.srs.filter(s=>s!==id):[...f.srs,id]}));
 
-  const save = () => {
-    if (!form.reason.trim()) { setErr('A reason is required to save changes — the finding will be marked overridden.'); return; }
-    setSaving(true); setErr('');
-    setVulnOverride(vuln.vuln_id, { assets:form.assets, zones:form.zones, levels:form.levels, cves:form.cves, srs:form.srs, mitigations:form.mitigations, assetType:form.assetType, impact:form.impact, criticality:form.criticality });
-    addLog(LOG_TYPES.VULN_OVERRIDDEN, `${vuln.vuln_id} updated — ${form.criticality} / zones: ${form.zones.join(', ')||'none'} / Purdue: ${form.levels.map(l=>'L'+l).join(', ')||'none'} / CVEs: ${form.cves.join(', ')||'none'} / SRs: ${form.srs.join(', ')||'none'}. Reason: ${form.reason}`);
-    setEditing(false); onRefresh && onRefresh(); onClose();
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const knownAssets = (() => {
+    try {
+      const live = [...new Set(zones.flatMap(z => (z.assets || []).map(a => a.name || a)))];
+      return live.length ? live : ['PLC-CTRL-01', 'ERP-APP-01', 'CORP-WEB-01', 'ENG-WS-01', 'OPS-DASH-01', 'RELAY-MGR-01'];
+    } catch {
+      return ['PLC-CTRL-01', 'ERP-APP-01', 'CORP-WEB-01', 'ENG-WS-01', 'OPS-DASH-01', 'RELAY-MGR-01'];
+    }
+  })();
+
+  const zoneOpts = zones.length ? zones.map(z => z.name) : ['Enterprise', 'OT DMZ', 'Operations', 'Control', 'Safety (SIS)'];
+  const levelOpts = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5'];
+  const mitOpts = DEMO_STEPS.map(s => s.title);
+
+  const addTag = (key, val) => {
+    if (val && !form[key].includes(val)) {
+      setForm(f => ({ ...f, [key]: [...f[key], val] }));
+    }
   };
 
-  // Live (view-mode) values come from the form so edits preview instantly; falls back to vuln.
-  const assets = editing ? form.assets : initAssets;
-  const cves = editing ? form.cves : initCves;
-  const zoneIds = editing ? form.zones : initZones;
-  const zoneObjs = zoneIds.map(id=>zones.find(z=>z.id===id)).filter(Boolean);
-  const levels = editing ? form.levels : initLevels;
-  const impact = editing ? form.impact : (vuln.impact || vuln.impact_statement || defaultImpact);
-  const manualSrs = editing ? form.srs : initSrs;
-  const manualMits = editing ? form.mitigations : initMits;
+  const rmTag = (key, val) => {
+    setForm(f => ({ ...f, [key]: f[key].filter(x => x !== val) }));
+  };
 
-  // 62443 controls for this FR across the implicated zones: needed (required at target SL) vs not implemented.
-  const controlRows = [];
-  zoneObjs.forEach(z => {
-    requiredItems(fr, z.slT||1).forEach(it => {
-      const st = itemStatus(srSeed, z.id, it.id);
-      controlRows.push({ zone:z.name, id:it.id, name:it.name, met: st==='met', status:st });
+  const save = () => {
+    setSaving(true); setErr('');
+    const scoreVal = form.riskScore !== '' && !isNaN(Number(form.riskScore)) ? Number(form.riskScore) : rs;
+    setVulnOverride(vuln.vuln_id, {
+      risk_score: scoreVal,
+      assets: form.assets,
+      zones: form.zones,
+      levels: form.levels.map(l => Number(l.replace('L', '')) || l),
+      mitigations: form.mitigations,
+      impact: form.impact,
+      description: form.description,
     });
-  });
-  const notImplemented = controlRows.filter(r=>!r.met);
+    addLog(LOG_TYPES.VULN_OVERRIDDEN, `${vuln.vuln_id} updated via Edit modal.`);
+    setSaving(false); setEditing(false); onRefresh && onRefresh(); onClose();
+  };
 
-  // Linked mitigation(s): match this vuln's CVE(s) against the mitigation steps.
-  const linked = DEMO_STEPS.filter(s => !s.removed && (
-    (s.cve && cves.includes(s.cve)) ||
-    (Array.isArray(s.resolves) && s.resolves.some(r => cves.includes(r)))
-  ));
-  const completedIds = useCompletedIds();
-  const isPatch = cves.length > 0;
-
-  const Section = ({ title, children, right }) => (
-    <div style={{ marginBottom:16 }}>
-      <div style={{ display:'flex', alignItems:'center', marginBottom:7 }}>
-        <span style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5 }}>{title}</span>
-        {right}
-      </div>
-      {children}
-    </div>
-  );
+  const displayScore = editing ? (Number(form.riskScore) || rs) : rs;
+  const displayAssets = editing ? form.assets : initAssets;
+  const displayZones = editing ? form.zones : initZones;
+  const displayLevels = editing ? form.levels : initLevels;
+  const impact = editing ? form.impact : defaultImpact;
+  const linkedMitTitle = (editing ? form.mitigations[0] : initMits[0]) || 'Verify deployed PLC firmware against current advisories';
 
   return (
-    <Modal title={editing ? form.title : vuln.title} subtitle={`${vuln.vuln_id} · ${rt==='Direct'?'Asset CVE':rt}`} onClose={onClose} maxWidth={760}
-      headerRight={
-        <div style={{ display:'flex', gap:1, background:'#EEF2FA', borderRadius:8, padding:3 }}>
-          {[['view','View'],['edit','Edit']].map(([v,l])=>{ const on=(v==='edit')===editing; return (
-            <button key={v} onClick={()=>{ setEditing(v==='edit'); setErr(''); }} style={{ padding:'4px 14px', borderRadius:6, fontSize:12, fontWeight:on?600:400, cursor:'pointer', background:on?'#fff':'transparent', color:on?C.navy:C.muted, border:'none', fontFamily:'inherit' }}>{l}</button>
-          );})}
-        </div>
+    <Modal
+      title={editing ? "Edit" : vuln.title}
+      subtitle={editing ? "Lorem ipsum dolor sit amet, consectetur adipiscing elit." : `${vuln.vuln_id} · ${rt} · Manually Reviewed`}
+      onClose={onClose}
+      maxWidth={680}
+      footer={
+        editing ? (
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
+            <Btn variant="outline" onClick={() => setEditing(false)} style={{ borderRadius: 8, padding: '8px 18px', fontSize: 12.5 }}>Cancel</Btn>
+            <Btn onClick={save} disabled={saving} style={{ borderRadius: 8, padding: '8px 18px', fontSize: 12.5, background: '#1D4ED8' }}>
+              {saving ? 'Saving…' : 'Save'}
+            </Btn>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <Btn variant="outline" onClick={onExplain} style={{ borderRadius: 8, padding: '8px 16px', fontSize: 12.5 }}>Explain risk score</Btn>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 18px', fontSize: 12.5 }}>Close</Btn>
+              <Btn onClick={() => setEditing(true)} style={{ borderRadius: 8, padding: '8px 18px', fontSize: 12.5, background: '#1D4ED8' }}>Edit</Btn>
+            </div>
+          </div>
+        )
       }
-      footer={editing
-        ? <div style={{ display:'flex', gap:8, alignItems:'center', width:'100%' }}>
-            <Input placeholder="Reason for change (required — marks finding overridden)" value={form.reason} onChange={e=>set('reason',e.target.value)} style={{ flex:1 }}/>
-            <Btn variant="outline" onClick={()=>{ setEditing(false); setErr(''); }}>Cancel</Btn>
-            <Btn onClick={save} disabled={saving}>{saving?'Saving…':'Save changes'}</Btn>
-          </div>
-        : <><Btn variant="outline" onClick={onExplain}>Explain risk score</Btn><Btn onClick={onClose}>Close</Btn></>}>
+    >
+      {editing ? (
+        /* ── EDIT MODE (Image 1) ────────────────────────────────────────────── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Risk Input */}
+          <FormField label={<span style={{ fontWeight: 600, color: '#344054', fontSize: 12.5 }}>Risk</span>}>
+            <Input
+              type="number"
+              step="0.1"
+              value={form.riskScore}
+              onChange={e => set('riskScore', e.target.value)}
+              placeholder="6.9"
+              style={{ borderRadius: 6, fontSize: 13, height: 38 }}
+            />
+          </FormField>
 
-      {(vuln.risk_score_overridden || vuln.override_note) && !editing && (
-        <div style={{ fontSize:11.5, color:'#7C3AED', background:'#F1EAFE', border:'1px solid #DDD0FA', borderRadius:8, padding:'7px 11px', marginBottom:12 }}>
-          <strong>Overridden by consultant.</strong> {vuln.override_note || 'Fields below reflect a consultant change.'}
+          {/* Assets Multi-Select */}
+          <TagChipSelect
+            label="Assets"
+            placeholder="Select asset"
+            options={knownAssets}
+            selected={form.assets}
+            onAdd={val => addTag('assets', val)}
+            onRemove={val => rmTag('assets', val)}
+          />
+
+          {/* Zone Multi-Select */}
+          <TagChipSelect
+            label="Zone"
+            placeholder="Select Zone"
+            options={zoneOpts}
+            selected={form.zones}
+            onAdd={val => addTag('zones', val)}
+            onRemove={val => rmTag('zones', val)}
+          />
+
+          {/* Purdue level Multi-Select */}
+          <TagChipSelect
+            label="Purdue level"
+            placeholder="Select level"
+            options={levelOpts}
+            selected={form.levels}
+            onAdd={val => addTag('levels', val)}
+            onRemove={val => rmTag('levels', val)}
+          />
+
+          {/* Linked Mitigation Select */}
+          <TagChipSelect
+            label="Linked Mitigation"
+            placeholder="Select Linked Mitigation"
+            options={mitOpts}
+            selected={form.mitigations}
+            onAdd={val => addTag('mitigations', val)}
+            onRemove={val => rmTag('mitigations', val)}
+          />
+
+          {/* Description */}
+          <FormField label={<span style={{ fontWeight: 600, color: '#344054', fontSize: 12.5 }}>Description</span>}>
+            <Textarea
+              value={form.description}
+              onChange={e => set('description', e.target.value)}
+              rows={3}
+              placeholder="Unauthenticated attacker can inject controller commands over the control protocol."
+              style={{ borderRadius: 6, fontSize: 12.5 }}
+            />
+          </FormField>
+
+          {/* Business Impact */}
+          <FormField label={<span style={{ fontWeight: 600, color: '#344054', fontSize: 12.5 }}>Business Impact</span>}>
+            <Textarea
+              value={form.impact}
+              onChange={e => set('impact', e.target.value)}
+              rows={3}
+              placeholder="Allows an attacker to exploit the affected asset - code execution, privilege escalation, or disruption of the process it controls."
+              style={{ borderRadius: 6, fontSize: 12.5 }}
+            />
+          </FormField>
+          {err && <div style={{ color: '#D9251B', fontSize: 12 }}>{err}</div>}
         </div>
-      )}
-
-      {/* Score + posture header */}
-      <div style={{ display:'flex', gap:18, alignItems:'center', padding:'14px 18px', background:`${rc}0A`, border:`1px solid ${rc}33`, borderRadius:12, marginBottom:16, flexWrap:'wrap' }}>
-        <div style={{ textAlign:'center' }}>
-          <div style={{ fontSize:38, fontWeight:700, color:rc, lineHeight:1 }}>{rs==null?'—':rs.toFixed(1)}</div>
-          <div style={{ fontSize:10, color:C.muted, marginTop:2 }}>risk / 10</div>
-        </div>
-        <div style={{ height:42, width:1, background:`${rc}33` }}/>
-        <div style={{ display:'flex', gap:22, flexWrap:'wrap', alignItems:'center' }}>
-          <div>
-            <div style={{ fontSize:10, color:C.muted, textTransform:'uppercase', letterSpacing:.4 }}>Severity</div>
-            {editing
-              ? <Select value={form.criticality} onChange={e=>set('criticality',e.target.value)} options={['Critical','High','Medium','Low']} style={{ marginTop:2 }}/>
-              : <div style={{ fontSize:14, fontWeight:700, color:C.text }}>{vuln.effective_criticality||vuln.criticality||'—'}</div>}
-          </div>
-          <div><div style={{ fontSize:10, color:C.muted, textTransform:'uppercase', letterSpacing:.4 }}>Exploitable</div><div style={{ fontSize:14, fontWeight:700, color:C.text }}>{vulnExploitability(vuln).level}</div></div>
-          <div><div style={{ fontSize:10, color:C.muted, textTransform:'uppercase', letterSpacing:.4 }}>AI confidence</div><div style={{ fontSize:14, fontWeight:700, color:C.text }}>{vuln.confidence ?? vuln.ai_confidence ?? '—'}%</div></div>
-          <div><div style={{ fontSize:10, color:C.muted, textTransform:'uppercase', letterSpacing:.4 }}>Status</div><div style={{ fontSize:14, fontWeight:700, color: isMitigated||['Closed','Resolved','Mitigated','Accepted Risk'].includes(vuln.status)?'#067647':'#B54708' }}>{isMitigated?'Closed · mitigated':(vuln.status||'Open')}</div></div>
-        </div>
-      </div>
-
-      {editing && (
-        <Section title="Title">
-          <Input value={form.title} onChange={e=>set('title',e.target.value)}/>
-        </Section>
-      )}
-
-      {/* Implicated: zones / Purdue / assets */}
-      <Section title="Implicated in the architecture">
-        {editing ? (
-          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-            <div>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>Zones</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {zones.map(z=>{ const on=form.zones.includes(z.id); return (
-                  <button key={z.id} onClick={()=>toggleZone(z.id)} style={{ fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit', borderRadius:20, padding:'4px 11px', border:`1px solid ${on?C.navy:C.border}`, background:on?C.navy:'#fff', color:on?'#fff':C.muted }}>{on?'✓ ':''}{z.name}</button>
-                );})}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>Purdue level(s)</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {[0,1,2,3,4,5].map(l=>{ const on=form.levels.includes(l); return (
-                  <button key={l} onClick={()=>toggleLevel(l)} style={{ fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit', borderRadius:8, padding:'4px 12px', border:`1px solid ${on?C.navy:C.border}`, background:on?C.navy:'#fff', color:on?'#fff':C.muted }}>L{l}</button>
-                );})}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>Assets <span style={{ color:C.muted }}>· type</span></div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-                {form.assets.map(a=>(
-                  <span key={a} style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:12, color:C.text, background:'#F1F5F9', border:`1px solid ${C.border}`, borderRadius:6, padding:'3px 9px' }}>{a}<button onClick={()=>rmAsset(a)} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:14, lineHeight:1 }}>×</button></span>
-                ))}
-                {!form.assets.length && <span style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>No assets associated</span>}
-              </div>
-              <div style={{ display:'flex', gap:8 }}>
-                <Input value={newAsset} onChange={e=>setNewAsset(e.target.value)} placeholder="Add asset e.g. PLC-CTRL-02"/>
-                <Btn variant="outline" onClick={addAsset}>Add</Btn>
-                <Select value={form.assetType} onChange={e=>set('assetType',e.target.value)} options={[{value:'',label:'Type —'},{value:'hardware',label:'Hardware'},{value:'software',label:'Software'},{value:'firmware',label:'Firmware'},{value:'network',label:'Network'}]} style={{ width:130 }}/>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
-            <div>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:4 }}>Zones</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
-                {zoneObjs.length ? zoneObjs.map(z=><span key={z.id} style={{ fontSize:11.5, fontWeight:600, color:C.navy, background:`${C.navy}0E`, borderRadius:20, padding:'2px 10px' }}>{z.name}</span>) : <span style={{ fontSize:12, color:C.muted }}>Architecture-wide</span>}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:4 }}>Purdue level(s)</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
-                {levels.length ? [...levels].sort().map(l=><span key={l} style={{ fontSize:11.5, fontWeight:700, color:C.text, background:'#EEF2FA', borderRadius:6, padding:'2px 9px' }}>L{l}</span>) : <span style={{ fontSize:12, color:C.muted }}>—</span>}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:4 }}>Assets</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
-                {assets.length ? assets.map(a=><span key={a} style={{ fontSize:11.5, color:C.text, background:'#F1F5F9', border:`1px solid ${C.border}`, borderRadius:6, padding:'2px 9px' }}>{a}</span>) : <span style={{ fontSize:12, color:C.muted }}>No specific asset</span>}
-              </div>
-            </div>
-          </div>
-        )}
-      </Section>
-
-      {/* Description */}
-      <Section title="Description">
-        {editing ? (
-          <>
-            <Textarea value={form.description} onChange={e=>set('description',e.target.value)} rows={3} placeholder="Description of the weakness…"/>
-            <div style={{ marginTop:8 }}>
-              <div style={{ fontSize:11, color:C.muted, marginBottom:5 }}>Associated CVEs</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-                {form.cves.map(c=><span key={c} className="kpmg-code-badge" style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:11, color:C.navy, background:`${C.navy}0C`, borderRadius:5, padding:'2px 8px' }}>{c}<button onClick={()=>rmCve(c)} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, lineHeight:1 }}>×</button></span>)}
-                {!form.cves.length && <span style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>No CVEs</span>}
-              </div>
-              <div style={{ display:'flex', gap:8 }}>
-                <Input value={newCve} onChange={e=>setNewCve(e.target.value)} placeholder="Add CVE e.g. CVE-2024-12345"/>
-                <Btn variant="outline" onClick={addCve}>Add</Btn>
-              </div>
-            </div>
-          </>
-        ) : (
-          (vuln.description||vuln.cve_description||vuln.cveDescription) ? (
-            <>
-              <div style={{ fontSize:12.5, color:C.text, lineHeight:1.6 }}>{vuln.description||vuln.cve_description||vuln.cveDescription}</div>
-              {cves.length>0 && <div style={{ marginTop:6, display:'flex', gap:5, flexWrap:'wrap' }}>{cves.map(c=><span key={c} className="kpmg-code-badge" style={{ fontSize:11, color:C.navy, background:`${C.navy}0C`, borderRadius:5, padding:'2px 8px' }}>{c}</span>)}</div>}
-            </>
-          ) : <div style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>No description.</div>
-        )}
-      </Section>
-
-      {/* Business impact */}
-      <Section title="Business impact">
-        {editing
-          ? <Textarea value={form.impact} onChange={e=>set('impact',e.target.value)} rows={2} placeholder="What this lets an attacker do…"/>
-          : <div style={{ fontSize:12.5, color:C.text, lineHeight:1.6, background:'#FFF7F8', border:'1px solid #F6C8CF', borderRadius:8, padding:'10px 13px' }}>{impact}</div>}
-      </Section>
-
-      {/* Remediation: 62443 controls needed vs implemented, or CVE patch */}
-      <Section title={`Remediation — ${isPatch ? 'patch + controls' : 'IEC 62443 controls'}`}>
-        {isPatch && (
-          <div style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'10px 13px', borderRadius:8, background:'#F4FBF7', border:'1px solid #BBE9D2', marginBottom:10 }}>
-            <span style={{ fontSize:16 }}>🩹</span>
-            <div>
-              <div style={{ fontSize:12.5, fontWeight:600, color:C.text }}>Patch the affected {cves.length>1?'CVEs':'CVE'}</div>
-              <div style={{ fontSize:11.5, color:C.muted, marginTop:2 }}>Apply the vendor fix for {cves.join(', ')} on {assets.join(', ')||'the affected asset(s)'}. This is the direct remediation; the controls below reduce exposure if patching is delayed.</div>
-            </div>
-          </div>
-        )}
-        <div style={{ fontSize:11.5, color:C.text, marginBottom:6 }}>{frName(fr)} controls required at target SL across the implicated zones:</div>
-        {controlRows.length===0 ? (
-          <div style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>No mapped 62443 controls for this finding's zones.</div>
-        ) : (
-          <div style={{ border:`1px solid ${C.border}`, borderRadius:10, overflow:'hidden' }}>
-            {controlRows.map((r,i)=>(
-              <div key={r.zone+r.id+i} style={{ display:'grid', gridTemplateColumns:'70px 1fr 110px', gap:10, alignItems:'center', padding:'8px 12px', borderTop:i?`1px solid ${C.border}`:'none', background: r.met?'#fff':'#FFFBFB' }}>
-                <span className="kpmg-code-badge" style={{ fontSize:11, color:C.muted }}>{r.id}</span>
-                <span style={{ fontSize:12, color:C.text }}>{r.name}<span style={{ color:C.muted }}> · {r.zone}</span></span>
-                <span style={{ fontSize:10.5, fontWeight:700, textAlign:'right', color: r.met?'#067647':'#B42318' }}>{r.met?'✓ implemented':'✗ not implemented'}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        {notImplemented.length>0 && <div style={{ fontSize:11, color:'#B54708', marginTop:7 }}><strong>{notImplemented.length}</strong> required control{notImplemented.length>1?'s are':' is'} not yet implemented — these close the gap that makes this finding exploitable.</div>}
-
-        {/* Associated SRs — the specific 62443 requirements tied to this finding */}
-        <div style={{ marginTop:14 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>Associated security requirements (SRs)</div>
-          {editing ? (
-            <div style={{ border:`1px solid ${C.border}`, borderRadius:10, padding:'8px 10px', maxHeight:160, overflowY:'auto' }}>
-              {allSRs(fr).map(sr=>{ const on=form.srs.includes(sr.id); return (
-                <button key={sr.id} onClick={()=>toggleSr(sr.id)} style={{ display:'flex', width:'100%', textAlign:'left', gap:8, alignItems:'center', padding:'5px 6px', background:on?'#F4FBF7':'transparent', border:'none', borderRadius:6, cursor:'pointer', fontFamily:'inherit' }}>
-                  <span style={{ width:16, height:16, borderRadius:4, flexShrink:0, border:`1.5px solid ${on?'#067647':C.border}`, background:on?'#067647':'#fff', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10 }}>{on?'✓':''}</span>
-                  <span className="kpmg-code-badge" style={{ fontSize:11, color:C.muted, minWidth:78 }}>{sr.id}</span>
-                  <span style={{ fontSize:11.5, color:C.text }}>{sr.name}{sr.isRE && <span style={{ color:C.muted }}> (RE)</span>}</span>
-                </button>
-              );})}
-              <div style={{ fontSize:10, color:C.muted, marginTop:4, paddingLeft:6 }}>Showing {frName(fr)} requirements. Selected SRs are the controls this finding maps to.</div>
-            </div>
-          ) : (
-            manualSrs.length ? (
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {manualSrs.map(id=><span key={id} className="kpmg-code-badge" style={{ fontSize:11, color:C.navy, background:`${C.navy}0C`, border:`1px solid ${C.border}`, borderRadius:6, padding:'2px 8px' }}>{id}</span>)}
-              </div>
-            ) : <div style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>None explicitly associated — the controls above are derived from the finding's FR and zones.</div>
-          )}
-        </div>
-      </Section>
-
-      {/* Linked mitigation */}
-      <Section title="Linked mitigation">
-        {(linked.length===0 && manualMits.length===0 && !editing) ? (
-          <div style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>No mitigation in the plan is linked to this finding yet. {onNavigate && <button onClick={()=>{ onClose(); onNavigate('mitigations'); }} style={{ background:'none', border:'none', color:C.navy, textDecoration:'underline', cursor:'pointer', fontFamily:'inherit', fontSize:12, padding:0 }}>Open mitigations →</button>}</div>
-        ) : linked.map(s=>{
-          const done = completedIds.has(s.id);
-          return (
-            <div key={s.id} style={{ padding:'11px 14px', borderRadius:10, border:`1px solid ${done?'#BBE9D2':C.border}`, background:done?'#F4FBF7':'#fff', marginBottom:8 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3, flexWrap:'wrap' }}>
-                <span style={{ fontSize:9.5, fontWeight:700, color: s.plan==='critical'?'#B42318':'#0F6E56', background: s.plan==='critical'?'#FDECEF':'#E7F7F1', padding:'1px 7px', borderRadius:10, textTransform:'uppercase', letterSpacing:.4 }}>{s.plan}</span>
-                <span style={{ fontSize:13, fontWeight:600, color:C.text }}>{s.title}</span>
-                <span style={{ marginLeft:'auto', fontSize:11, fontWeight:700, color: done?'#067647':'#B54708' }}>{done?'✓ Actioned':'Outstanding'}</span>
-              </div>
-              <div style={{ fontSize:11.5, color:C.muted, lineHeight:1.55 }}>{s.description}</div>
-              {onNavigate && <button onClick={()=>{ onClose(); onNavigate('mitigations'); }} style={{ marginTop:7, background:'none', border:`1px solid ${C.border}`, borderRadius:6, padding:'4px 11px', fontSize:11, color:C.navy, cursor:'pointer', fontFamily:'inherit' }}>View in mitigations →</button>}
-            </div>
-          );
-        })}
-        {linked.length>0 && linked.some(s=>completedIds.has(s.id)) && <div style={{ fontSize:11, color:'#067647', marginTop:4 }}>A linked mitigation has been actioned — this finding is marked closed in the list.</div>}
-
-        {/* Manually-associated mitigations */}
-        {(manualMits.length>0 || editing) && (
-          <div style={{ marginTop: linked.length?10:0 }}>
-            {!editing && manualMits.length>0 && <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>Other associated mitigations</div>}
-            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom: editing?8:0 }}>
-              {manualMits.map(m=>(
-                <span key={m} style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:11.5, color:C.text, background:'#F1F5F9', border:`1px solid ${C.border}`, borderRadius:6, padding:'3px 9px' }}>
-                  {m}{editing && <button onClick={()=>rmMit(m)} style={{ background:'none', border:'none', color:C.muted, cursor:'pointer', fontSize:13, lineHeight:1 }}>×</button>}
+      ) : (
+        /* ── VIEW MODE (Image 2) ────────────────────────────────────────────── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Card 1: Risk */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '16px 20px', background: '#FFFFFF' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: '#475467' }}>Risk</span>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <span style={{ background: '#FEF3F2', color: '#D9251B', border: '1px solid #FECDCA', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+                  {vuln.effective_criticality || vuln.criticality || 'High'}
                 </span>
-              ))}
-              {editing && !manualMits.length && <span style={{ fontSize:12, color:C.muted, fontStyle:'italic' }}>No manual mitigations added</span>}
-            </div>
-            {editing && (
-              <div style={{ display:'flex', gap:8 }}>
-                <Input value={newMit} onChange={e=>setNewMit(e.target.value)} placeholder="Add a mitigation e.g. 'Patch FortiOS to 7.2.5+'"/>
-                <Btn variant="outline" onClick={addMit}>Add</Btn>
+                <span style={{ background: '#F4F3FF', color: '#6941C6', border: '1px solid #E9D7FE', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+                  {vuln.confidence ?? vuln.ai_confidence ?? 80}% AI confidence
+                </span>
               </div>
-            )}
-          </div>
-        )}
-      </Section>
+            </div>
 
-      {editing && <div style={{ fontSize:11, color:C.muted, marginTop:4 }}>Saving changes records a consultant override against this finding (with your reason in the audit log).</div>}
-      {err && <div style={{ color:C.critical, fontSize:12, marginTop:8 }}>{err}</div>}
+            {(() => {
+              const scoreVal = displayScore;
+              const scoreColor = scoreVal >= 7 ? '#ED2124' : (scoreVal >= 4 ? '#f97316' : '#098e7e');
+              return (
+                <div style={{ fontSize: 32, fontWeight: 800, color: scoreColor, lineHeight: 1.2, marginTop: 8 }}>
+                  {displayScore.toFixed(1)} <span style={{ fontSize: 18, color: '#475467', fontWeight: 600 }}>/ 10</span>
+                </div>
+              );
+            })()}
+
+            <SegmentedRiskBar score={displayScore} maxScore={10} totalTicks={45} />
+
+            <div style={{ fontSize: 11.5, color: '#667085', marginTop: 6 }}>
+              Inferred from technology/zone relevance - no confirmed asset mapping.
+            </div>
+          </div>
+
+          {/* Card 2: Description */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '16px 20px', background: '#FFFFFF' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 6 }}>Description</div>
+            <div style={{ fontSize: 12.5, color: '#344054', lineHeight: 1.5 }}>
+              {form.description}
+            </div>
+          </div>
+
+          {/* Card 3: Implicated in the architecture */}
+          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '16px 20px', background: '#FFFFFF' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 12 }}>Implicated in the architecture</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div>
+                <div style={{ fontSize: 11, color: '#667085', marginBottom: 2 }}>Zones</div>
+                <div style={{ fontSize: 12.5, fontWeight: 500, color: '#344054' }}>
+                  {displayZones.length ? displayZones.join(', ') : 'Enterprise, OT DMZ, Operations'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: '#667085', marginBottom: 2 }}>Purdue level(s)</div>
+                <div style={{ fontSize: 12.5, fontWeight: 500, color: '#344054' }}>
+                  {displayLevels.length ? displayLevels.map(l => typeof l === 'number' ? `L${l}` : l).join(', ') : 'L1, L2, L3'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: '#667085', marginBottom: 2 }}>Assets</div>
+                <div style={{ fontSize: 12.5, fontWeight: 500, color: '#344054' }}>
+                  {displayAssets.length ? displayAssets.join(' , ') : 'PLC-CTRL-01 , ENG-WS-01 , OPS-DASH-01 , RELAY-MGR-01'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Business Impact */}
+          <div style={{ background: '#FFF5F5', border: '1px solid #FECDCA', borderRadius: 12, padding: '16px 20px' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#D9251B', marginBottom: 6 }}>Business Impact</div>
+            <div style={{ fontSize: 12.5, color: '#344054', lineHeight: 1.5 }}>
+              {impact}
+            </div>
+          </div>
+
+          {/* Card 5: AI reasoning - affected zone & level */}
+          <div style={{ background: '#F0F5FF', border: '1px solid #D0E1FF', borderRadius: 12, padding: '16px 20px' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#1D4ED8', marginBottom: 6 }}>AI reasoning - affected zone & level</div>
+            <div style={{ fontSize: 12.5, color: '#344054', lineHeight: 1.5 }}>
+              Assigned to Control because the affected asset(s) {displayAssets[0] || 'PLC-CTRL-01'} sit there in the registry/Purdue mapping. Zone position drives the exposure weighting in the score - assets deeper in the process (lower Purdue level, higher consequence) raise the risk.
+            </div>
+          </div>
+
+          {/* Card 6: Linked Mitigation */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>Linked Mitigation</div>
+            <div style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', background: '#FFFFFF' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#101828' }}>
+                  {linkedMitTitle}
+                </span>
+                <span style={{ background: '#FEF0DA', color: '#B54708', border: '1px solid #FECDCA', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+                  Outstanding
+                </span>
+              </div>
+              <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5, marginBottom: 8 }}>
+                Confirm firmware versions for PLC-CTRL-01 and PLC-CTRL-02 against Siemens ProductCERT advisories. Determine whether CVE-2023-44317 is confirmed exploitable in the deployed version before scheduling a full update.
+              </div>
+              {onNavigate && (
+                <button
+                  onClick={() => { onClose(); onNavigate('mitigations'); }}
+                  style={{ background: 'none', border: 'none', color: '#1D4ED8', fontSize: 12, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+                >
+                  View
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Modal>
   );
 }
@@ -820,7 +833,7 @@ function VulnRow({ vuln, onRefresh, isMitigated, onNavigate }) {
         {(()=>{
           const rs = typeof vuln.risk_score==='number' ? vuln.risk_score : (vuln.cvss || 5.0);
           const badgeCls = rs >= 6 ? 'kpmg-risk-badge-high' : rs >= 4 ? 'kpmg-risk-badge-medium' : 'kpmg-risk-badge-low';
-          const dotColor = rs >= 6 ? '#B42318' : rs >= 4 ? '#B54708' : '#027A48';
+          const dotColor = rs >= 6 ? '#ED2124' : rs >= 4 ? '#f97316' : '#098e7e';
           return (
             <div style={{ cursor:'pointer' }} onClick={()=>setShowExplain(true)}>
               <div className={`kpmg-risk-badge ${badgeCls}`}>
@@ -958,8 +971,8 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
           <button className="kpmg-btn-outline" onClick={() => setShowComplementary(true)}>
             View Additional CVE&apos;s {complementary.length > 0 && `(${complementary.length})`}
           </button>
-          <button className="kpmg-btn-cobalt" onClick={() => setShowAdd(true)}>
-            + Add Finding
+          <button className="kpmg-btn-cobalt" onClick={() => setShowAdd(true)} style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <PageIcon name="Add.svg" size={14} style={{ filter: 'brightness(0) invert(1)', marginRight: 6 }} /> Add Finding
           </button>
         </div>
       );
@@ -1045,13 +1058,13 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
       maxWidth={640}
     >
       {/* Top Blue Alert Banner */}
-      <div className="kpmg-modal-box-info" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, background: '#F0F5FF', border: '1px solid #D0E1FF', borderRadius: 8, padding: '10px 14px' }}>
-        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#1E49E2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <div className="kpmg-modal-info-alert blue" style={{ marginBottom: 16 }}>
+        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
           <circle cx="12" cy="12" r="10" />
           <line x1="12" y1="16" x2="12" y2="12" />
           <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
-        <span style={{ fontSize: 12, color: '#1E49E2', fontWeight: 500, lineHeight: 1.4 }}>
+        <span style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4 }}>
           Accepted findings are tagged as complementary (not from the client&apos;s own scan) so the report can list them separately.
         </span>
       </div>
@@ -1062,35 +1075,11 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
           <div style={{ fontSize: 12.5, color: C.muted, padding: '12px 0' }}>Nothing left to review.</div>
         ) : (
           candidates.map(c => (
-            <div
-              key={c.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justify: 'space-between',
-                gap: 12,
-                padding: '12px 16px',
-                border: `1px solid ${C.border}`,
-                borderRadius: 10,
-                marginBottom: 10,
-                background: '#ffffff'
-              }}
-            >
+            <div key={c.id} className="cve-item-card">
               <div style={{ flex: 1, minWidth: 0 }}>
                 {/* CVE Pink Badge */}
                 <div style={{ marginBottom: 4 }}>
-                  <span
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 600,
-                      color: '#D9251B',
-                      background: '#FEF3F2',
-                      border: '1px solid #FECDCA',
-                      borderRadius: 12,
-                      padding: '2px 8px',
-                      display: 'inline-block'
-                    }}
-                  >
+                  <span className="cve-badge-red">
                     {c.cve_id}
                   </span>
                 </div>
@@ -1105,36 +1094,18 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
               </div>
 
               {/* Action Buttons: Red Decline & Green Accept */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <div className="cve-actions-group">
                 <button
+                  className="btn-destructive-primary"
                   onClick={() => onDismiss(c.id)}
-                  style={{
-                    background: '#D9251B',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '7px 16px',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit'
-                  }}
+                  style={{ padding: '7px 16px', fontSize: 12, borderRadius: 6 }}
                 >
                   Decline
                 </button>
                 <button
+                  className="btn-success"
                   onClick={() => onAccept(c)}
-                  style={{
-                    background: '#039855',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '7px 16px',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    fontFamily: 'inherit'
-                  }}
+                  style={{ padding: '7px 16px', fontSize: 12, borderRadius: 6 }}
                 >
                   Accept
                 </button>

@@ -4,6 +4,7 @@ import { C } from '../theme';
 import { Modal, Btn, FormField, Input, Select, Textarea } from './UI';
 import { assetZone, getAssessmentSnapshot } from '../services/assessmentStore';
 import { getVulnerabilities } from '../api/client';
+import { PageIcon } from './Icons';
 
 // ── MITRE ATT&CK for ICS mitigation categories ────────────────────────────────
 export const CATEGORIES = [
@@ -1065,13 +1066,13 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
     if (setHeaderActions) {
       setHeaderActions(
         <button
-          onClick={() => setShowAdd(true)}
+          onClick={() => setEditStep('new')}
           style={{
             background: '#1E49E2',
-            color: '#ffffff',
+            color: '#fff',
             border: 'none',
             borderRadius: 8,
-            padding: '8px 16px',
+            padding: '7px 16px',
             fontSize: 13,
             fontWeight: 600,
             cursor: 'pointer',
@@ -1082,7 +1083,7 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
             fontFamily: 'inherit'
           }}
         >
-          <span style={{ fontSize: 15, fontWeight: 700 }}>+</span> Add Step
+          <PageIcon name="Add.svg" size={14} style={{ filter: 'brightness(0) invert(1)' }} /> Add Step
         </button>
       );
     }
