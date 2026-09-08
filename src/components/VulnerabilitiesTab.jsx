@@ -89,22 +89,63 @@ function DotsMenu({ vuln, onEdit, onRemove }) {
     <div ref={ref} style={{position:'relative'}} onClick={e=>e.stopPropagation()}>
       <button onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}
         style={{width:28,height:28,borderRadius:6,background:open?`${C.navy}0E`:'transparent',border:`1px solid ${open?C.border:'transparent'}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>
-        <svg width={14} height={14} viewBox="0 0 24 24" fill={C.muted}><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        <PageIcon name="Menu.svg" size={18} />
       </button>
       {open&&(
-        <div style={{position:'absolute',right:0,top:'calc(100% + 4px)',background:'#fff',borderRadius:10,border:`1px solid ${C.border}`,boxShadow:'0 8px 24px rgba(0,51,141,.12)',zIndex:100,minWidth:140,overflow:'hidden'}}>
-          <button onClick={()=>{onEdit();setOpen(false);}}
-            style={{width:'100%',padding:'9px 14px',background:'none',border:'none',textAlign:'left',fontSize:13,color:C.text,cursor:'pointer',display:'flex',alignItems:'center',gap:8,fontFamily:'inherit'}}>
-            <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke={C.muted} strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit / Override
-          </button>
-          <div style={{height:1,background:C.border,margin:'0 8px'}}/>
-          <button onClick={()=>{onRemove();setOpen(false);}}
-            style={{width:'100%',padding:'9px 14px',background:'none',border:'none',textAlign:'left',fontSize:13,color:'#991B1B',cursor:'pointer',display:'flex',alignItems:'center',gap:8,fontFamily:'inherit'}}>
-            <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-            Remove
-          </button>
-        </div>
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpen(false)} />
+          <div style={{
+            position: 'absolute',
+            right: 0,
+            top: '100%',
+            marginTop: 4,
+            background: '#ffffff',
+            border: '1px solid #EAECF0',
+            borderRadius: 8,
+            boxShadow: '0 4px 16px rgba(16,24,40,0.12)',
+            zIndex: 100,
+            minWidth: 140,
+            padding: '4px 0',
+            overflow: 'hidden',
+          }}>
+            <button onClick={()=>{onEdit();setOpen(false);}}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: '100%',
+                padding: '8px 14px',
+                background: 'none',
+                border: 'none',
+                fontSize: 13,
+                color: '#344054',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontFamily: 'inherit',
+              }}>
+              <PageIcon name="Edit.svg" size={14} />
+              Edit / Override
+            </button>
+            <button onClick={()=>{onRemove();setOpen(false);}}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: '100%',
+                padding: '8px 14px',
+                background: 'none',
+                border: 'none',
+                fontSize: 13,
+                color: '#ED2124',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontFamily: 'inherit',
+              }}>
+              <PageIcon name="Delete.svg" size={14} />
+              Remove
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -971,8 +1012,8 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
           <button className="kpmg-btn-outline" onClick={() => setShowComplementary(true)}>
             View Additional CVE&apos;s {complementary.length > 0 && `(${complementary.length})`}
           </button>
-          <button className="kpmg-btn-cobalt" onClick={() => setShowAdd(true)} style={{ display: 'inline-flex', alignItems: 'center' }}>
-            <PageIcon name="Add.svg" size={14} style={{ filter: 'brightness(0) invert(1)', marginRight: 6 }} /> Add Finding
+          <button className="kpmg-btn-cobalt" onClick={() => setShowAdd(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <PageIcon name="Add.svg" size={14} style={{ filter: 'brightness(0) invert(1)' }} /> Add Finding
           </button>
         </div>
       );

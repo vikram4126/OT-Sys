@@ -13,6 +13,7 @@ import ReactFlow, { Background, Controls, Handle, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { C } from '../theme';
 import { Card, Loading, Modal, Btn, Select, FormField, Input } from './UI';
+import { PageIcon } from './Icons';
 import { addLog, LOG_TYPES } from '../services/logService';
 import { getVulnerabilities } from '../api/client';
 import { getMitigatedCVEs, useCompletedIds } from '../services/mitigationStore';
@@ -1019,7 +1020,7 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
               fontFamily: 'inherit',
             }}
           >
-            + Add business risk
+            <PageIcon name="Add.svg" size={14} style={{ filter: 'brightness(0) invert(1)' }} /> Add business risk
           </button>
         </div>
       </div>
