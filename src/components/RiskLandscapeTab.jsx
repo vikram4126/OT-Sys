@@ -1605,7 +1605,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
       }
     >
       <div className="kpmg-modal-form-gap">
-        <FormField label="Vulnerabilities behind this risk *">
+        <FormField label="Vulnerabilities behind this risk" required>
           <SearchAdd
             items={vulnItems}
             selectedIds={vulnIds}

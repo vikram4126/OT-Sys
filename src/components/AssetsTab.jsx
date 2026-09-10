@@ -742,7 +742,11 @@ function UploadModal({ zones, onClose, onDone }) {
             <Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>
               Cancel
             </Btn>
-            <Btn onClick={simulate} style={{ background: '#1E49E2', color: '#fff', padding: '8px 24px', borderRadius: 8 }}>
+            <Btn
+              onClick={simulate}
+              disabled={!selectedFile}
+              style={{ background: '#1E49E2', color: '#fff', padding: '8px 24px', borderRadius: 8, opacity: selectedFile ? 1 : 0.5, cursor: selectedFile ? 'pointer' : 'not-allowed' }}
+            >
               Upload
             </Btn>
           </>
@@ -760,58 +764,58 @@ function UploadModal({ zones, onClose, onDone }) {
           </FormField>
 
           <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: '#344054', marginBottom: 6 }}>
-              File upload
-            </div>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              style={{
-                background: '#ffffff',
-                border: '1px dashed #EAECF0',
-                borderRadius: 12,
-                padding: '32px 20px',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            >
+            <FormField label="File upload" required>
               <div
+                onClick={() => fileInputRef.current?.click()}
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 8,
-                  border: '1px solid #EAECF0',
                   background: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justify: 'center',
-                  margin: '0 auto 10px auto'
+                  border: '1px dashed #EAECF0',
+                  borderRadius: 12,
+                  padding: '32px 20px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#475467" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-              </div>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    border: '1px solid #EAECF0',
+                    background: '#F9FAFB',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 12px auto',
+                    boxShadow: '0 1px 2px rgba(16, 24, 40, 0.05)'
+                  }}
+                >
+                  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#344054" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                    <path d="M12 12v9" />
+                    <path d="m16 16-4-4-4 4" />
+                  </svg>
+                </div>
 
-              <div>
-                <span style={{ fontSize: 12.5, fontWeight: 600, color: '#00338D', textDecoration: 'underline' }}>Click to upload</span>
-                <span style={{ fontSize: 12.5, fontWeight: 400, color: '#475467' }}> or drag and drop</span>
-              </div>
+                <div>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: '#00338D', textDecoration: 'underline' }}>Click to upload</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 400, color: '#475467' }}> or drag and drop</span>
+                </div>
 
-              <div style={{ fontSize: 11, color: '#667085', marginTop: 4 }}>
-                {selectedFile ? selectedFile.name : 'XLSX (max. 50 MB)'}
-              </div>
+                <div style={{ fontSize: 11, color: '#667085', marginTop: 4, fontWeight: selectedFile ? 600 : 400, color: selectedFile ? '#027A48' : '#667085' }}>
+                  {selectedFile ? `Selected: ${selectedFile.name}` : 'XLSX (max. 50 MB)'}
+                </div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                style={{ display: 'none' }}
-                accept=".xlsx,.xls,.csv,.pdf"
-                onChange={handleFileChange}
-              />
-            </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  style={{ display: 'none' }}
+                  accept=".xlsx,.xls,.csv,.pdf"
+                  onChange={handleFileChange}
+                />
+              </div>
+            </FormField>
           </div>
         </>
       ) : (

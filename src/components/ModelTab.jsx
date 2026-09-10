@@ -233,15 +233,8 @@ function SectionScope({ company, setCompany, onSaved }) {
             </FormField>
           </div>
 
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 2 }}>
-              Site size <span style={{ color: '#D9251B' }}>*</span>
-            </div>
-            <div style={{ fontSize: 11.5, color: '#475467', marginBottom: 10, lineHeight: 1.45 }}>
-              This assessment covers one site, so size is the scale of the estate here – not a number of sites.
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            <FormField label="Site size" hint="This assessment covers one site, so size is the scale of the estate here – not a number of sites." required>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 8 }}>
               {SITE_SCALES.map(sc => {
                 const on = f.scale === sc.id;
                 const letter = sc.id === 'small' ? 'S' : sc.id === 'medium' ? 'M' : 'L';
@@ -288,7 +281,7 @@ function SectionScope({ company, setCompany, onSaved }) {
                 );
               })}
             </div>
-          </div>
+          </FormField>
 
           <div>
             <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 2 }}>Existing monitoring or inventory tooling</div>
@@ -838,17 +831,17 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onCl
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <FormField label="Zone name *">
+        <FormField label="Zone name" required>
           <Input
             value={zname}
             onChange={e => setZname(e.target.value)}
-            placeholder="Enterprise"
+            placeholder="e.g. Line 1 Control"
             style={{ borderRadius: 6, fontSize: 13 }}
           />
         </FormField>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <FormField label="Target SL *">
+          <FormField label="Target SL" required>
             <Select
               value={tsl}
               onChange={e => setTsl(e.target.value)}
@@ -1925,17 +1918,17 @@ function SectionZones({ a, onNavigate }) {
           }
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <FormField label="Zone name *">
+            <FormField label="Zone name" required>
               <Input
                 value={zname}
                 onChange={e => setZname(e.target.value)}
-                placeholder="Enterprise"
+                placeholder="e.g. Line 1 Control"
                 style={{ borderRadius: 6, fontSize: 13 }}
               />
             </FormField>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <FormField label="Target SL *">
+              <FormField label="Target SL" required>
                 <Select
                   value={tsl}
                   onChange={e => setTsl(e.target.value)}

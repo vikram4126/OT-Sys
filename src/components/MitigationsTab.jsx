@@ -498,34 +498,25 @@ function StepModal({ plan, step, onClose, onSave }) {
       }
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0 10px' }}>
-        <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
-            Title <span style={{ color: '#D9251B' }}>*</span>
-          </label>
+        <FormField label="Title" required>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="E.g. Acme Industrial Ltd"
             style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
-            Category
-          </label>
+        <FormField label="Category">
           <Select
             value={cat}
             onChange={(e) => setCat(e.target.value)}
             options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
             style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
-            Text here
-          </label>
+        <FormField label="Text here">
           <Select
             value={textHere}
             onChange={(e) => setTextHere(e.target.value)}
@@ -536,12 +527,9 @@ function StepModal({ plan, step, onClose, onSave }) {
             ]}
             style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
-            Description
-          </label>
+        <FormField label="Description">
           <Textarea
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
@@ -549,13 +537,10 @@ function StepModal({ plan, step, onClose, onSave }) {
             placeholder="Enter a description..."
             style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
           />
-        </div>
+        </FormField>
 
         {isEdit && (
-          <div>
-            <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
-              Reason for Change <span style={{ color: '#D9251B' }}>*</span>
-            </label>
+          <FormField label="Reason for Change" required>
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -563,7 +548,7 @@ function StepModal({ plan, step, onClose, onSave }) {
               placeholder="Why is this step being modified?"
               style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
             />
-          </div>
+          </FormField>
         )}
 
         {err && (
@@ -634,10 +619,7 @@ function RemoveModal({ step, onClose, onConfirm }) {
           <div style={{ fontSize: 13.5, fontWeight: 400, color: '#101828' }}>{step?.title}</div>
         </div>
 
-        <div>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#101828', display: 'block', marginBottom: 6 }}>
-            Reason <span style={{ color: '#D9251B' }}>*</span>
-          </label>
+        <FormField label="Reason" required>
           <Textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -645,7 +627,7 @@ function RemoveModal({ step, onClose, onConfirm }) {
             placeholder="Why is this step being removed?"
             style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
           />
-        </div>
+        </FormField>
 
         {err && (
           <div style={{ color: '#D9251B', fontSize: 12, fontWeight: 500 }}>
@@ -694,6 +676,7 @@ function RoadmapStep({
   onEdit,
   onRemove,
   accent,
+  isLastRow,
 }) {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -816,8 +799,7 @@ function RoadmapStep({
                       style={{
                         position: 'absolute',
                         right: 0,
-                        top: '100%',
-                        marginTop: 4,
+                        ...(isLastRow ? { bottom: '100%', marginBottom: 4 } : { top: '100%', marginTop: 4 }),
                         background: '#ffffff',
                         border: '1px solid #EAECF0',
                         borderRadius: 8,
@@ -1300,6 +1282,7 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
             onOpenVuln={openVuln}
             onEdit={setEditStep}
             onRemove={setRemoveStep}
+            isLastRow={groupSteps.length > 1 && i === groupSteps.length - 1}
           />
         ))}
       </div>

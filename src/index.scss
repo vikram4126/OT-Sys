@@ -81,7 +81,7 @@ $score-red: #ED2124;
   --popup-close-color: var(--subtext-color);
   --popup-subtitle-color: var(--subtext-color);
 
-  /* Design System Spec Variables */
+  /* Design System Spec Variables (Matching Spec Sheet) */
   --ds-text-default: #475467;
   --ds-text-header: #101828;
   --ds-text-subheader: #475467;
@@ -100,7 +100,7 @@ $score-red: #ED2124;
   --badge-green-text: #098E7E;
   --badge-green-bg: #F0FDF4;
 
-  --badge-red-text: #BE123C;
+  --badge-red-text: #ED2124;
   --badge-red-bg: #FFF1F2;
 
   --badge-amber-text: #A16207;
@@ -139,7 +139,7 @@ body {
 /* 2. Secondary Button */
 .btn-secondary, .ds-btn-secondary {
   background-color: #FFFFFF !important;
-  color: #1D2939 !important;
+  color: #101828 !important;
   border: 1px solid #D0D5DD !important;
   border-radius: 8px !important;
   font-weight: 500;
@@ -185,7 +185,7 @@ body {
 
 /* 6. Success Button */
 .btn-success, .ds-btn-success {
-  background-color: #098e7e !important;
+  background-color: #098E7E !important;
   color: #FFFFFF !important;
   border-radius: 8px !important;
   border: none !important;
@@ -218,8 +218,8 @@ body {
 
 /* 10-12. Status Meters */
 .status-meter-red { active-color: #ED2124; default-color: #F2F4F7; border-radius: 8px; }
-.status-meter-orange { active-color: #f97316; default-color: #F2F4F7; border-radius: 8px; }
-.status-meter-green { active-color: #098e7e; default-color: #F2F4F7; border-radius: 8px; }
+.status-meter-orange { active-color: #F97316; default-color: #F2F4F7; border-radius: 8px; }
+.status-meter-green { active-color: #098E7E; default-color: #F2F4F7; border-radius: 8px; }
 
 /* 13. Badges (Using CSS Variables) */
 .badge-cobalt, .badge-primary, .ds-badge-cobalt {
@@ -256,7 +256,7 @@ body {
 .cve-badge-red, .kpmg-cve-badge-red {
   font-size: 10.5px;
   font-weight: 600;
-  color: var(--badge-red-text, #BE123C) !important;
+  color: var(--badge-red-text, #ED2124) !important;
   background-color: var(--badge-red-bg, #FFF1F2) !important;
   border: 1px solid #FECDD3 !important;
   border-radius: 12px;
@@ -319,8 +319,8 @@ body {
   color: #344054 !important;
 }
 
-.form-required-asterisk, .ds-required {
-  color: #D92D20 !important;
+.form-required-asterisk, .ds-required, .kpmg-req-asterisk {
+  color: #ED2124 !important;
 }
 
 /* 17. Modal Header */
@@ -2356,8 +2356,9 @@ h3 {
 }
 
 .kpmg-req-asterisk {
-  color: var(--theme-critical, #E8284B);
+  color: #ED2124;
   margin-left: 3px;
+  font-weight: bold;
 }
 
 .kpmg-form-hint {

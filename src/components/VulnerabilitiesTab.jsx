@@ -75,7 +75,7 @@ const Brain = () => (
 );
 
 // ── 3-dot menu ────────────────────────────────────────────────────────────────
-function DotsMenu({ vuln, onEdit, onRemove }) {
+function DotsMenu({ vuln, onEdit, onRemove, isLastRow }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -97,8 +97,7 @@ function DotsMenu({ vuln, onEdit, onRemove }) {
           <div style={{
             position: 'absolute',
             right: 0,
-            top: '100%',
-            marginTop: 4,
+            ...(isLastRow ? { bottom: '100%', marginBottom: 4 } : { top: '100%', marginTop: 4 }),
             background: '#ffffff',
             border: '1px solid #EAECF0',
             borderRadius: 8,
@@ -785,7 +784,7 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
 }
 
 // ── Row ───────────────────────────────────────────────────────────────────────
-function VulnRow({ vuln, onRefresh, isMitigated, onNavigate }) {
+function VulnRow({ vuln, onRefresh, isMitigated, onNavigate, isLastRow }) {
   const [showRemove,  setShowRemove]  = useState(false);
   const [showExplain, setShowExplain] = useState(false);
   const [showDetail,  setShowDetail]  = useState(false);
@@ -896,7 +895,7 @@ function VulnRow({ vuln, onRefresh, isMitigated, onNavigate }) {
 
         {/* Action 3-dots */}
         <div style={{ textAlign:'right' }}>
-          <DotsMenu vuln={vuln} onEdit={()=>setShowDetail(true)} onRemove={()=>setShowRemove(true)}/>
+          <DotsMenu vuln={vuln} onEdit={()=>setShowDetail(true)} onRemove={()=>setShowRemove(true)} isLastRow={isLastRow}/>
         </div>
       </div>
 
@@ -1071,7 +1070,16 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
         {/* Table Rows */}
         {paged.length===0
           ?<div style={{padding:'40px 16px',textAlign:'center',color:C.muted,fontSize:13}}>No findings match the current filter.</div>
-          :paged.map(v=><VulnRow key={v.vuln_id} vuln={v} isMitigated={v._mitigated} onRefresh={load} onNavigate={onNavigate}/>)
+          :paged.map((v, idx) => (
+            <VulnRow
+              key={v.vuln_id}
+              vuln={v}
+              isMitigated={v._mitigated}
+              onRefresh={load}
+              onNavigate={onNavigate}
+              isLastRow={paged.length > 1 && idx === paged.length - 1}
+            />
+          ))
         }
         <Pagination page={page} total={sorted.length} perPage={PER_PAGE} onChange={p=>setPage(p)}/>
       </Card>

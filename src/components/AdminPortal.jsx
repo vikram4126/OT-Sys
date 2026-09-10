@@ -205,12 +205,12 @@ function EditUserModal({ user, onClose, onSave, onDelete }) {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Name */}
-        <FormField label="Name">
+        <FormField label="Name" required>
           <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full Name" style={{ borderRadius: 8 }} />
         </FormField>
 
         {/* Email */}
-        <FormField label="Email">
+        <FormField label="Email" required>
           <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email address" style={{ borderRadius: 8 }} />
         </FormField>
 
@@ -220,7 +220,7 @@ function EditUserModal({ user, onClose, onSave, onDelete }) {
         </FormField>
 
         {/* Client Instance */}
-        <FormField label="Client Instance">
+        <FormField label="Client Instance" required>
           <Select
             value={form.clientId}
             onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}
@@ -412,12 +412,13 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
 
         {paged.length === 0 && <div className="kpmg-table-empty">No users match the current filter.</div>}
 
-        {paged.map(u => {
+        {paged.map((u, idx) => {
           const client = clients.find(c => c.id === u.clientId);
           const companyName = client ? client.name : 'Acme Industrial Ltd';
           const initials = u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
           const dateAdded = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '01 July 2025';
           const isActive = u.status === 'active';
+          const isLastRow = paged.length > 1 && idx === paged.length - 1;
 
           return (
             <div key={u.id} className="kpmg-table-row kpmg-table-grid-users" onClick={() => setDetailUser(u)} style={{ cursor: 'pointer' }}>
@@ -471,70 +472,73 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
                 </button>
 
                 {activeUserMenuId === u.id && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: 28,
-                      background: '#ffffff',
-                      border: '1px solid #EAECF0',
-                      borderRadius: 8,
-                      boxShadow: '0 4px 16px rgba(16, 24, 40, 0.12)',
-                      zIndex: 10,
-                      minWidth: 130,
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <button
-                      onClick={() => {
-                        setEditUser(u);
-                        setActiveUserMenuId(null);
-                      }}
+                  <>
+                    <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={(e) => { e.stopPropagation(); setActiveUserMenuId(null); }} />
+                    <div
                       style={{
-                        width: '100%',
-                        padding: '9px 14px',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: '#344054',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-                    >
-                      <PageIcon name="Edit.svg" size={14} />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDeleteUser(u);
-                        setActiveUserMenuId(null);
-                      }}
-                      style={{
-                        width: '100%',
-                        padding: '9px 14px',
-                        textAlign: 'left',
-                        background: 'none',
-                        border: 'none',
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: '#D9251B',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        borderTop: '1px solid #F2F4F7'
+                        position: 'absolute',
+                        right: 0,
+                        ...(isLastRow ? { bottom: 28 } : { top: 28 }),
+                        background: '#ffffff',
+                        border: '1px solid #EAECF0',
+                        borderRadius: 8,
+                        boxShadow: '0 4px 16px rgba(16, 24, 40, 0.12)',
+                        zIndex: 10,
+                        minWidth: 130,
+                        overflow: 'hidden'
                       }}
                     >
-                      <PageIcon name="Delete.svg" size={14} />
-                      Delete
-                    </button>
-                  </div>
+                      <button
+                        onClick={() => {
+                          setEditUser(u);
+                          setActiveUserMenuId(null);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '9px 14px',
+                          textAlign: 'left',
+                          background: 'none',
+                          border: 'none',
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: '#344054',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                      >
+                        <PageIcon name="Edit.svg" size={14} />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteUser(u);
+                          setActiveUserMenuId(null);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '9px 14px',
+                          textAlign: 'left',
+                          background: 'none',
+                          border: 'none',
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: '#D9251B',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          borderTop: '1px solid #F2F4F7'
+                        }}
+                      >
+                        <PageIcon name="Delete.svg" size={14} />
+                        Delete
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -579,11 +583,11 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
 {/* Add User Modal matching Reference Screenshot */}
 function AddUserModal({ clients, onClose, onAdd }) {
   const [form, setForm] = useState({
-    name: 'J. Davies',
-    email: 'j.davies@acmeindustrial.com',
+    name: '',
+    email: '',
     role: 'Lead Analyst',
     clientId: clients[0]?.id || '',
-    password: '••••••••••••••••'
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -619,12 +623,12 @@ function AddUserModal({ clients, onClose, onAdd }) {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Name */}
-        <FormField label="Name">
+        <FormField label="Name" required>
           <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full Name" style={{ borderRadius: 8 }} />
         </FormField>
 
         {/* Email */}
-        <FormField label="Email">
+        <FormField label="Email" required>
           <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email address" style={{ borderRadius: 8 }} />
         </FormField>
 
@@ -634,7 +638,7 @@ function AddUserModal({ clients, onClose, onAdd }) {
         </FormField>
 
         {/* Client Instance */}
-        <FormField label="Client Instance">
+        <FormField label="Client Instance" required>
           <Select
             value={form.clientId}
             onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}
@@ -937,7 +941,7 @@ function ClientsSection({ showAdd, setShowAdd }) {
   // When opening "New Client Instance"
   useEffect(() => {
     if (showAdd) {
-      setForm({ name: '', site: '', industry: 'Energy & Utilities', size: 'Medium' });
+      setForm({ name: '', site: '', industry: '', size: 'Medium' });
       setAssignedUsers([]);
       setSelectedUserToAdd('');
     }
@@ -971,7 +975,7 @@ function ClientsSection({ showAdd, setShowAdd }) {
   };
 
   const handleSaveCreate = () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim() || !form.industry) return;
     const c = addClient({ ...form, name: form.name.trim() });
     assignedUsers.forEach(u => {
       try { updateUser(u.id, { clientId: c.id, access: u.access }); } catch {}
@@ -1048,67 +1052,70 @@ function ClientsSection({ showAdd, setShowAdd }) {
 
                     {/* Popover Action Menu */}
                     {activeMenuId === c.id && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          right: 0,
-                          top: 28,
-                          background: '#ffffff',
-                          border: '1px solid #EAECF0',
-                          borderRadius: 8,
-                          boxShadow: '0 4px 16px rgba(16, 24, 40, 0.12)',
-                          zIndex: 10,
-                          minWidth: 140,
-                          overflow: 'hidden'
-                        }}
-                      >
-                        <button
-                          onClick={() => openEditModal(c)}
+                      <>
+                        <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                        <div
                           style={{
-                            width: '100%',
-                            padding: '9px 14px',
-                            textAlign: 'left',
-                            background: 'none',
-                            border: 'none',
-                            fontSize: 13,
-                            fontWeight: 500,
-                            color: '#344054',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
-                          onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-                        >
-                          <PageIcon name="Edit.svg" size={14} />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            setConfirmDel(c);
-                            setActiveMenuId(null);
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '9px 14px',
-                            textAlign: 'left',
-                            background: 'none',
-                            border: 'none',
-                            fontSize: 13,
-                            fontWeight: 500,
-                            color: '#D9251B',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            borderTop: '1px solid #F2F4F7'
+                            position: 'absolute',
+                            right: 0,
+                            top: 28,
+                            background: '#ffffff',
+                            border: '1px solid #EAECF0',
+                            borderRadius: 8,
+                            boxShadow: '0 4px 16px rgba(16, 24, 40, 0.12)',
+                            zIndex: 10,
+                            minWidth: 140,
+                            overflow: 'hidden'
                           }}
                         >
-                          <PageIcon name="Delete.svg" size={14} />
-                          Delete
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => openEditModal(c)}
+                            style={{
+                              width: '100%',
+                              padding: '9px 14px',
+                              textAlign: 'left',
+                              background: 'none',
+                              border: 'none',
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: '#344054',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
+                            onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                          >
+                            <PageIcon name="Edit.svg" size={14} />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              setConfirmDel(c);
+                              setActiveMenuId(null);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '9px 14px',
+                              textAlign: 'left',
+                              background: 'none',
+                              border: 'none',
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: '#D9251B',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              borderTop: '1px solid #F2F4F7'
+                            }}
+                          >
+                            <PageIcon name="Delete.svg" size={14} />
+                            Delete
+                          </button>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1159,7 +1166,7 @@ function ClientsSection({ showAdd, setShowAdd }) {
               <Btn variant="outline" onClick={() => setShowAdd(false)} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
                 Cancel
               </Btn>
-              <Btn onClick={handleSaveCreate} disabled={!form.name.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+              <Btn onClick={handleSaveCreate} disabled={!form.name.trim() || !form.industry} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
                 Create instance
               </Btn>
             </div>
@@ -1266,18 +1273,26 @@ function ClientInstanceFormFields({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Row 1: Client name & Primary site */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <FormField label="Client name">
-          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Acme Industrial Ltd" style={{ borderRadius: 8 }} />
+        <FormField label="Client name" required>
+          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Acme Industrial Ltd" style={{ borderRadius: 8 }} />
         </FormField>
         <FormField label="Primary site">
-          <Input value={form.site} onChange={e => setForm(f => ({ ...f, site: e.target.value }))} placeholder="E.g. North Plant" style={{ borderRadius: 8 }} />
+          <Input value={form.site} onChange={e => setForm(f => ({ ...f, site: e.target.value }))} placeholder="e.g. North Plant" style={{ borderRadius: 8 }} />
         </FormField>
       </div>
 
       {/* Row 2: Industry & Size */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <FormField label="Industry">
-          <Select value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))} options={INDUSTRIES} style={{ borderRadius: 8 }} />
+        <FormField label="Industry" required>
+          <Select
+            value={form.industry}
+            onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
+            options={[
+              { value: '', label: 'Select Industry' },
+              ...INDUSTRIES.map(i => ({ value: i, label: i }))
+            ]}
+            style={{ borderRadius: 8 }}
+          />
         </FormField>
         <FormField label="Size">
           <Select value={form.size} onChange={e => setForm(f => ({ ...f, size: e.target.value }))} options={SIZES} style={{ borderRadius: 8 }} />
