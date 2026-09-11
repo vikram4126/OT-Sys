@@ -92,8 +92,9 @@
  export const getLogUsers = () => [...new Set(readLogs().map(l => l.user))];
  
  export const seedDemoLogs = () => {
-   if (readLogs().length > 0) return;
-   const now = Date.now();
+  const existing = readLogs();
+  if (existing.length >= 10) return;
+  const now = Date.now();
    const demo = [
      {type:'login',           desc:'User session started — browser: Chrome, OS: Windows',                                              mins:2  },
      {type:'file_uploaded',   desc:'Network Diagram uploaded: network_diagram_north_plant.pdf',                                        mins:5  },

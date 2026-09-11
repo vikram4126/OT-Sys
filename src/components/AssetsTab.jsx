@@ -1166,16 +1166,7 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <button
             onClick={() => { removeAsset(asset.id); onClose(); }}
-            style={{
-              background: '#ffffff',
-              border: '1px solid #ED2124',
-              color: '#ED2124',
-              fontSize: 13,
-              fontWeight: 500,
-              padding: '8px 16px',
-              borderRadius: 8,
-              cursor: 'pointer'
-            }}
+            className="kpmg-btn-danger-outline"
           >
             Delete asset
           </button>
@@ -1183,7 +1174,7 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
             <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
               Cancel
             </Btn>
-            <Btn onClick={saveEdit} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>
+            <Btn onClick={saveEdit} className="kpmg-btn-primary-blue">
               Save
             </Btn>
           </div>

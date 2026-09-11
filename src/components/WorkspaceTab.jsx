@@ -261,9 +261,8 @@ function WsItem({ it, onChange }) {
   };
   return (
     <div
+      className="kpmg-ws-item-container"
       style={{
-        padding: '10px 15px',
-        borderBottom: `1px solid ${C.border}`,
         background: done
           ? st.status === 'accepted'
             ? '#F8F4FF'
@@ -272,36 +271,11 @@ function WsItem({ it, onChange }) {
         opacity: done ? 0.78 : 1,
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          marginBottom: 3,
-          flexWrap: 'wrap',
-        }}
-      >
-        <span
-          className="kpmg-code-badge"
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: '#fff',
-            background: C.navy,
-            padding: '1px 6px',
-            borderRadius: 4,
-          }}
-        >
+      <div className="kpmg-ws-item-header">
+        <span className="kpmg-code-badge kpmg-ws-task-id-badge">
           {it.taskId}
         </span>
-        <span
-          className="kpmg-code-badge"
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: C.navy,
-          }}
-        >
+        <span className="kpmg-code-badge kpmg-ws-fr-badge">
           {it.fr} {it.sr}
         </span>
         <span style={{ fontSize: 10.5, color: C.muted }}>· {it.zone}</span>
@@ -339,10 +313,9 @@ function WsItem({ it, onChange }) {
         )}
       </div>
       <div
+        className="kpmg-ws-item-text"
         style={{
-          fontSize: 12,
           color: done ? C.muted : C.text,
-          lineHeight: 1.45,
           textDecoration: done ? 'line-through' : 'none',
         }}
       >

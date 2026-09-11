@@ -3708,27 +3708,183 @@ h3 {
   color: #0F172A;
 }
 
+/* Assessment Report Main Grid */
+.kpmg-report-main-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .kpmg-report-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Risk by zone responsive grid */
 .kpmg-risk-by-zone-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 
-@media (min-width: 1600px) {
-  .kpmg-risk-by-zone-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+/* Common Layout Utility Classes */
+.kpmg-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-@media (max-width: 1024px) {
-  .kpmg-risk-by-zone-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.kpmg-kpi-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
-@media (max-width: 640px) {
-  .kpmg-risk-by-zone-grid {
-    grid-template-columns: 1fr;
-  }
+.kpmg-kpi-card {
+  padding: 18px 20px;
+}
+
+.kpmg-kpi-number {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.kpmg-kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #101828;
+}
+
+.kpmg-kpi-subtext {
+  font-size: 11.5px;
+  color: #666666;
+  margin-top: 2px;
+}
+
+.kpmg-filter-bar-card {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kpmg-user-avatar-sm {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #EFF6FF;
+  color: #175CD3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* WorkspaceTab Component Styles */
+.kpmg-ws-item-container {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--theme-border, #EAECF0);
+  transition: background 0.15s ease;
+}
+
+.kpmg-ws-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  flex-wrap: wrap;
+}
+
+.kpmg-ws-task-id-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--kpmg-primary-blue, #00338D);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.kpmg-ws-fr-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--kpmg-primary-blue, #00338D);
+}
+
+.kpmg-ws-item-text {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Dashboard Component Styles */
+.kpmg-benchmark-card {
+  background: #ffffff;
+  border: 1px solid var(--theme-border, #EAECF0);
+  border-radius: 16px;
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.kpmg-benchmark-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--theme-border, #EAECF0);
+  background: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.kpmg-benchmark-toggle-group {
+  display: flex;
+  background: #ffffff;
+  border: 1px solid #D0D5DD;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.kpmg-benchmark-btn {
+  border: none;
+  color: #101828;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 0;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+
+.kpmg-btn-cancel-modal {
+  background: #ffffff;
+  border: 1px solid #D0D5DD;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #344054;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.kpmg-btn-cobalt-modal {
+  background: #1E49E2;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
 }

@@ -454,6 +454,8 @@ function StepModal({ plan, step, onClose, onSave }) {
     });
   };
 
+  const isSaveDisabled = !title.trim() || (isEdit && !reason.trim());
+
   return (
     <Modal
       title={isEdit ? 'Edit Step' : 'Add Step'}
@@ -464,32 +466,17 @@ function StepModal({ plan, step, onClose, onSave }) {
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
           <button
             onClick={onClose}
-            style={{
-              background: '#ffffff',
-              border: '1px solid #D0D5DD',
-              borderRadius: 8,
-              padding: '9px 18px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#344054',
-              cursor: 'pointer',
-              fontFamily: 'inherit'
-            }}
+            className="kpmg-btn-cancel-modal"
           >
             Cancel
           </button>
           <button
             onClick={save}
+            disabled={isSaveDisabled}
+            className="kpmg-btn-cobalt-modal"
             style={{
-              background: '#1E49E2',
-              border: 'none',
-              borderRadius: 8,
-              padding: '9px 22px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#ffffff',
-              cursor: 'pointer',
-              fontFamily: 'inherit'
+              opacity: isSaveDisabled ? 0.5 : 1,
+              cursor: isSaveDisabled ? 'not-allowed' : 'pointer',
             }}
           >
             {isEdit ? 'Save' : 'Add'}

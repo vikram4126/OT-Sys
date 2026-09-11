@@ -6,7 +6,7 @@ import { getUsers } from '../services/userService';
 const PER_PAGE = 20;
 
 // Only show change events — uploads, edits, deletions. No access/login.
-const CHANGE_CATEGORIES = ['Vulnerability', 'Upload', 'Analysis', 'Report', 'Admin', 'Mitigation'];
+const CHANGE_CATEGORIES = ['Vulnerability', 'Zone', 'Upload', 'Analysis', 'Report', 'Admin', 'Mitigation'];
 
 export default function LogsTab() {
   const [category, setCat] = useState('All');
@@ -61,33 +61,33 @@ export default function LogsTab() {
   const allUsers = [...new Set(allChangeLogs.map(l => l.user))];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="kpmg-page-wrapper">
       {/* KPI Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-        <Card style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#00338D', lineHeight: 1, marginBottom: 6 }}>{counts.total}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Total Changes</div>
-          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>All recorded change events</div>
+      <div className="kpmg-kpi-grid-4">
+        <Card className="kpmg-kpi-card">
+          <div className="kpmg-kpi-number" style={{ color: '#00338D' }}>{counts.total}</div>
+          <div className="kpmg-kpi-label">Total Changes</div>
+          <div className="kpmg-kpi-subtext">All recorded change events</div>
         </Card>
-        <Card style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#101828', lineHeight: 1, marginBottom: 6 }}>{counts.users < 10 ? `0${counts.users}` : counts.users}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Users with Access</div>
-          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Active accounts on this assessment</div>
+        <Card className="kpmg-kpi-card">
+          <div className="kpmg-kpi-number" style={{ color: '#101828' }}>{counts.users < 10 ? `0${counts.users}` : counts.users}</div>
+          <div className="kpmg-kpi-label">Users with Access</div>
+          <div className="kpmg-kpi-subtext">Active accounts on this assessment</div>
         </Card>
-        <Card style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#D9251B', lineHeight: 1, marginBottom: 6 }}>{counts.warning < 10 ? `0${counts.warning}` : counts.warning}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Warnings</div>
-          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Overrides and manual entries</div>
+        <Card className="kpmg-kpi-card">
+          <div className="kpmg-kpi-number" style={{ color: '#D9251B' }}>{counts.warning < 10 ? `0${counts.warning}` : counts.warning}</div>
+          <div className="kpmg-kpi-label">Warnings</div>
+          <div className="kpmg-kpi-subtext">Overrides and manual entries</div>
         </Card>
-        <Card style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#101828', lineHeight: 1, marginBottom: 6 }}>{counts.critical < 10 ? `0${counts.critical}` : counts.critical}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Critical Changes</div>
-          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Deletions and high-risk edits</div>
+        <Card className="kpmg-kpi-card">
+          <div className="kpmg-kpi-number" style={{ color: '#101828' }}>{counts.critical < 10 ? `0${counts.critical}` : counts.critical}</div>
+          <div className="kpmg-kpi-label">Critical Changes</div>
+          <div className="kpmg-kpi-subtext">Deletions and high-risk edits</div>
         </Card>
       </div>
 
       {/* Filter / Search Bar */}
-      <Card style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+      <Card className="kpmg-filter-bar-card">
         <div className="kpmg-search-box" style={{ width: 280 }}>
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search" className="kpmg-search-input" />
@@ -135,7 +135,7 @@ export default function LogsTab() {
               </span>
               <span style={{ color: '#101828', fontSize: 13 }}>{log.description}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#EFF6FF', color: '#175CD3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                <div className="kpmg-user-avatar-sm">
                   {initials}
                 </div>
                 <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{log.user}</span>

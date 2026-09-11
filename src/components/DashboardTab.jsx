@@ -94,20 +94,9 @@ function SectorBenchmarkSection({ industry, srSeed, zones, assets = [], vulns = 
   const data = view === 'compliance' ? compData : riskData;
 
   return (
-    <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 16, marginTop: 24, overflow: 'hidden' }}>
+    <div className="kpmg-benchmark-card">
       {/* Header Top Row with full-bleed end-to-end border */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '20px 28px',
-          borderBottom: '1px solid #EAECF0',
-          background: '#ffffff',
-          width: '100%',
-          boxSizing: 'border-box'
-        }}
-      >
+      <div className="kpmg-benchmark-header">
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: '#101828' }}>
             Sector benchmark - {view === 'compliance' ? 'Compliance' : 'Risk'}
@@ -120,46 +109,22 @@ function SectorBenchmarkSection({ industry, srSeed, zones, assets = [], vulns = 
         </div>
 
         {/* Toggle Button Group aligned strictly to far right */}
-        <div
-          style={{
-            display: 'flex',
-            background: '#ffffff',
-            border: '1px solid #D0D5DD',
-            borderRadius: 10,
-            overflow: 'hidden',
-            marginLeft: 'auto',
-            flexShrink: 0
-          }}
-        >
+        <div className="kpmg-benchmark-toggle-group">
           <button
             onClick={() => setView('compliance')}
+            className="kpmg-benchmark-btn"
             style={{
-              border: 'none',
               background: view === 'compliance' ? '#F4F5F7' : '#ffffff',
-              color: '#101828',
-              padding: '8px 20px',
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: 'pointer',
               borderRight: '1px solid #D0D5DD',
-              borderRadius: 0,
-              fontFamily: 'inherit'
             }}
           >
             Compliance
           </button>
           <button
             onClick={() => setView('risk')}
+            className="kpmg-benchmark-btn"
             style={{
-              border: 'none',
               background: view === 'risk' ? '#F4F5F7' : '#ffffff',
-              color: '#101828',
-              padding: '8px 20px',
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: 'pointer',
-              borderRadius: 0,
-              fontFamily: 'inherit'
             }}
           >
             Risk

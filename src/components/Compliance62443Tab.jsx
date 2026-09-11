@@ -289,12 +289,8 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
               <Btn
                 onClick={onClose}
                 disabled={isSaveDisabled}
+                className="kpmg-btn-primary-blue"
                 style={{
-                  background: '#1D4ED8',
-                  color: '#fff',
-                  borderRadius: 8,
-                  padding: '8px 22px',
-                  fontWeight: 600,
                   opacity: isSaveDisabled ? 0.5 : 1,
                   cursor: isSaveDisabled ? 'not-allowed' : 'pointer'
                 }}
