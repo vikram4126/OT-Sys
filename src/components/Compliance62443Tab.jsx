@@ -279,15 +279,31 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
       subtitle={`${zone.name} · Evidence review`}
       onClose={onClose}
       maxWidth={1120}
-      footer={
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
-          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
-            Cancel
-          </Btn>
-          <Btn onClick={onClose} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 22px', fontWeight: 600 }}>
-            Save
-          </Btn>
-        </div>
+      footer={(() => {
+          const isSaveDisabled = Object.entries(actions).some(([, v]) => !v.note || !v.note.trim());
+          return (
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
+              <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+                Cancel
+              </Btn>
+              <Btn
+                onClick={onClose}
+                disabled={isSaveDisabled}
+                style={{
+                  background: '#1D4ED8',
+                  color: '#fff',
+                  borderRadius: 8,
+                  padding: '8px 22px',
+                  fontWeight: 600,
+                  opacity: isSaveDisabled ? 0.5 : 1,
+                  cursor: isSaveDisabled ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Save
+              </Btn>
+            </div>
+          );
+        })()
       }
     >
       <div style={{ display: 'grid', gridTemplateColumns: '460px 1fr', gap: 24, alignItems: 'start' }}>

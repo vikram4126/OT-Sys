@@ -449,7 +449,7 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
       type: 'default', // Natural smooth curve between points
       style: {
         stroke: isRiskyConn ? '#E8284B' : nodeColor(e.zid),
-        strokeWidth: lit ? 2.2 : (isRiskyConn ? 1.4 : 1.0),
+        strokeWidth: lit ? 1.2 : (isRiskyConn ? 0.8 : 0.5),
         opacity: sel ? (lit ? 0.95 : 0.12) : (isRiskyConn ? 0.65 : 0.35)
       }
     };
@@ -519,7 +519,7 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
                   d={d}
                   fill="none"
                   stroke={isRiskyConn ? '#E8284B' : nodeColor(e.zid)}
-                  strokeWidth={lit ? 2.0 : (isRiskyConn ? 1.4 : 1.0)}
+                  strokeWidth={lit ? 1.2 : (isRiskyConn ? 0.8 : 0.5)}
                   strokeOpacity={sel ? (lit ? 0.95 : 0.12) : (isRiskyConn ? 0.65 : 0.35)}
                 />
               );
@@ -1581,7 +1581,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
       onClose={onClose}
       maxWidth={580}
       footer={
-        <div style={{ display: 'flex', gap: 12, width: '100%', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>
           {!isAdd && (
             <Btn
               variant="outline"
@@ -1591,7 +1591,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
               Delete
             </Btn>
           )}
-          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+          <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
             Cancel
           </Btn>
           <Btn

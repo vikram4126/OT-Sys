@@ -344,7 +344,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Main 2-Column Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: 20, alignItems: 'start' }}>
         
         {/* LEFT COLUMN: Overall Risk Arc Gauge + 5 Metric Cards */}
         <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 16, padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -472,7 +472,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            <div className="kpmg-risk-by-zone-grid">
               {(zoneRisks.length > 0 ? zoneRisks : [
                 { id: '1', name: 'Enterprise', risk: 2.4 },
                 { id: '2', name: 'Enterprise', risk: 4.9 },

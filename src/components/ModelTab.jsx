@@ -1917,7 +1917,7 @@ function SectionZones({ a, onNavigate }) {
             </div>
           }
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <FormField label="Zone name" required>
               <Input
                 value={zname}
@@ -1958,7 +1958,7 @@ function SectionZones({ a, onNavigate }) {
             </FormField>
 
             {/* Air-gapped Toggle Row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4, padding: '6px 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 0, marginBottom: 16, padding: '2px 0' }}>
               <label style={{ position: 'relative', display: 'inline-block', width: 38, height: 20, cursor: 'pointer', flexShrink: 0 }}>
                 <input
                   type="checkbox"
@@ -1979,7 +1979,7 @@ function SectionZones({ a, onNavigate }) {
               </label>
               <div>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Air-gapped</div>
-                <div style={{ fontSize: 11.5, color: '#475467' }}>
+                <div style={{ fontSize: 11.5, color: '#475467', marginTop: 6 }}>
                   The client asserts no external connectivity - checked live against conduits/connections below
                 </div>
               </div>

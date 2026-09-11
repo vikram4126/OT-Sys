@@ -35,8 +35,8 @@ export const ColH = ({children,style={}}) => (
   <div className="kpmg-colh" style={style}>{children}</div>
 );
 
-export const Btn = ({children,variant='primary',onClick,disabled=false,size='md',style={}}) => (
-  <button onClick={onClick} disabled={disabled} className={`kpmg-btn kpmg-btn-${variant} kpmg-btn-${size}`} style={{opacity:disabled?.4:1,...style}}>
+export const Btn = ({children,variant='primary',onClick,disabled=false,size='md',style={},className=''}) => (
+  <button onClick={onClick} disabled={disabled} className={`kpmg-btn kpmg-btn-${variant} kpmg-btn-${size} ${className}`} style={{opacity:disabled?.4:1,...style}}>
     {children}
   </button>
 );

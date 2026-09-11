@@ -19,11 +19,26 @@ export default function AssetsTab() {
   const [adding, setAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [prov, setProv] = useState(null);
-  const zName = id => zones.find(z => z.id === id)?.name || id;
+  const [q, setQ] = useState('');
+  const zName = id => zones.find(z => z.id === id)?.name || String(id || '');
   const aName = id => assets.find(a => a.id === id)?.name || id;
 
   const inZone = zoneF === 'all' ? assets : assets.filter(a => a.zone === zoneF);
-  const shown = inZone.filter(a => assetKind(a) === kind);
+  const byKind = inZone.filter(a => assetKind(a) === kind);
+  const shown = byKind.filter(a => {
+    if (!q.trim()) return true;
+    const query = q.toLowerCase();
+    const zoneName = String(zName(a.zone) || '').toLowerCase();
+    return (
+      (a.name && a.name.toLowerCase().includes(query)) ||
+      (a.deviceType && a.deviceType.toLowerCase().includes(query)) ||
+      (a.ip && a.ip.toLowerCase().includes(query)) ||
+      (a.os && a.os.toLowerCase().includes(query)) ||
+      (a.version && a.version.toLowerCase().includes(query)) ||
+      (a.host && a.host.toLowerCase().includes(query)) ||
+      zoneName.includes(query)
+    );
+  });
 
   return (
     <div className="kpmg-assets-container">
@@ -74,7 +89,12 @@ export default function AssetsTab() {
                 options={[{ value: 'all', label: 'All Zones' }, ...zones.map(z => ({ value: z.id, label: z.name }))]} />
               <div className="kpmg-search-box">
                 <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                <input placeholder="Search" className="kpmg-search-input" />
+                <input
+                  value={q}
+                  onChange={e => setQ(e.target.value)}
+                  placeholder="Search"
+                  className="kpmg-search-input"
+                />
               </div>
             </div>
           </div>
@@ -135,7 +155,7 @@ export default function AssetsTab() {
 
       {sel && <AssetModal asset={sel} assets={assets} zones={zones} aName={aName} zName={zName}
         onClose={() => setSel(null)} updateAsset={updateAsset} removeAsset={removeAsset} />}
-      {adding && <AddAssetModal zones={zones} kind={kind} onClose={() => setAdding(false)} addAsset={addAsset} />}
+      {adding && <AddAssetModal zones={zones} assets={assets} zName={zName} kind={kind} onClose={() => setAdding(false)} addAsset={addAsset} />}
       {uploading && <UploadModal zones={zones} onClose={() => setUploading(false)} onDone={() => refresh(x => x + 1)} />}
       {prov && <ProvenanceModal asset={prov} zName={zName} aName={aName} onClose={() => setProv(null)} />}
     </div>
@@ -704,12 +724,31 @@ function ProvenanceModal({ asset, zName, aName, onClose }) {
 function UploadModal({ zones, onClose, onDone }) {
   const [zone, setZone] = useState(zones[0]?.id || '');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [fileError, setFileError] = useState('');
   const [result, setResult] = useState(null);
   const fileInputRef = useRef(null);
 
+  const MAX_SIZE_MB = 50;
+  const ALLOWED_EXTS = ['.xlsx', '.xls'];
+
   const handleFileChange = e => {
+    setFileError('');
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      const ext = '.' + file.name.split('.').pop().toLowerCase();
+      if (!ALLOWED_EXTS.includes(ext)) {
+        setFileError('Invalid file type. Only .xlsx or .xls files are allowed.');
+        setSelectedFile(null);
+        e.target.value = '';
+        return;
+      }
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        setFileError(`File too large. Maximum allowed size is ${MAX_SIZE_MB} MB.`);
+        setSelectedFile(null);
+        e.target.value = '';
+        return;
+      }
+      setSelectedFile(file);
     }
   };
 
@@ -803,7 +842,7 @@ function UploadModal({ zones, onClose, onDone }) {
                   <span style={{ fontSize: 12.5, fontWeight: 400, color: '#475467' }}> or drag and drop</span>
                 </div>
 
-                <div style={{ fontSize: 11, color: '#667085', marginTop: 4, fontWeight: selectedFile ? 600 : 400, color: selectedFile ? '#027A48' : '#667085' }}>
+                <div style={{ fontSize: 11, marginTop: 4, fontWeight: selectedFile ? 600 : 400, color: selectedFile ? '#027A48' : '#667085' }}>
                   {selectedFile ? `Selected: ${selectedFile.name}` : 'XLSX (max. 50 MB)'}
                 </div>
 
@@ -811,11 +850,16 @@ function UploadModal({ zones, onClose, onDone }) {
                   ref={fileInputRef}
                   type="file"
                   style={{ display: 'none' }}
-                  accept=".xlsx,.xls,.csv,.pdf"
+                  accept=".xlsx,.xls"
                   onChange={handleFileChange}
                 />
               </div>
             </FormField>
+            {fileError && (
+              <div style={{ fontSize: 12, color: '#ED2124', marginTop: 6, fontWeight: 500 }}>
+                ⚠ {fileError}
+              </div>
+            )}
           </div>
         </>
       ) : (
@@ -833,18 +877,26 @@ function UploadModal({ zones, onClose, onDone }) {
   );
 }
 
-function AddAssetModal({ zones, kind, onClose, addAsset }) {
+function AddAssetModal({ zones, assets, zName, kind, onClose, addAsset }) {
   const [f, setF] = useState({ name: '', deviceType: '', ip: '', os: '', version: '', zone: zones[0]?.id || '', level: 3, kind, internetFacing: false });
-  const [conns, setConns] = useState([
-    { id: 'c1', name: 'SCADA-SRV-01', source: 'manual', proto: '' },
-    { id: 'c2', name: 'FILE-SRV-01', source: 'auto', proto: '' }
-  ]);
+  const [conns, setConns] = useState([]);
   const [addingConn, setAddingConn] = useState(false);
   const [newConnTarget, setNewConnTarget] = useState('');
   const [newConnProto, setNewConnProto] = useState('');
 
   const set = (k, v) => setF(s => ({ ...s, [k]: v }));
-  const save = () => { if (!f.name.trim()) return; addAsset(f.zone, { ...f, name: f.name.trim(), level: Number(f.level) }); onClose(); };
+  const save = () => {
+    if (!f.name.trim()) return;
+    const newAsset = addAsset(f.zone, { ...f, name: f.name.trim(), level: Number(f.level) });
+    if (newAsset && newAsset.id && conns.length > 0) {
+      conns.forEach(c => {
+        if (c.to) {
+          addConnection({ from: newAsset.id, to: c.to, proto: c.proto || 'TCP', source: 'manual' });
+        }
+      });
+    }
+    onClose();
+  };
 
   return (
     <Modal
@@ -857,7 +909,18 @@ function AddAssetModal({ zones, kind, onClose, addAsset }) {
           <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
             Cancel
           </Btn>
-          <Btn onClick={save} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>
+          <Btn
+            onClick={save}
+            disabled={!f.name.trim()}
+            style={{
+              background: '#1E49E2',
+              color: '#ffffff',
+              padding: '8px 24px',
+              borderRadius: 8,
+              opacity: f.name.trim() ? 1 : 0.5,
+              cursor: f.name.trim() ? 'pointer' : 'not-allowed'
+            }}
+          >
             Add
           </Btn>
         </div>
@@ -963,12 +1026,14 @@ function AddAssetModal({ zones, kind, onClose, addAsset }) {
               value={newConnTarget}
               onChange={e => setNewConnTarget(e.target.value)}
               style={{ flex: 1 }}
-              options={[{ value: '', label: 'Select target asset…' }, ...zones.map(z => ({ value: z.name, label: `${z.name} zone` }))] }
+              options={[{ value: '', label: 'Select target asset…' }, ...(assets || []).map(a => ({ value: a.id, label: `${a.name} (${zName ? zName(a.zone) : a.zone})` }))] }
             />
             <Input value={newConnProto} onChange={e => setNewConnProto(e.target.value)} style={{ width: 140 }} placeholder="E.g. SCADA server" />
             <Btn size="sm" onClick={() => {
               if (!newConnTarget) return;
-              setConns(list => [...list, { id: `c-${Date.now()}`, name: newConnTarget, source: 'manual', proto: newConnProto }]);
+              const targetAsset = (assets || []).find(a => a.id === newConnTarget);
+              const targetName = targetAsset ? `${targetAsset.name} (${zName ? zName(targetAsset.zone) : targetAsset.zone})` : newConnTarget;
+              setConns(list => [...list, { id: `c-${Date.now()}`, to: newConnTarget, name: targetName, source: 'manual', proto: newConnProto }]);
               setNewConnTarget('');
               setNewConnProto('');
               setAddingConn(false);

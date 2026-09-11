@@ -3618,21 +3618,22 @@ h3 {
 /* Modal Form & Action Button Classes */
 .kpmg-btn-danger-outline {
   margin-right: auto;
-  background: transparent !important;
-  border: 1px solid #FECDCA !important;
-  color: #D9251B !important;
+  background: #ffffff !important;
+  border: 1px solid #ED2124 !important;
+  color: #ED2124 !important;
   border-radius: 8px !important;
-  padding: 8px 18px !important;
-  font-weight: 600 !important;
+  padding: 8px 16px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
 }
 
 .kpmg-btn-primary-blue {
-  background: #1D4ED8 !important;
+  background: #1E49E2 !important;
   color: #ffffff !important;
   border-radius: 8px !important;
-  padding: 8px 22px !important;
-  font-weight: 600 !important;
-  border: none;
+  padding: 8px 24px !important;
+  font-weight: 500 !important;
+  border: none !important;
 }
 
 .kpmg-modal-form-gap {
@@ -3705,4 +3706,29 @@ h3 {
 .kpmg-explain-cve-table td {
   padding: 10px 16px;
   color: #0F172A;
+}
+
+/* Risk by zone responsive grid */
+.kpmg-risk-by-zone-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 1600px) {
+  .kpmg-risk-by-zone-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .kpmg-risk-by-zone-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .kpmg-risk-by-zone-grid {
+    grid-template-columns: 1fr;
+  }
 }

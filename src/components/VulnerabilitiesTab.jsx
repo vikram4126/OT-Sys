@@ -1168,31 +1168,36 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
 }
 
 function AddVulnModal({onClose,onAdded}) {
-  const [form,setForm]=useState({title:'',asset_label:'',domain:'Network Security',cvss:'5.0',criticality:'Medium',status:'Open',cve:'',justification:''});
+  const [form,setForm]=useState({title:'',asset_label:'',domain:'Network Security',cvss:'',criticality:'Medium',status:'Open',cve:'',justification:''});
   const [saving,setSaving]=useState(false);const [err,setErr]=useState('');
-  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const set=(k,v)=>{setErr('');setForm(f=>({...f,[k]:v}));};
+
+  const cvssNum = parseFloat(form.cvss);
+  const isCvssValid = form.cvss.trim() !== '' && !isNaN(cvssNum) && cvssNum >= 0 && cvssNum <= 10;
+  const isAddDisabled = saving || !form.title.trim() || !isCvssValid;
+
   const save=()=>{
-    if(!form.title.trim()){setErr('Title required.');return;}
-    const cvss=parseFloat(form.cvss);if(isNaN(cvss)||cvss<0||cvss>10){setErr('CVSS 0–10.');return;}
+    if(!form.title.trim()){setErr('Title is required.');return;}
+    if(!isCvssValid){setErr('Risk score must be a number between 0 and 10.');return;}
     setSaving(true);
-    addManualVuln({...form,cvss});
+    addManualVuln({...form,cvss:cvssNum});
     addLog(LOG_TYPES.VULN_ADDED,`Manual finding added: ${form.title}`);
     onAdded();
   };
   return(
     <Modal title="Add Finding" subtitle="Manually document a vulnerability" onClose={onClose}
-      footer={<><Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>Cancel</Btn><Btn onClick={save} disabled={saving} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>{saving?'Saving…':'Add'}</Btn></>}>
-      <FormField label="Title" required><Input value={form.title} onChange={e=>set('title',e.target.value)} placeholder="Brief description"/></FormField>
+      footer={<><Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>Cancel</Btn><Btn onClick={save} disabled={isAddDisabled} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8, opacity: isAddDisabled ? 0.5 : 1, cursor: isAddDisabled ? 'not-allowed' : 'pointer' }}>{saving?'Saving…':'Add'}</Btn></>}>
+      <FormField label="Title" required><Input value={form.title} onChange={e=>set('title',e.target.value)} placeholder="E.g. Unpatched firmware on PLC-LINE2-01"/></FormField>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
-        <FormField label="Asset"><Input value={form.asset_label} onChange={e=>set('asset_label',e.target.value)} placeholder="e.g. HMI-OPS-01"/></FormField>
-        <FormField label="CVE (if applicable)"><Input value={form.cve} onChange={e=>set('cve',e.target.value)} placeholder="e.g. CVE-2022-38765"/></FormField>
+        <FormField label="Asset"><Input value={form.asset_label} onChange={e=>set('asset_label',e.target.value)} placeholder="E.g. HMI-OPS-01"/></FormField>
+        <FormField label="CVE (if applicable)"><Input value={form.cve} onChange={e=>set('cve',e.target.value)} placeholder="E.g. CVE-2022-38765"/></FormField>
         <FormField label="Foundational Requirement"><Select value={form.domain} onChange={e=>set('domain',e.target.value)} options={DOMAINS}/></FormField>
         <FormField label="Severity"><Select value={form.criticality} onChange={e=>set('criticality',e.target.value)} options={['Critical','High','Medium','Low']}/></FormField>
-        <FormField label="Risk score" required><Input value={form.cvss} onChange={e=>set('cvss',e.target.value)}/></FormField>
+        <FormField label="Risk score (0–10)" required><Input value={form.cvss} onChange={e=>set('cvss',e.target.value)} placeholder="E.g. 7.5"/></FormField>
         <FormField label="Status"><Select value={form.status} onChange={e=>set('status',e.target.value)} options={['Open','In Progress','Resolved','Accepted Risk']}/></FormField>
       </div>
-      <FormField label="Notes / Evidence"><Textarea value={form.justification} onChange={e=>set('justification',e.target.value)} rows={3} placeholder="How was this identified?"/></FormField>
-      {err&&<div style={{color:C.critical,fontSize:12,marginTop:4}}>{err}</div>}
+      <FormField label="Notes / Evidence"><Textarea value={form.justification} onChange={e=>set('justification',e.target.value)} rows={3} placeholder="How was this identified? E.g. identified during passive network scan on 2026-08-14"/></FormField>
+      {err&&<div style={{color:C.critical,fontSize:12,marginTop:4}}>⚠ {err}</div>}
     </Modal>
   );
 }
