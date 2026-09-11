@@ -224,6 +224,8 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
   const [docIdx, setDocIdx] = useState(0);
   const [pageNo, setPageNo] = useState(4);
   const [reanalysed, setReanalysed] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = React.useRef(null);
   const [, force] = useState(0);
   const doc = docs[docIdx] || { filename: 'Text here.pdf', uploaded_at: '2026-08-29', uploaded_by: 'Consultant' };
 
@@ -410,19 +412,48 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#344054', marginBottom: 6 }}>Upload additional evidence</div>
             <div
-              onClick={() => { const fn = `evidence-${Date.now().toString(36)}.pdf`; onAddEvidence(zone.id, item.fr, fn); setReanalysed(true); force(x => x + 1); }}
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
+              onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(false);
+                const file = e.dataTransfer?.files?.[0];
+                if (file) {
+                  onAddEvidence(zone.id, item.fr, file.name);
+                  setReanalysed(true);
+                  force(x => x + 1);
+                }
+              }}
               style={{
-                border: '1px dashed #D0D5DD',
+                border: isDragging ? '1.5px dashed #1D4ED8' : '1px dashed #D0D5DD',
                 borderRadius: 8,
                 padding: '16px 20px',
                 textAlign: 'center',
-                background: '#FAFCFF',
+                background: isDragging ? '#EFF6FF' : '#FAFCFF',
                 cursor: 'pointer',
                 fontSize: 12.5,
-                color: '#475467'
+                color: '#475467',
+                transition: 'all 0.15s ease'
               }}
             >
               <span style={{ color: '#1D4ED8', fontWeight: 600, textDecoration: 'underline' }}>Click to upload</span> or drag and drop
+              <input
+                ref={fileInputRef}
+                type="file"
+                style={{ display: 'none' }}
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.xlsx"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    onAddEvidence(zone.id, item.fr, file.name);
+                    setReanalysed(true);
+                    force(x => x + 1);
+                    e.target.value = '';
+                  }
+                }}
+              />
             </div>
           </div>
 
