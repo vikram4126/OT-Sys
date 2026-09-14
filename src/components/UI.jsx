@@ -177,3 +177,26 @@ export const Textarea = ({value,onChange,placeholder,rows=4,style={},className='
     className={`kpmg-textarea ${className}`.trim()} style={style}
   />
 );
+
+export const DeleteConfirmModal = ({ title, itemName, message, warningMessage = 'This action cannot be undone.', onClose, onConfirm, confirmText = 'Delete' }) => (
+  <Modal
+    title={title || (itemName ? `Delete ${itemName}` : 'Delete Item')}
+    onClose={onClose}
+    maxWidth={440}
+    footer={
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
+        <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '7px 18px', fontWeight: 600, borderColor: '#D0D5DD', color: '#344054', fontSize: 13 }}>
+          Cancel
+        </Btn>
+        <Btn variant="danger" onClick={onConfirm} style={{ background: '#ED2124', color: '#fff', borderRadius: 8, padding: '7px 20px', fontWeight: 600, fontSize: 13, border: 'none' }}>
+          {confirmText}
+        </Btn>
+      </div>
+    }
+  >
+    <div style={{ fontSize: 13.5, color: '#344054', lineHeight: 1.5, padding: '4px 0' }}>
+      <div style={{ marginBottom: 4 }}>{message || `Are you sure you want to delete ${itemName ? `"${itemName}"` : 'this item'}?`}</div>
+      <div style={{ color: '#667085' }}>{warningMessage}</div>
+    </div>
+  </Modal>
+);

@@ -141,14 +141,14 @@ function ReactFlowZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone,
 
 // ── Standardized Pure SVG Zone + conduit diagram ─────────────────────────────
 function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelConduit }) {
-  const W = 860, H = 220, NODE_R = 28, PADX = 100;
+  const W = 860, H = 145, NODE_R = 22, PADX = 90;
   const ordered = [...zones].sort((a,b)=> zoneTopLevel(assets,b.id) - zoneTopLevel(assets,a.id));
   const n = Math.max(ordered.length, 1);
   const pos = {};
   
   ordered.forEach((z, i) => {
     const x = PADX + i * ((W - PADX * 2) / Math.max(n - 1, 1));
-    const y = H / 2 + (i % 2 === 0 ? -32 : 32);
+    const y = (H / 2 - 8) + (i % 2 === 0 ? -18 : 18);
     pos[z.id] = { x, y };
   });
 
@@ -159,7 +159,7 @@ function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelCon
 
   return (
     <div style={{ width: '100%' }}>
-      <div className="kpmg-dotted-pattern" style={{ border: '1px solid #EAECF0', borderRadius: 16, padding: '24px 16px', overflow: 'hidden' }}>
+      <div className="kpmg-dotted-pattern" style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '10px 16px 8px 16px', overflow: 'hidden' }}>
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" style={{ display: 'block' }}>
           {/* Conduit Edges */}
           {conduits.map(c => {
@@ -201,17 +201,17 @@ function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelCon
                   filter="drop-shadow(0px 2px 4px rgba(16, 24, 40, 0.06))"
                 />
                 {/* Node Labels */}
-                <text x={p.x} y={p.y - 3} fontSize="10.5" fontWeight="700" fill="#101828" textAnchor="middle">SL0</text>
-                <text x={p.x} y={p.y + 9} fontSize="8.5" fontWeight="600" fill="#667085" textAnchor="middle">{zoneRangeLabel(range)}</text>
+                <text x={p.x} y={p.y - 2} fontSize="9.5" fontWeight="700" fill="#101828" textAnchor="middle">SL0</text>
+                <text x={p.x} y={p.y + 8} fontSize="7.5" fontWeight="600" fill="#667085" textAnchor="middle">{zoneRangeLabel(range)}</text>
                 {/* Zone Name Label below */}
-                <text x={p.x} y={p.y + NODE_R + 16} fontSize="11" fontWeight="600" fill="#101828" textAnchor="middle">{z.name}</text>
+                <text x={p.x} y={p.y + NODE_R + 13} fontSize="10.5" fontWeight="600" fill="#101828" textAnchor="middle">{z.name}</text>
               </g>
             );
           })}
         </svg>
 
         {/* Subtext caption inside the diagram box container */}
-        <div style={{ fontSize: 11.5, color: C.muted, textAlign: 'center', marginTop: 10, paddingBottom: 4 }}>
+        <div style={{ fontSize: 10.5, color: C.muted, textAlign: 'center', marginTop: 4, paddingBottom: 2 }}>
           Click a zone (node) or conduit (edge) to inspect its requirements below
         </div>
       </div>

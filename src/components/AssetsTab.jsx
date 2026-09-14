@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { C, getScoreColor, getScoreClass } from '../theme';
-import { Card, Btn, Modal, Select, Input, FormField } from './UI';
+import { Card, Btn, Modal, Select, Input, FormField, DeleteConfirmModal } from './UI';
 import { Network, AlertCircle, Brain, PageIcon } from './Icons';
 import {
   useAssessment, assetConnections, addConnection, updateConnection, removeConnection,
@@ -1123,6 +1123,7 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
   const [adding, setAdding] = useState(false);
   const [to, setTo] = useState('');
   const [proto, setProto] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [edit, setEdit] = useState({
     name: asset.name || '',
     deviceType: asset.deviceType || '',
@@ -1157,30 +1158,31 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
   };
 
   return (
-    <Modal
-      title="Edit asset"
-      subtitle="Manually edit an asset — also filed into the connected directory"
-      onClose={onClose}
-      maxWidth={640}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <button
-            onClick={() => { removeAsset(asset.id); onClose(); }}
-            className="kpmg-btn-danger-outline"
-          >
-            Delete asset
-          </button>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
-              Cancel
-            </Btn>
-            <Btn onClick={saveEdit} className="kpmg-btn-primary-blue">
-              Save
-            </Btn>
+    <>
+      <Modal
+        title="Edit asset"
+        subtitle="Manually edit an asset — also filed into the connected directory"
+        onClose={onClose}
+        maxWidth={640}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="kpmg-btn-danger-outline"
+            >
+              Delete asset
+            </button>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
+                Cancel
+              </Btn>
+              <Btn onClick={saveEdit} className="kpmg-btn-primary-blue">
+                Save
+              </Btn>
+            </div>
           </div>
-        </div>
-      }
-    >
+        }
+      >
       {/* Form Fields Grid */}
       <div className="kpmg-edit-asset-form">
         {/* Row 1: Name in single row */}
@@ -1408,5 +1410,21 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
       </div>
     </div>
   </Modal>
+
+  {showDeleteConfirm && (
+    <DeleteConfirmModal
+      title={`Delete ${asset.name}`}
+      itemName={asset.name}
+      message={`Are you sure you want to delete asset "${asset.name}"?`}
+      warningMessage="This action cannot be undone."
+      onClose={() => setShowDeleteConfirm(false)}
+      onConfirm={() => {
+        removeAsset(asset.id);
+        setShowDeleteConfirm(false);
+        onClose();
+      }}
+    />
+  )}
+</>
 );
 }

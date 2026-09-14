@@ -6,7 +6,7 @@
 // possible; the residue is a short manual list, never the whole inventory.
 import React, { useState, useEffect } from 'react';
 import { C } from '../theme';
-import { Card, Btn, FormField, Select, Input, Textarea, Tag, Modal, Bar2 } from './UI';
+import { Card, Btn, FormField, Select, Input, Textarea, Tag, Modal, Bar2, DeleteConfirmModal } from './UI';
 import { Network, AlertCircle, Refresh, PageIcon } from './Icons';
 import { DynamicSegmentedBar } from './AssetsTab';
 import {
@@ -768,16 +768,76 @@ function SubnetChips({ rules, zoneId, onAdd, onRemove }) {
   );
 }
 
-function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onClose, onViewAssets }) {
+function getSubnetsForZone(zoneObj, rulesList, assetsList) {
+  if (!zoneObj) return [];
+  const zoneRules = (rulesList || getZoneRules()).filter(r => r.zone === zoneObj.id).map(r => r.cidr).filter(Boolean);
+  if (zoneRules.length > 0) return zoneRules;
+  if (zoneObj.subnets && zoneObj.subnets.length > 0) return zoneObj.subnets;
+  if (zoneObj.cidr) return [zoneObj.cidr];
+  const zoneAssetIps = assetsList ? assetsList.filter(ast => ast.zone === zoneObj.id && ast.ip).map(ast => ast.ip) : [];
+  const derivedSubnets = Array.from(new Set(zoneAssetIps.map(ip => {
+    const parts = String(ip).split('.');
+    return parts.length === 4 ? `${parts[0]}.${parts[1]}.${parts[2]}.0/24` : null;
+  }).filter(Boolean)));
+  return derivedSubnets;
+}
+
+export function isValidSubnetOrIp(val) {
+  if (!val || typeof val !== 'string') return false;
+  const trimmed = val.trim();
+  if (!trimmed) return false;
+  const regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\/(3[0-2]|[12]?[0-9]))?$/;
+  return regex.test(trimmed);
+}
+
+function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDeleteZone, onDeleteConduit, a, onClose, onViewAssets }) {
   const [, force] = useState(0);
   const bump = () => force(n => n + 1);
   const [zname, setZname] = useState(zone.name || '');
   const [tsl, setTsl] = useState(zone.slT || 2);
   const [desc, setDesc] = useState(zone.desc || '');
-  const [zsubnet, setZsubnet] = useState(() => rules.filter(r => r.zone === zone.id).map(r => r.cidr).join(', ') || '10.10.20.0');
+  const [addingSub, setAddingSub] = useState(false);
+  const [subInput, setSubInput] = useState('');
+  const [subError, setSubError] = useState('');
   const [conDir, setConDir] = useState('out');
   const [conOther, setConOther] = useState('');
   const [conName, setConName] = useState('');
+
+  const currentZoneRules = getSubnetsForZone(zone, rules, a.assets);
+
+  const addSubnetToEditModal = (cidrVal) => {
+    const val = cidrVal.trim();
+    if (!val) return;
+    if (!isValidSubnetOrIp(val)) {
+      setSubError('Invalid IP or Subnet format. E.g. 10.10.1.0/24');
+      return;
+    }
+    addZoneRule({ cidr: val, zone: zone.id, targetSl: Number(tsl) });
+    syncAssetZones(a.assets, getZoneRules(), a.updateAsset);
+    if (a.rescan) a.rescan();
+    onRulesChange();
+    bump();
+    setSubInput('');
+    setSubError('');
+    setAddingSub(false);
+  };
+
+  const removeSubnetFromEditModal = (cidrVal) => {
+    const r = (rules || getZoneRules()).find(x => x.zone === zone.id && x.cidr === cidrVal);
+    if (r) {
+      removeZoneRule(r.id);
+    } else {
+      const remaining = currentZoneRules.filter(s => s !== cidrVal);
+      saveZoneRules([
+        ...getZoneRules().filter(x => x.zone !== zone.id),
+        ...remaining.map(s => ({ id: `R${Date.now()}_${Math.random()}`, cidr: s, zone: zone.id, targetSl: Number(tsl) }))
+      ]);
+    }
+    syncAssetZones(a.assets, getZoneRules(), a.updateAsset);
+    if (a.rescan) a.rescan();
+    onRulesChange();
+    bump();
+  };
 
   const zoneConduits = conduits.filter(c => c.from === zone.id || c.to === zone.id);
 
@@ -796,14 +856,13 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onCl
   };
 
   const deleteZone = () => {
-    const memberCount = assets.filter(x => x.zone === zone.id).length;
-    const msg = memberCount
-      ? `Delete "${zone.name}"? This also removes its ${memberCount} asset${memberCount === 1 ? '' : 's'}.`
-      : `Delete "${zone.name}"?`;
-    if (!window.confirm(msg)) return;
-    a.removeZone(zone.id);
-    saveZoneRules(getZoneRules().filter(r => r.zone !== zone.id));
-    onClose();
+    if (onDeleteZone) {
+      onDeleteZone(zone);
+    } else {
+      a.removeZone(zone.id);
+      saveZoneRules(getZoneRules().filter(r => r.zone !== zone.id));
+      onClose();
+    }
   };
 
   return (
@@ -840,25 +899,128 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onCl
           />
         </FormField>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <FormField label="Target SL" required>
-            <Select
-              value={tsl}
-              onChange={e => setTsl(e.target.value)}
-              options={SL_OPTS}
-              style={{ borderRadius: 6, fontSize: 12.5 }}
-            />
-          </FormField>
+        <FormField label="Target SL" required>
+          <Select
+            value={tsl}
+            onChange={e => setTsl(e.target.value)}
+            options={SL_OPTS}
+            style={{ borderRadius: 6, fontSize: 12.5 }}
+          />
+        </FormField>
 
-          <FormField label="Subnets">
-            <Input
-              value={zsubnet}
-              onChange={e => setZsubnet(e.target.value)}
-              placeholder="10.10.20.0"
-              style={{ borderRadius: 6, fontSize: 13 }}
-            />
-          </FormField>
-        </div>
+        <FormField label="Subnets">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '4px 0' }}>
+            {/* Row 1: Add CTA / Input Controls */}
+            <div>
+              {addingSub ? (
+                <div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <Input
+                      value={subInput}
+                      onChange={e => {
+                        setSubInput(e.target.value);
+                        if (subError) setSubError('');
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addSubnetToEditModal(subInput);
+                        }
+                      }}
+                      placeholder="10.10.20.0/24"
+                      style={{
+                        width: 160,
+                        height: 32,
+                        padding: '2px 8px',
+                        fontSize: 12,
+                        borderRadius: 6,
+                        borderColor: subError ? '#D9251B' : undefined
+                      }}
+                    />
+                    <Btn
+                      size="sm"
+                      onClick={() => addSubnetToEditModal(subInput)}
+                      style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 600 }}
+                    >
+                      Add
+                    </Btn>
+                    <button
+                      type="button"
+                      onClick={() => { setAddingSub(false); setSubInput(''); setSubError(''); }}
+                      style={{ background: 'none', border: 'none', color: '#475467', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {subError && (
+                    <div style={{ fontSize: 11.5, color: '#D9251B', marginTop: 4, fontWeight: 500 }}>
+                      {subError}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAddingSub(true)}
+                  style={{
+                    background: 'none',
+                    border: '1px dashed #D0D5DD',
+                    borderRadius: 16,
+                    padding: '4px 12px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: '#1D4ED8',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  + Add subnet
+                </button>
+              )}
+            </div>
+
+            {/* Row 2: Added subnets badges */}
+            {currentZoneRules.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                {currentZoneRules.map(s => (
+                  <span
+                    key={s}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      background: '#EFF6FF',
+                      color: '#1D4ED8',
+                      border: '1px solid #BFDBFE',
+                      borderRadius: 16,
+                      padding: '3px 10px',
+                      fontSize: 12,
+                      fontWeight: 600
+                    }}
+                  >
+                    {s}
+                    <button
+                      type="button"
+                      onClick={() => removeSubnetFromEditModal(s)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#1D4ED8',
+                        cursor: 'pointer',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        padding: 0,
+                        lineHeight: 1
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </FormField>
 
         <FormField label="Description">
           <Textarea
@@ -963,7 +1125,7 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, a, onCl
                     </div>
 
                     <button
-                      onClick={() => { a.removeConduit(c.id); bump(); }}
+                      onClick={() => { if (onDeleteConduit) onDeleteConduit(c); else { a.removeConduit(c.id); bump(); } }}
                       title="Delete conduit"
                       style={{
                         background: '#FFFFFF', border: '1px solid #FECDCA', borderRadius: 6, color: '#D9251B',
@@ -1622,12 +1784,16 @@ function SectionZones({ a, onNavigate }) {
   const [, force] = useState(0);
   const bump = () => { setRules(getZoneRules()); force(n => n + 1); };
   const [openZone, setOpenZone] = useState(null);
+  const [deleteConfirmTarget, setDeleteConfirmTarget] = useState(null);
   const [pendingSlT, setPendingSlT] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [zname, setZname] = useState('');
   const [tsl, setTsl] = useState(2);
   const [zdesc, setZdesc] = useState('');
-  const [zsubnet, setZsubnet] = useState('');
+  const [zsubnets, setZsubnets] = useState([]);
+  const [subInput, setSubInput] = useState('');
+  const [subError, setSubError] = useState('');
+  const [addingSub, setAddingSub] = useState(false);
   const [airGapped, setAirGapped] = useState(false);
 
   const [addingAsset, setAddingAsset] = useState(false);
@@ -1640,25 +1806,46 @@ function SectionZones({ a, onNavigate }) {
     setPendingSlT({});
   };
 
+  const addSubnetToModal = (cidrVal) => {
+    const val = cidrVal.trim();
+    if (!val) return;
+    if (!isValidSubnetOrIp(val)) {
+      setSubError('Invalid IP or Subnet format. E.g. 10.10.1.0/24');
+      return;
+    }
+    if (!zsubnets.includes(val)) {
+      setZsubnets(prev => [...prev, val]);
+    }
+    setSubInput('');
+    setSubError('');
+    setAddingSub(false);
+  };
+
+  const removeSubnetFromModal = (cidrVal) => {
+    setZsubnets(prev => prev.filter(s => s !== cidrVal));
+  };
+
   const createZone = () => {
     if (!zname.trim()) return;
-    const newZone = a.addZone({ name: zname.trim(), slT: Number(tsl), desc: zdesc.trim(), airGapped });
-    if (zsubnet.trim() && newZone && newZone.id) {
-      addZoneRule({ cidr: zsubnet.trim(), zone: newZone.id, targetSl: Number(tsl) });
-      syncAssetZones(a.assets, getZoneRules(), a.updateAsset);
+    const finalSubnets = [...zsubnets];
+    if (subInput.trim() && !finalSubnets.includes(subInput.trim())) {
+      finalSubnets.push(subInput.trim());
     }
-    setZname(''); setZdesc(''); setZsubnet(''); setAirGapped(false); setShowCreateModal(false); bump();
+    const createdZoneId = a.addZone({ name: zname.trim(), slT: Number(tsl), desc: zdesc.trim(), airGapped });
+    const targetZoneId = typeof createdZoneId === 'object' ? createdZoneId?.id : createdZoneId;
+    if (targetZoneId) {
+      finalSubnets.forEach(cidr => {
+        addZoneRule({ cidr, zone: targetZoneId, targetSl: Number(tsl) });
+      });
+      if (finalSubnets.length > 0) {
+        syncAssetZones(a.assets, getZoneRules(), a.updateAsset);
+      }
+    }
+    setZname(''); setZdesc(''); setZsubnets([]); setSubInput(''); setAddingSub(false); setAirGapped(false); setShowCreateModal(false); bump();
   };
 
   const deleteZone = zone => {
-    const memberCount = a.assets.filter(x => x.zone === zone.id).length;
-    const msg = memberCount
-      ? `Delete "${zone.name}"? This also removes its ${memberCount} asset${memberCount === 1 ? '' : 's'}.`
-      : `Delete "${zone.name}"?`;
-    if (!window.confirm(msg)) return;
-    a.removeZone(zone.id);
-    saveZoneRules(getZoneRules().filter(r => r.zone !== zone.id));
-    bump();
+    setDeleteConfirmTarget({ type: 'zone', item: zone });
   };
 
   const unassigned = a.assets.filter(x => !x.zone);
@@ -1708,28 +1895,85 @@ function SectionZones({ a, onNavigate }) {
             <thead>
               <tr style={{ borderBottom: '1px solid #EAECF0', color: '#667085', fontSize: 11, fontWeight: 600 }}>
                 <th style={{ padding: '10px 12px 10px 0' }}>Name</th>
-                <th style={{ padding: '10px 12px' }}>Description</th>
+                <th style={{ padding: '10px 12px', maxWidth: 220 }}>Description</th>
                 <th style={{ padding: '10px 12px' }}>Target SL</th>
-                <th style={{ padding: '10px 12px' }}>Subnet</th>
+                <th style={{ padding: '10px 12px' }}>Conduits (zone-to-zone)</th>
                 <th style={{ padding: '10px 12px' }}>Subnet</th>
                 <th style={{ padding: '10px 0 10px 12px', textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {a.zones.map(z => {
-                const zoneRules = rules.filter(r => r.zone === z.id).map(r => r.cidr).filter(Boolean);
-                const sub1 = zoneRules[0] || '10.10.1.20';
-                const sub2 = zoneRules[1] || zoneRules[0] || '10.10.1.20';
+                const subnets = getSubnetsForZone(z, rules, a.assets);
+                const zoneConduitsCount = a.conduits ? a.conduits.filter(c => c.from === z.id || c.to === z.id).length : 0;
                 const slMeta = SL_META.find(m => m.sl === z.slT);
                 const slText = slMeta ? `SL-T ${z.slT} - ${slMeta.label}` : `SL-T ${z.slT}`;
 
                 return (
                   <tr key={z.id} style={{ borderBottom: '1px solid #F2F4F7' }}>
                     <td style={{ padding: '14px 12px 14px 0', fontWeight: 700, color: '#101828' }}>{z.name}</td>
-                    <td style={{ padding: '14px 12px', color: '#475467' }}>{z.desc || 'Corporate IT, ERP, domain'}</td>
+                    <td style={{ padding: '14px 12px', color: '#475467', maxWidth: 260 }} title={z.desc || '—'}>
+                      <div
+                        style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          lineHeight: 1.45,
+                          maxHeight: '2.9em'
+                        }}
+                      >
+                        {z.desc || '—'}
+                      </div>
+                    </td>
                     <td style={{ padding: '14px 12px', color: '#344054', fontWeight: 500 }}>{slText}</td>
-                    <td style={{ padding: '14px 12px', color: '#344054', fontFamily: 'monospace' }}>{sub1}</td>
-                    <td style={{ padding: '14px 12px', color: '#344054', fontFamily: 'monospace' }}>{sub2}</td>
+                    <td style={{ padding: '14px 12px', color: '#344054' }}>{zoneConduitsCount}</td>
+                    <td style={{ padding: '14px 12px', color: '#344054' }}>
+                      {subnets.length > 0 ? (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                          {subnets.slice(0, 2).map(s => (
+                            <span
+                              key={s}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                background: '#EFF6FF',
+                                color: '#1D4ED8',
+                                border: '1px solid #BFDBFE',
+                                borderRadius: 16,
+                                padding: '3px 10px',
+                                fontSize: 12,
+                                fontWeight: 600
+                              }}
+                            >
+                              {s}
+                            </span>
+                          ))}
+                          {subnets.length > 2 && (
+                            <span
+                              title={subnets.slice(2).join(', ')}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                background: '#F1F5F9',
+                                color: '#475467',
+                                border: '1px solid #CBD5E1',
+                                borderRadius: 16,
+                                padding: '3px 9px',
+                                fontSize: 11.5,
+                                fontWeight: 600,
+                                cursor: 'default'
+                              }}
+                            >
+                              +{subnets.length - 2} more
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                     <td style={{ padding: '14px 0 14px 12px', textAlign: 'right' }}>
                       <button
                         onClick={() => setOpenZone(z)}
@@ -1927,25 +2171,128 @@ function SectionZones({ a, onNavigate }) {
               />
             </FormField>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <FormField label="Target SL" required>
-                <Select
-                  value={tsl}
-                  onChange={e => setTsl(e.target.value)}
-                  options={SL_OPTS}
-                  style={{ borderRadius: 6, fontSize: 12.5 }}
-                />
-              </FormField>
+            <FormField label="Target SL" required>
+              <Select
+                value={tsl}
+                onChange={e => setTsl(e.target.value)}
+                options={SL_OPTS}
+                style={{ borderRadius: 6, fontSize: 12.5 }}
+              />
+            </FormField>
 
-              <FormField label="Subnets">
-                <Input
-                  value={zsubnet}
-                  onChange={e => setZsubnet(e.target.value)}
-                  placeholder="10.10.20.0"
-                  style={{ borderRadius: 6, fontSize: 13 }}
-                />
-              </FormField>
-            </div>
+            <FormField label="Subnets">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '4px 0' }}>
+                {/* Row 1: Add CTA / Input Controls */}
+                <div>
+                  {addingSub ? (
+                    <div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <Input
+                          value={subInput}
+                          onChange={e => {
+                            setSubInput(e.target.value);
+                            if (subError) setSubError('');
+                          }}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addSubnetToModal(subInput);
+                            }
+                          }}
+                          placeholder="10.10.20.0/24"
+                          style={{
+                            width: 160,
+                            height: 32,
+                            padding: '2px 8px',
+                            fontSize: 12,
+                            borderRadius: 6,
+                            borderColor: subError ? '#D9251B' : undefined
+                          }}
+                        />
+                        <Btn
+                          size="sm"
+                          onClick={() => addSubnetToModal(subInput)}
+                          style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 600 }}
+                        >
+                          Add
+                        </Btn>
+                        <button
+                          type="button"
+                          onClick={() => { setAddingSub(false); setSubInput(''); setSubError(''); }}
+                          style={{ background: 'none', border: 'none', color: '#475467', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      {subError && (
+                        <div style={{ fontSize: 11.5, color: '#D9251B', marginTop: 4, fontWeight: 500 }}>
+                          {subError}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setAddingSub(true)}
+                      style={{
+                        background: 'none',
+                        border: '1px dashed #D0D5DD',
+                        borderRadius: 16,
+                        padding: '4px 12px',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: '#1D4ED8',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      + Add subnet
+                    </button>
+                  )}
+                </div>
+
+                {/* Row 2: Added subnets badges */}
+                {zsubnets.length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {zsubnets.map(s => (
+                      <span
+                        key={s}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          background: '#EFF6FF',
+                          color: '#1D4ED8',
+                          border: '1px solid #BFDBFE',
+                          borderRadius: 16,
+                          padding: '3px 10px',
+                          fontSize: 12,
+                          fontWeight: 600
+                        }}
+                      >
+                        {s}
+                        <button
+                          type="button"
+                          onClick={() => removeSubnetFromModal(s)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#1D4ED8',
+                            cursor: 'pointer',
+                            fontSize: 13,
+                            fontWeight: 700,
+                            padding: 0,
+                            lineHeight: 1
+                          }}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </FormField>
 
             <FormField label="Description">
               <Textarea
@@ -1996,9 +2343,51 @@ function SectionZones({ a, onNavigate }) {
           rules={rules}
           conduits={a.conduits}
           onRulesChange={() => bump()}
+          onDeleteZone={z => setDeleteConfirmTarget({ type: 'zone', item: z })}
+          onDeleteConduit={c => setDeleteConfirmTarget({ type: 'conduit', item: c })}
           a={a}
           onClose={() => { setOpenZone(null); bump(); }}
           onViewAssets={zoneId => { setAssetsZoneJump(zoneId); setOpenZone(null); onNavigate('assets'); }}
+        />
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {deleteConfirmTarget && deleteConfirmTarget.type === 'zone' && (
+        <DeleteConfirmModal
+          title={`Delete ${deleteConfirmTarget.item.name}`}
+          itemName={deleteConfirmTarget.item.name}
+          message={`Are you sure you want to delete "${deleteConfirmTarget.item.name}"?${
+            a.assets.filter(x => x.zone === deleteConfirmTarget.item.id).length > 0
+              ? ` This also removes its ${a.assets.filter(x => x.zone === deleteConfirmTarget.item.id).length} asset(s).`
+              : ''
+          }`}
+          warningMessage="This action cannot be undone."
+          onClose={() => setDeleteConfirmTarget(null)}
+          onConfirm={() => {
+            const zId = deleteConfirmTarget.item.id;
+            a.removeZone(zId);
+            saveZoneRules(getZoneRules().filter(r => r.zone !== zId));
+            if (openZone && openZone.id === zId) {
+              setOpenZone(null);
+            }
+            setDeleteConfirmTarget(null);
+            bump();
+          }}
+        />
+      )}
+
+      {deleteConfirmTarget && deleteConfirmTarget.type === 'conduit' && (
+        <DeleteConfirmModal
+          title={`Delete Conduit`}
+          itemName={deleteConfirmTarget.item.name || 'Conduit'}
+          message={`Are you sure you want to delete this conduit (${deleteConfirmTarget.item.name || 'Conduit'})?`}
+          warningMessage="This action cannot be undone."
+          onClose={() => setDeleteConfirmTarget(null)}
+          onConfirm={() => {
+            a.removeConduit(deleteConfirmTarget.item.id);
+            setDeleteConfirmTarget(null);
+            bump();
+          }}
         />
       )}
     </div>
