@@ -868,81 +868,135 @@ h3 {
 
 .kpmg-shadow-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 
-  @media (max-width: 1200px) {
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 1024px) {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 }
 
 .kpmg-shadow-item-card {
   background: #ffffff;
-  border: 1px solid var(--border-color, #e5e5e5);
+  border: 1px solid #EAECF0;
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 16px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
   transition: all 0.15s ease;
+  min-height: 148px;
 
   &:hover {
-    border-color: var(--kpmg-primary-blue, #00338d);
-    box-shadow: 0 2px 8px rgba(0, 51, 141, 0.08);
+    border-color: #D0D5DD;
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
   }
 }
 
-.kpmg-shadow-item-main {
+.kpmg-shadow-card-top-content {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+}
+
+.kpmg-shadow-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
   min-width: 0;
-  flex: 1;
 }
 
-.kpmg-shadow-item-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--heading-color, #333333);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.kpmg-shadow-item-meta {
-  font-size: 12px;
-  color: var(--subtext-color, #666666);
-}
-
-.kpmg-shadow-item-pill-wrapper {
-  margin-top: 3px;
-}
-
-.kpmg-shadow-item-pill {
-  display: inline-block;
-  background: #FEF3F2;
-  color: #B42318;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 2px 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.kpmg-shadow-item-btn {
+.kpmg-shadow-card-pct {
+  font-size: 15px;
+  font-weight: 700;
+  color: #D9251B;
   flex-shrink: 0;
-  font-size: 12.5px;
+  line-height: 1.2;
+}
+
+.kpmg-shadow-card-seen {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #D9251B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.kpmg-shadow-card-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #101828;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.kpmg-shadow-card-meta {
+  font-size: 12px;
+  color: #667085;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpmg-shadow-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.kpmg-shadow-btn-register {
+  background: #1E49E2;
+  color: #ffffff;
+  border: 1px solid #1E49E2;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 5px 14px;
-  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  line-height: 1.4;
+
+  &:hover {
+    background: #1537B0;
+    border-color: #1537B0;
+  }
+}
+
+.kpmg-shadow-btn-cancel {
+  background: #ffffff;
+  color: #344054;
+  border: 1px solid #D0D5DD;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  line-height: 1.4;
+
+  &:hover {
+    background: #F9FAFB;
+    border-color: #98A2B3;
+    color: #1D2939;
+  }
 }
 
 .kpmg-badge-count {

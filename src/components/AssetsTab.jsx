@@ -4,7 +4,7 @@ import { Card, Btn, Modal, Select, Input, FormField, DeleteConfirmModal } from '
 import { Network, AlertCircle, Brain, PageIcon } from './Icons';
 import {
   useAssessment, assetConnections, addConnection, updateConnection, removeConnection,
-  shadowAssetsForZone, allShadowAssets, promoteShadowAsset, resetShadowAssets, assetKind,
+  shadowAssetsForZone, allShadowAssets, promoteShadowAsset, dismissShadowAsset, resetShadowAssets, assetKind,
   ingestAssetFile, assetProvenance,
   assetVisibility, visibilityByZone, REQUIRED_ASSET_FIELDS, missingAssetFields, isRegisterOnly,
   setManualAssignment, consumeAssetsZoneJump,
@@ -632,9 +632,14 @@ function RegisterShadowModal({ shadow, zones, onClose, onDone }) {
 
 function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
   const [reg, setReg] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const all = allShadowAssets();
   const shadows = zoneF === 'all' ? all : all.filter(s => s.zone === zoneF);
+
+  const handleCancel = (id) => {
+    dismissShadowAsset(id);
+    if (onChange) onChange();
+  };
 
   return (
     <div className="kpmg-card kpmg-shadow-section-card">
@@ -665,20 +670,32 @@ function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
         <div className="kpmg-shadow-cards-grid">
           {shadows.map(s => (
             <div key={s.id} className="kpmg-shadow-item-card">
-              <div className="kpmg-shadow-item-main">
-                <div className="kpmg-shadow-item-name">{s.name}</div>
-                <div className="kpmg-shadow-item-meta">
+              <div className="kpmg-shadow-card-top-content">
+                <div className="kpmg-shadow-card-header">
+                  <span className="kpmg-shadow-card-pct">{s.confidence ?? 67}%</span>
+                  <span className="kpmg-shadow-card-seen" title={s.seenAs}>{s.seenAs || 'Observed in logs'}</span>
+                </div>
+                <div className="kpmg-shadow-card-name" title={s.name}>{s.name}</div>
+                <div className="kpmg-shadow-card-meta">
                   {s.deviceType} • {zName(s.zone)}
                 </div>
-                {s.seenAs && (
-                  <div className="kpmg-shadow-item-pill-wrapper">
-                    <span className="kpmg-shadow-item-pill">{s.seenAs}</span>
-                  </div>
-                )}
               </div>
-              <button className="kpmg-btn-outline kpmg-shadow-item-btn" onClick={() => setReg(s)}>
-                Register
-              </button>
+              <div className="kpmg-shadow-card-actions">
+                <button
+                  type="button"
+                  className="kpmg-shadow-btn-register"
+                  onClick={() => setReg(s)}
+                >
+                  Register
+                </button>
+                <button
+                  type="button"
+                  className="kpmg-shadow-btn-cancel"
+                  onClick={() => handleCancel(s.id)}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           ))}
         </div>

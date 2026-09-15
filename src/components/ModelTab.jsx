@@ -931,6 +931,7 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
                       style={{
                         width: 160,
                         height: 32,
+                        boxSizing: 'border-box',
                         padding: '2px 8px',
                         fontSize: 12,
                         borderRadius: 6,
@@ -940,14 +941,36 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
                     <Btn
                       size="sm"
                       onClick={() => addSubnetToEditModal(subInput)}
-                      style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 600 }}
+                      style={{
+                        height: 32,
+                        boxSizing: 'border-box',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#1D4ED8',
+                        color: '#fff',
+                        borderRadius: 6,
+                        padding: '0 14px',
+                        fontSize: 12,
+                        fontWeight: 600
+                      }}
                     >
                       Add
                     </Btn>
                     <button
                       type="button"
                       onClick={() => { setAddingSub(false); setSubInput(''); setSubError(''); }}
-                      style={{ background: 'none', border: 'none', color: '#475467', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#475467',
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        height: 32,
+                        display: 'inline-flex',
+                        alignItems: 'center'
+                      }}
                     >
                       Cancel
                     </button>
@@ -2203,6 +2226,7 @@ function SectionZones({ a, onNavigate }) {
                           style={{
                             width: 160,
                             height: 32,
+                            boxSizing: 'border-box',
                             padding: '2px 8px',
                             fontSize: 12,
                             borderRadius: 6,
@@ -2212,14 +2236,36 @@ function SectionZones({ a, onNavigate }) {
                         <Btn
                           size="sm"
                           onClick={() => addSubnetToModal(subInput)}
-                          style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 600 }}
+                          style={{
+                            height: 32,
+                            boxSizing: 'border-box',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: '#1D4ED8',
+                            color: '#fff',
+                            borderRadius: 6,
+                            padding: '0 14px',
+                            fontSize: 12,
+                            fontWeight: 600
+                          }}
                         >
                           Add
                         </Btn>
                         <button
                           type="button"
                           onClick={() => { setAddingSub(false); setSubInput(''); setSubError(''); }}
-                          style={{ background: 'none', border: 'none', color: '#475467', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#475467',
+                            cursor: 'pointer',
+                            fontSize: 12,
+                            fontWeight: 500,
+                            height: 32,
+                            display: 'inline-flex',
+                            alignItems: 'center'
+                          }}
                         >
                           Cancel
                         </button>

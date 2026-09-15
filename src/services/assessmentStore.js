@@ -444,29 +444,40 @@ export function assetsForZone(assets, zoneId) { return assets.filter(a => a.zone
 // In production these are derived by diffing parsed log endpoints against the
 // hardware/software registers. Seeded here per zone, flagged for the consultant.
 const SHADOW_SEED = [
-  { id:'SH-OPS1', zone:'Z-OPS',  name:'10.20.3.47 (unregistered host)', deviceType:'Unknown workstation', seenAs:'RDP + SMB to ENG-WS-01', level:3, evidence:'log' },
-  { id:'SH-OPS2', zone:'Z-OPS',  name:'10.20.3.91 (unregistered)',      deviceType:'Unknown laptop',      seenAs:'HTTP polling of SCADA-SRV-01', level:3, evidence:'log' },
-  { id:'SH-CT1',  zone:'Z-CTRL', name:'10.30.1.88 (unregistered)',      deviceType:'Unknown controller',  seenAs:'Modbus writes to PLC-CTRL-01', level:1, evidence:'log' },
-  { id:'SH-CT2',  zone:'Z-CTRL', name:'10.30.1.103 (unregistered)',     deviceType:'Unknown HMI panel',   seenAs:'VNC session to HMI-OPS-01', level:2, evidence:'log' },
-  { id:'SH-DMZ1', zone:'Z-DMZ',  name:'vendor-laptop-01',               deviceType:'Transient device',    seenAs:'Outbound HTTPS + RDP inbound', level:3, evidence:'log' },
-  { id:'SH-ENT1', zone:'Z-ENT',  name:'10.10.5.22 (unregistered host)', deviceType:'Unknown server',      seenAs:'SMB shares + LDAP to domain controller', level:4, evidence:'log' },
+  { id:'SH-OPS1', zone:'Z-OPS',  name:'10.20.3.47 (unregistered host)', deviceType:'Unknown workstation', seenAs:'RDP + SMB to ENG-WS-01', level:3, evidence:'log', confidence:67 },
+  { id:'SH-OPS2', zone:'Z-OPS',  name:'10.20.3.91 (unregistered)',      deviceType:'Unknown laptop',      seenAs:'HTTP polling of SCADA-SRV-01', level:3, evidence:'log', confidence:67 },
+  { id:'SH-CT1',  zone:'Z-CTRL', name:'10.30.1.88 (unregistered)',      deviceType:'Unknown controller',  seenAs:'Modbus writes to PLC-CTRL-01', level:1, evidence:'log', confidence:67 },
+  { id:'SH-CT2',  zone:'Z-CTRL', name:'10.30.1.103 (unregistered)',     deviceType:'Unknown HMI panel',   seenAs:'VNC session to HMI-OPS-01', level:2, evidence:'log', confidence:67 },
+  { id:'SH-DMZ1', zone:'Z-DMZ',  name:'vendor-laptop-01',               deviceType:'Transient device',    seenAs:'Outbound HTTPS + RDP inbound', level:3, evidence:'log', confidence:67 },
+  { id:'SH-DMZ2', zone:'Z-DMZ',  name:'10.20.1.84 (unregistered host)', deviceType:'Unknown gateway',     seenAs:'SSH + SNMP sweep from external', level:3, evidence:'log', confidence:67 },
+  { id:'SH-ENT1', zone:'Z-ENT',  name:'10.10.5.22 (unregistered host)', deviceType:'Unknown server',      seenAs:'SMB shares + LDAP to domain controller', level:4, evidence:'log', confidence:67 },
+  { id:'SH-SAF1', zone:'Z-SAF',  name:'10.50.1.45 (unregistered host)', deviceType:'Unknown device',      seenAs:'Broadcast discovery on SIS bus', level:2, evidence:'log', confidence:67 },
 ];
-const SHKEY = 'ot_shadow_assets_v3';
+const SHKEY = 'ot_shadow_assets_v4';
 const SHADOW_PROMOTED = 'ot_shadow_promoted_v2';
+const SHADOW_DISMISSED = 'ot_shadow_dismissed_v1';
 function readShadow() { return read(SHKEY, SHADOW_SEED); }
 function readPromoted() { try { return JSON.parse(localStorage.getItem(SHADOW_PROMOTED)||'[]'); } catch { return []; } }
+function readDismissed() { try { return JSON.parse(localStorage.getItem(SHADOW_DISMISSED)||'[]'); } catch { return []; } }
 export function shadowAssetsForZone(zoneId) {
   const promoted = readPromoted();
-  return readShadow().filter(s => s.zone === zoneId && !promoted.includes(s.id));
+  const dismissed = readDismissed();
+  return readShadow().filter(s => s.zone === zoneId && !promoted.includes(s.id) && !dismissed.includes(s.id));
 }
 // Tick a shadow asset off (it's been added to the main register) → removed from the list.
 export function promoteShadowAsset(id) {
   const p = readPromoted(); if (!p.includes(id)) p.push(id);
   localStorage.setItem(SHADOW_PROMOTED, JSON.stringify(p)); window.dispatchEvent(new Event('assessment-change'));
 }
+// Dismiss/cancel a shadow asset → removed from the list.
+export function dismissShadowAsset(id) {
+  const d = readDismissed(); if (!d.includes(id)) d.push(id);
+  localStorage.setItem(SHADOW_DISMISSED, JSON.stringify(d)); window.dispatchEvent(new Event('assessment-change'));
+}
 export function allShadowAssets() {
   const promoted = readPromoted();
-  return readShadow().filter(s => !promoted.includes(s.id));
+  const dismissed = readDismissed();
+  return readShadow().filter(s => !promoted.includes(s.id) && !dismissed.includes(s.id));
 }
 // Shadow assets that have since been registered. Excluded from the visibility
 // score (they're matched now), but kept for report context — the estate really
@@ -478,6 +489,7 @@ export function remediatedShadowAssets() {
 // Restore the demo shadow assets (clears the promoted list and any uploaded shadow rows).
 export function resetShadowAssets() {
   localStorage.removeItem(SHADOW_PROMOTED);
+  localStorage.removeItem(SHADOW_DISMISSED);
   localStorage.removeItem(SHKEY);
   window.dispatchEvent(new Event('assessment-change'));
 }
