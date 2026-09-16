@@ -131,21 +131,14 @@ export default function WorkspaceTab({ embedded = false }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="kpmg-col-gap-16">
       <Card>
         {!embedded && (
-          <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>
+          <div className="kpmg-ws-title">
             Actions
           </div>
         )}
-        <div
-          style={{
-            fontSize: 12,
-            color: C.muted,
-            marginTop: embedded ? 0 : 2,
-            lineHeight: 1.6,
-          }}
-        >
+        <div className={`kpmg-ws-desc ${embedded ? 'embedded' : ''}`}>
           Open points from the 62443 review, aggregated across every zone and
           grouped by how you'll close them. Each task has an ID you can search.
           Smart-assist drafts a client-ready output; it does not tick anything
@@ -167,13 +160,13 @@ export default function WorkspaceTab({ embedded = false }) {
           const openCount = full.filter((it) => !wsTaskState(it)).length;
           const doneCount = full.length - openCount;
           return (
-            <Card key={cat.id} style={{ padding: 0, overflow: 'hidden' }}>
+            <Card key={cat.id} className="kpmg-card-overflow-hidden">
               <div className="kpmg-ws-card-header">
                 <div className="kpmg-flex-center-gap8">
-                  <span className="kpmg-modal-title" style={{ fontSize: 13.5 }}>
+                  <span className="kpmg-modal-title kpmg-font-13-5">
                     {cat.title}
                   </span>
-                  <span className="kpmg-badge-count" style={{ marginLeft: 'auto' }}>
+                  <span className="kpmg-badge-count kpmg-margin-left-auto">
                     {openCount} open
                   </span>
                   {doneCount > 0 && (
@@ -182,14 +175,14 @@ export default function WorkspaceTab({ embedded = false }) {
                     </span>
                   )}
                 </div>
-                <div className="kpmg-subtext" style={{ marginTop: 3 }}>
+                <div className="kpmg-subtext kpmg-subtext-mt3">
                   {cat.blurb}
                 </div>
                 {cat.smart && (
                   <Btn
                     size="sm"
                     onClick={() => runSmart(cat.id)}
-                    style={{ marginTop: 10, width: '100%' }}
+                    className="kpmg-ws-smart-btn"
                     disabled={!openCount}
                   >
                     <span className="kpmg-flex-center-gap6">
@@ -200,14 +193,7 @@ export default function WorkspaceTab({ embedded = false }) {
               </div>
               <div className="kpmg-ws-item-body">
                 {list.length === 0 && (
-                  <div
-                    style={{
-                      padding: '20px 15px',
-                      fontSize: 12,
-                      color: C.muted,
-                      textAlign: 'center',
-                    }}
-                  >
+                  <div className="kpmg-ws-empty-msg">
                     {query.trim()
                       ? 'No tasks match your search.'
                       : 'Nothing here.'}
@@ -278,34 +264,18 @@ function WsItem({ it, onChange }) {
         <span className="kpmg-code-badge kpmg-ws-fr-badge">
           {it.fr} {it.sr}
         </span>
-        <span style={{ fontSize: 10.5, color: C.muted }}>· {it.zone}</span>
+        <span className="kpmg-ws-zone-text">· {it.zone}</span>
         {it.ai && !done && (
           <span
             title="AI-suggested action"
-            style={{
-              marginLeft: 'auto',
-              fontSize: 9,
-              fontWeight: 700,
-              color: C.violet,
-              background: '#F1EAFE',
-              padding: '1px 6px',
-              borderRadius: 10,
-            }}
+            className="kpmg-ws-ai-pill"
           >
             AI
           </span>
         )}
         {done && (
           <span
-            style={{
-              marginLeft: 'auto',
-              fontSize: 9,
-              fontWeight: 700,
-              color: st.status === 'accepted' ? '#510DBC' : '#067647',
-              background: st.status === 'accepted' ? '#F1EAFE' : '#DCFAE6',
-              padding: '1px 7px',
-              borderRadius: 10,
-            }}
+            className={`kpmg-ws-archived-pill ${st.status === 'accepted' ? 'accepted' : 'actioned'}`}
           >
             📁 archived ·{' '}
             {st.status === 'accepted' ? 'risk accepted' : 'actioned'}
@@ -313,36 +283,23 @@ function WsItem({ it, onChange }) {
         )}
       </div>
       <div
-        className="kpmg-ws-item-text"
-        style={{
-          color: done ? C.muted : C.text,
-          textDecoration: done ? 'line-through' : 'none',
-        }}
+        className={`kpmg-ws-item-text ${done ? 'done' : ''}`}
       >
         {it.note || it.point}
       </div>
       {done ? (
-        <div style={{ marginTop: 5, fontSize: 11, color: C.muted }}>
+        <div className="kpmg-ws-done-note">
           "{st.note}"{' '}
           <button
             onClick={undo}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: C.navy,
-              cursor: 'pointer',
-              fontSize: 11,
-              fontFamily: 'inherit',
-              textDecoration: 'underline',
-              marginLeft: 6,
-            }}
+            className="kpmg-ws-undo-btn"
           >
             undo
           </button>
         </div>
       ) : open ? (
-        <div style={{ marginTop: 7 }}>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+        <div className="kpmg-ws-action-box">
+          <div className="kpmg-ws-pill-group">
             {[
               ['actioned', 'Mark actioned'],
               ['accepted', 'Risk accepted'],
@@ -350,17 +307,7 @@ function WsItem({ it, onChange }) {
               <button
                 key={k}
                 onClick={() => setMode(k)}
-                style={{
-                  fontSize: 10.5,
-                  fontWeight: 600,
-                  padding: '3px 9px',
-                  borderRadius: 20,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  border: `1px solid ${mode === k ? C.navy : C.border}`,
-                  background: mode === k ? C.navy : '#fff',
-                  color: mode === k ? '#fff' : C.muted,
-                }}
+                className={`kpmg-ws-toggle-pill ${mode === k ? 'active' : ''}`}
               >
                 {l}
               </button>
@@ -374,22 +321,15 @@ function WsItem({ it, onChange }) {
                 ? 'Why is this risk acceptable?'
                 : 'What was gathered / done?'
             }
-            style={{ fontSize: 11.5, marginBottom: 6 }}
+            className="kpmg-ws-note-input"
           />
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div className="kpmg-ws-btn-row">
             <Btn size="sm" onClick={apply} disabled={!note.trim()}>
               Save
             </Btn>
             <button
               onClick={() => setOpen(false)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: C.muted,
-                cursor: 'pointer',
-                fontSize: 11.5,
-                fontFamily: 'inherit',
-              }}
+              className="kpmg-ws-cancel-btn"
             >
               Cancel
             </button>
@@ -401,17 +341,7 @@ function WsItem({ it, onChange }) {
             setOpen(true);
             setNote('');
           }}
-          style={{
-            marginTop: 5,
-            background: 'none',
-            border: `1px solid ${C.border}`,
-            borderRadius: 6,
-            padding: '3px 10px',
-            fontSize: 11,
-            color: C.navy,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-          }}
+          className="kpmg-ws-mark-done-btn"
         >
           Mark done…
         </button>
@@ -444,38 +374,14 @@ function SmartModal({ cat, content, onClose }) {
         </>
       }
     >
-      <div
-        style={{
-          fontSize: 11,
-          color: C.muted,
-          marginBottom: 10,
-          padding: '7px 10px',
-          background: '#F1EAFE',
-          borderRadius: 7,
-          display: 'flex',
-          gap: 7,
-        }}
-      >
-        <span style={{ color: C.violet, display: 'flex', flexShrink: 0 }}>
+      <div className="kpmg-ws-smart-info">
+        <span className="kpmg-ws-brain-icon">
           <Brain />
         </span>
         Illustrative draft generated from your open items. Edit freely — this is
         a starting point, not a finished deliverable.
       </div>
-      <pre
-        style={{
-          whiteSpace: 'pre-wrap',
-          fontFamily: 'inherit',
-          fontSize: 12.5,
-          color: C.text,
-          lineHeight: 1.6,
-          background: '#FAFBFE',
-          border: `1px solid ${C.border}`,
-          borderRadius: 8,
-          padding: '14px 16px',
-          margin: 0,
-        }}
-      >
+      <pre className="kpmg-ws-pre-content">
         {content}
       </pre>
     </Modal>

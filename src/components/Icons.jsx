@@ -18,13 +18,19 @@ export const Network     = () => <Sv><rect x="2" y="2" width="6" height="6" rx="
 export const Folder      = () => <Sv><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></Sv>;
 export const Refresh     = () => <Sv><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></Sv>;
 export const AlertCircle = () => <Sv><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Sv>;
-export const PageIcon = ({ name, size = 16, style, className }) => (
+export const PageIcon = ({ name, size = 16, style, className, white = false }) => (
   <img
     src={`${process.env.PUBLIC_URL || ''}/icons/${name}`}
     alt=""
     width={size}
     height={size}
     className={className}
-    style={{ flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', ...style }}
+    style={{
+      flexShrink: 0,
+      display: 'inline-block',
+      verticalAlign: 'middle',
+      ...(white ? { filter: 'brightness(0) invert(1)' } : {}),
+      ...style
+    }}
   />
 );

@@ -17,21 +17,21 @@ const SEV_STYLE = {
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const NavIcon = ({path,cx,cy,r,...rest}) => (
-  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="kpmg-shrink-0">
     {r&&<circle cx={cx} cy={cy} r={r}/>}
     <path d={path}/>
   </svg>
 );
-const UsersIcon  = ()=><svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{flexShrink:0}}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
-const LogsIcon   = ()=><svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{flexShrink:0}}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
-const HealthIcon = ()=><svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{flexShrink:0}}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
-const ClientsIcon = ()=><svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>;
+const UsersIcon  = ()=><svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="kpmg-shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const LogsIcon   = ()=><svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="kpmg-shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
+const HealthIcon = ()=><svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="kpmg-shrink-0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
+const ClientsIcon = ()=><svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="kpmg-shrink-0"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>;
 const GearIcon   = ()=><svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={C.navy} strokeWidth="1.6" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
 
 function SevIcon({severity}) {
-  if (severity==='critical') return <div style={{width:28,height:28,borderRadius:8,background:'#FEE4E2',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>;
-  if (severity==='warning')  return <div style={{width:28,height:28,borderRadius:8,background:'#FEF9E7',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>;
-  return <div style={{width:28,height:28,borderRadius:8,background:'#EFF6FF',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>;
+  if (severity==='critical') return <div className="kpmg-admin-sev-icon critical"><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>;
+  if (severity==='warning')  return <div className="kpmg-admin-sev-icon warning"><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>;
+  return <div className="kpmg-admin-sev-icon info"><svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>;
 }
 
 // ── User detail modal matching Reference Screenshot ───────────────────────────
@@ -57,8 +57,8 @@ function UserDetailModal({ user, onClose, onEdit }) {
       onClose={onClose}
       maxWidth={440}
       footer={
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
-          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+        <div className="kpmg-modal-footer-end">
+          <Btn variant="outline" onClick={onClose} className="kpmg-admin-btn-outline">
             Close
           </Btn>
           <Btn
@@ -66,81 +66,55 @@ function UserDetailModal({ user, onClose, onEdit }) {
               onEdit(user);
               onClose();
             }}
-            style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 22px', fontWeight: 600 }}
+            className="kpmg-admin-btn-primary"
           >
             Edit
           </Btn>
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="kpmg-flex-col-gap16">
         {/* Row 1: Role & Client Instance */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="kpmg-grid-2col-gap16">
           <div>
-            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Role</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{user.role || 'Lead Analyst'}</div>
+            <div className="kpmg-admin-detail-label">Role</div>
+            <div className="kpmg-admin-detail-value">{user.role || 'Lead Analyst'}</div>
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Client Instance</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{companyName}</div>
+            <div className="kpmg-admin-detail-label">Client Instance</div>
+            <div className="kpmg-admin-detail-value">{companyName}</div>
           </div>
         </div>
 
         {/* Row 2: Status & Password */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="kpmg-grid-2col-gap16">
           <div>
-            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 6 }}>Status</div>
+            <div className="kpmg-admin-detail-label-mb6">Status</div>
             {isActive ? (
-              <span
-                style={{
-                  background: '#ECFDF5',
-                  color: '#027A48',
-                  border: '1px solid #ABEFC6',
-                  fontSize: 11.5,
-                  fontWeight: 500,
-                  padding: '3px 10px',
-                  borderRadius: 12,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#12B76A' }} /> Active
+              <span className="kpmg-badge kpmg-admin-badge-active">
+                <span className="kpmg-dot-active" /> Active
               </span>
             ) : (
-              <span
-                style={{
-                  background: '#FFFAEB',
-                  color: '#B54708',
-                  border: '1px solid #FEDF89',
-                  fontSize: 11.5,
-                  fontWeight: 500,
-                  padding: '3px 10px',
-                  borderRadius: 12,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F79009' }} /> Suspended
+              <span className="kpmg-badge kpmg-admin-badge-suspended">
+                <span className="kpmg-dot-suspended" /> Suspended
               </span>
             )}
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Password</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Davies@123</div>
+            <div className="kpmg-admin-detail-label">Password</div>
+            <div className="kpmg-admin-detail-value">Davies@123</div>
           </div>
         </div>
 
         {/* Row 3: Account Created & Last Access */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="kpmg-grid-2col-gap16">
           <div>
-            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Account Created</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{createdDate}</div>
+            <div className="kpmg-admin-detail-label">Account Created</div>
+            <div className="kpmg-admin-detail-value">{createdDate}</div>
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 500, color: '#667085', marginBottom: 4 }}>Last Access</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{lastAccess}</div>
+            <div className="kpmg-admin-detail-label">Last Access</div>
+            <div className="kpmg-admin-detail-value">{lastAccess}</div>
           </div>
         </div>
       </div>
@@ -184,39 +158,39 @@ function EditUserModal({ user, onClose, onSave, onDelete }) {
       onClose={onClose}
       maxWidth={460}
       footer={
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+        <div className="kpmg-modal-footer-between">
           <Btn
             variant="outline"
             onClick={() => onDelete(user)}
-            style={{ color: '#ED2124', borderColor: '#ED2124', background: 'transparent', borderRadius: 8, padding: '8px 16px', fontWeight: 600 }}
+            className="kpmg-admin-btn-danger-outline"
           >
             Delete User
           </Btn>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+          <div className="kpmg-d-flex kpmg-gap-12">
+            <Btn variant="outline" onClick={onClose} className="kpmg-admin-btn-outline">
               Cancel
             </Btn>
-            <Btn onClick={handleSubmit} disabled={!form.name.trim() || !form.email.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+            <Btn onClick={handleSubmit} disabled={!form.name.trim() || !form.email.trim()} className="kpmg-admin-btn-primary-sm">
               Save User
             </Btn>
           </div>
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="kpmg-flex-col-gap16">
         {/* Name */}
         <FormField label="Name" required>
-          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full Name" style={{ borderRadius: 8 }} />
+          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full Name" className="kpmg-rounded-input" />
         </FormField>
 
         {/* Email */}
         <FormField label="Email" required>
-          <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email address" style={{ borderRadius: 8 }} />
+          <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email address" className="kpmg-rounded-input" />
         </FormField>
 
         {/* Role */}
         <FormField label="Role">
-          <Select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} options={ROLES} style={{ borderRadius: 8 }} />
+          <Select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} options={ROLES} className="kpmg-rounded-input" />
         </FormField>
 
         {/* Client Instance */}
@@ -228,24 +202,24 @@ function EditUserModal({ user, onClose, onSave, onDelete }) {
               { value: '', label: 'Select Client Instance' },
               ...clients.map(c => ({ value: c.id, label: c.name }))
             ]}
-            style={{ borderRadius: 8 }}
+            className="kpmg-rounded-input"
           />
         </FormField>
 
         {/* Password */}
         <FormField label="Password">
-          <div style={{ position: 'relative' }}>
+          <div className="kpmg-relative">
             <Input
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
               placeholder="Password"
-              style={{ borderRadius: 8, paddingRight: 40 }}
+              className="kpmg-rounded-input-pwd"
             />
             <button
               type="button"
               onClick={() => setShowPassword(p => !p)}
-              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#667085' }}
+              className="kpmg-password-toggle-btn"
             >
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 {showPassword ? (
@@ -265,28 +239,28 @@ function EditUserModal({ user, onClose, onSave, onDelete }) {
         </FormField>
 
         {/* Status Radio Group */}
-        <div style={{ marginTop: 2 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#344054', marginBottom: 8 }}>Status</div>
-          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#344054', fontWeight: 500 }}>
+        <div className="kpmg-mt-2">
+          <div className="kpmg-admin-status-label">Status</div>
+          <div className="kpmg-admin-radio-group">
+            <label className="kpmg-admin-radio-label">
               <input
                 type="radio"
                 name="userStatus"
                 value="active"
                 checked={form.status === 'active'}
                 onChange={() => setForm(f => ({ ...f, status: 'active' }))}
-                style={{ accentColor: '#1D4ED8' }}
+                className="kpmg-admin-radio-input"
               />
               Active
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: '#344054', fontWeight: 500 }}>
+            <label className="kpmg-admin-radio-label">
               <input
                 type="radio"
                 name="userStatus"
                 value="suspended"
                 checked={form.status === 'suspended'}
                 onChange={() => setForm(f => ({ ...f, status: 'suspended' }))}
-                style={{ accentColor: '#1D4ED8' }}
+                className="kpmg-admin-radio-input"
               />
               Suspend
             </label>
@@ -305,18 +279,18 @@ function DeleteModal({ user, onClose, onConfirm }) {
       onClose={onClose}
       maxWidth={420}
       footer={
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
-          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+        <div className="kpmg-modal-footer-end">
+          <Btn variant="outline" onClick={onClose} className="kpmg-admin-btn-outline-sm">
             Cancel
           </Btn>
-          <Btn variant="danger" onClick={() => onConfirm(user)} style={{ background: '#ED2124', color: '#fff', borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+          <Btn variant="danger" onClick={() => onConfirm(user)} className="kpmg-admin-btn-danger-solid">
             Delete
           </Btn>
         </div>
       }
     >
-      <div style={{ fontSize: 13, color: '#475467', lineHeight: 1.5 }}>
-        <div style={{ marginBottom: 4 }}>Are you sure you want to delete this user?</div>
+      <div className="kpmg-modal-confirm-body">
+        <div className="kpmg-modal-confirm-text">Are you sure you want to delete this user?</div>
         <div>This action cannot be undone.</div>
       </div>
     </Modal>
@@ -371,30 +345,30 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
   const allRoles = [...new Set(users.map(u => u.role))];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="kpmg-flex-col-gap16">
       {/* Main Members Table Card */}
       <Card className="kpmg-inventory-card">
         {/* Card Header Sub-row */}
-        <div style={{ padding: '20px 24px 16px 24px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #F2F4F7' }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Members</h2>
-          <span className="kpmg-badge" style={{ background: '#F4F3FF', color: '#6941C6', fontSize: 11.5, fontWeight: 600, padding: '2px 10px', borderRadius: 12 }}>
+        <div className="kpmg-admin-card-header-row">
+          <h2 className="kpmg-admin-card-header-title">Members</h2>
+          <span className="kpmg-badge kpmg-admin-user-count-badge">
             {users.length} users
           </span>
         </div>
 
         {/* Search & Filter Controls */}
-        <div style={{ padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', borderBottom: '1px solid #F2F4F7' }}>
-          <div className="kpmg-search-box" style={{ width: 280 }}>
+        <div className="kpmg-admin-filter-bar">
+          <div className="kpmg-search-box kpmg-w-280">
             <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
             <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search" className="kpmg-search-input" />
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Select value={companyF} onChange={e => { setCompanyF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 140 }}
+          <div className="kpmg-d-flex kpmg-items-center kpmg-gap-10">
+            <Select value={companyF} onChange={e => { setCompanyF(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-w-140"
               options={[{ value: 'all', label: 'Company' }, ...clients.map(c => ({ value: c.name, label: c.name }))]} />
-            <Select value={roleF} onChange={e => { setRoleF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+            <Select value={roleF} onChange={e => { setRoleF(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-w-130"
               options={[{ value: 'all', label: 'User' }, ...allRoles.map(r => ({ value: r, label: r }))]} />
-            <Select value={statusF} onChange={e => { setStatusF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+            <Select value={statusF} onChange={e => { setStatusF(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-w-130"
               options={[{ value: 'all', label: 'Status' }, { value: 'active', label: 'Active' }, { value: 'suspended', label: 'Suspended' }]} />
           </div>
         </div>
@@ -421,94 +395,66 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
           const isLastRow = paged.length > 1 && idx === paged.length - 1;
 
           return (
-            <div key={u.id} className="kpmg-table-row kpmg-table-grid-users" onClick={() => setDetailUser(u)} style={{ cursor: 'pointer' }}>
+            <div key={u.id} className="kpmg-table-row kpmg-table-grid-users kpmg-cursor-pointer" onClick={() => setDetailUser(u)}>
               {/* User Avatar + Name + Email */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EFF6FF', color: '#175CD3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+              <div className="kpmg-d-flex kpmg-items-center kpmg-gap-10">
+                <div className="kpmg-admin-avatar">
                   {initials}
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{u.name}</div>
-                  <div style={{ fontSize: 11.5, color: '#666666' }}>{u.email}</div>
+                  <div className="kpmg-admin-user-title">{u.name}</div>
+                  <div className="kpmg-admin-user-sub">{u.email}</div>
                 </div>
               </div>
 
               {/* Role */}
-              <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{u.role}</span>
+              <span className="kpmg-admin-cell-title">{u.role}</span>
 
               {/* Company */}
-              <span style={{ color: '#475467', fontSize: 13 }}>{companyName}</span>
+              <span className="kpmg-admin-cell-muted">{companyName}</span>
 
               {/* Date added */}
-              <span style={{ color: '#101828', fontSize: 13 }}>{dateAdded}</span>
+              <span className="kpmg-admin-cell-dark">{dateAdded}</span>
 
               {/* Date added / Last active */}
-              <span style={{ color: '#101828', fontSize: 13 }}>{dateAdded}</span>
+              <span className="kpmg-admin-cell-dark">{dateAdded}</span>
 
               {/* Status Dot Badge */}
               <div>
                 {isActive ? (
-                  <span className="kpmg-badge" style={{ background: '#ECFDF5', color: '#027A48', fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#12B76A' }} /> Active
+                  <span className="kpmg-badge kpmg-admin-badge-active">
+                    <span className="kpmg-dot-active" /> Active
                   </span>
                 ) : (
-                  <span className="kpmg-badge" style={{ background: '#FEF3F2', color: '#B42318', fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F04438' }} /> Suspended
+                  <span className="kpmg-badge kpmg-admin-badge-suspended">
+                    <span className="kpmg-dot-danger" /> Suspended
                   </span>
                 )}
               </div>
 
               {/* Action 3-dots with Popover Menu */}
-              <div className="kpmg-text-right" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
+              <div className="kpmg-text-right kpmg-relative" onClick={e => e.stopPropagation()}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setActiveUserMenuId(activeUserMenuId === u.id ? null : u.id);
                   }}
                   title="User options"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667085', padding: 4, borderRadius: 4 }}
+                  className="kpmg-admin-dots-btn"
                 >
                   <PageIcon name="Menu.svg" size={18} />
                 </button>
 
                 {activeUserMenuId === u.id && (
                   <>
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={(e) => { e.stopPropagation(); setActiveUserMenuId(null); }} />
-                    <div
-                      style={{
-                        position: 'absolute',
-                        right: 0,
-                        ...(isLastRow ? { bottom: 28 } : { top: 28 }),
-                        background: '#ffffff',
-                        border: '1px solid #EAECF0',
-                        borderRadius: 8,
-                        boxShadow: '0 4px 16px rgba(16, 24, 40, 0.12)',
-                        zIndex: 10,
-                        minWidth: 130,
-                        overflow: 'hidden'
-                      }}
-                    >
+                    <div className="kpmg-fixed-backdrop" onClick={(e) => { e.stopPropagation(); setActiveUserMenuId(null); }} />
+                    <div className={`kpmg-admin-popover-menu ${isLastRow ? 'bottom' : ''}`}>
                       <button
                         onClick={() => {
                           setEditUser(u);
                           setActiveUserMenuId(null);
                         }}
-                        style={{
-                          width: '100%',
-                          padding: '9px 14px',
-                          textAlign: 'left',
-                          background: 'none',
-                          border: 'none',
-                          fontSize: 13,
-                          fontWeight: 500,
-                          color: '#344054',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                        className="kpmg-admin-menu-item"
                       >
                         <PageIcon name="Edit.svg" size={14} />
                         Edit
@@ -518,21 +464,7 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
                           setDeleteUser(u);
                           setActiveUserMenuId(null);
                         }}
-                        style={{
-                          width: '100%',
-                          padding: '9px 14px',
-                          textAlign: 'left',
-                          background: 'none',
-                          border: 'none',
-                          fontSize: 13,
-                          fontWeight: 500,
-                          color: '#D9251B',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          borderTop: '1px solid #F2F4F7'
-                        }}
+                        className="kpmg-admin-menu-item danger"
                       >
                         <PageIcon name="Delete.svg" size={14} />
                         Delete
@@ -611,30 +543,30 @@ function AddUserModal({ clients, onClose, onAdd }) {
       onClose={onClose}
       maxWidth={460}
       footer={
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
-          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+        <div className="kpmg-modal-footer-end">
+          <Btn variant="outline" onClick={onClose} className="kpmg-admin-btn-outline">
             Cancel
           </Btn>
-          <Btn onClick={handleSubmit} disabled={!form.name.trim() || !form.email.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+          <Btn onClick={handleSubmit} disabled={!form.name.trim() || !form.email.trim()} className="kpmg-admin-btn-primary-sm">
             Add User
           </Btn>
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="kpmg-flex-col-gap16">
         {/* Name */}
         <FormField label="Name" required>
-          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full Name" style={{ borderRadius: 8 }} />
+          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Full Name" className="kpmg-rounded-input" />
         </FormField>
 
         {/* Email */}
         <FormField label="Email" required>
-          <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email address" style={{ borderRadius: 8 }} />
+          <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email address" className="kpmg-rounded-input" />
         </FormField>
 
         {/* Role */}
         <FormField label="Role">
-          <Select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} options={ROLES} style={{ borderRadius: 8 }} />
+          <Select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} options={ROLES} className="kpmg-rounded-input" />
         </FormField>
 
         {/* Client Instance */}
@@ -646,24 +578,24 @@ function AddUserModal({ clients, onClose, onAdd }) {
               { value: '', label: 'Select Client Instance' },
               ...clients.map(c => ({ value: c.id, label: c.name }))
             ]}
-            style={{ borderRadius: 8 }}
+            className="kpmg-rounded-input"
           />
         </FormField>
 
         {/* Password */}
         <FormField label="Password">
-          <div style={{ position: 'relative' }}>
+          <div className="kpmg-relative">
             <Input
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
               placeholder="Password"
-              style={{ borderRadius: 8, paddingRight: 40 }}
+              className="kpmg-rounded-input-pwd"
             />
             <button
               type="button"
               onClick={() => setShowPassword(p => !p)}
-              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#667085' }}
+              className="kpmg-password-toggle-btn"
             >
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 {showPassword ? (
@@ -734,44 +666,44 @@ function AllLogsSection() {
   const allUsers = [...new Set(allLogs.map(l => l.user))];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="kpmg-flex-col-gap20">
       {/* KPI Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-        <div className="kpmg-card" style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#00338D', lineHeight: 1, marginBottom: 6 }}>{totalChanges}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Total Changes</div>
-          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Text here</div>
+      <div className="kpmg-admin-kpi-grid">
+        <div className="kpmg-card kpmg-admin-kpi-card">
+          <div className="kpmg-admin-kpi-num-blue">{totalChanges}</div>
+          <div className="kpmg-admin-kpi-title">Total Changes</div>
+          <div className="kpmg-admin-kpi-sub">Text here</div>
         </div>
-        <div className="kpmg-card" style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#D9251B', lineHeight: 1, marginBottom: 6 }}>{criticalCount < 10 ? `0${criticalCount}` : criticalCount}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Critical</div>
-          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Text here</div>
+        <div className="kpmg-card kpmg-admin-kpi-card">
+          <div className="kpmg-admin-kpi-num-red">{criticalCount < 10 ? `0${criticalCount}` : criticalCount}</div>
+          <div className="kpmg-admin-kpi-title">Critical</div>
+          <div className="kpmg-admin-kpi-sub">Text here</div>
         </div>
-        <div className="kpmg-card" style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#101828', lineHeight: 1, marginBottom: 6 }}>{warningCount}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Warnings</div>
-          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Text here</div>
+        <div className="kpmg-card kpmg-admin-kpi-card">
+          <div className="kpmg-admin-kpi-num-dark">{warningCount}</div>
+          <div className="kpmg-admin-kpi-title">Warnings</div>
+          <div className="kpmg-admin-kpi-sub">Text here</div>
         </div>
-        <div className="kpmg-card" style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: '#101828', lineHeight: 1, marginBottom: 6 }}>{loginsToday < 10 ? `0${loginsToday}` : loginsToday}</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>Logins today</div>
-          <div style={{ fontSize: 11.5, color: '#666666', marginTop: 2 }}>Text here</div>
+        <div className="kpmg-card kpmg-admin-kpi-card">
+          <div className="kpmg-admin-kpi-num-dark">{loginsToday < 10 ? `0${loginsToday}` : loginsToday}</div>
+          <div className="kpmg-admin-kpi-title">Logins today</div>
+          <div className="kpmg-admin-kpi-sub">Text here</div>
         </div>
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="kpmg-card" style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-        <div className="kpmg-search-box" style={{ width: 280 }}>
+      <div className="kpmg-card kpmg-admin-logs-filter-card">
+        <div className="kpmg-search-box kpmg-w-280">
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search" className="kpmg-search-input" />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Select value={companyF} onChange={e => { setCompanyF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 140 }}
+        <div className="kpmg-d-flex kpmg-items-center kpmg-gap-10">
+          <Select value={companyF} onChange={e => { setCompanyF(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-w-140"
             options={[{ value: 'all', label: 'Company' }, ...clients.map(c => ({ value: c.name, label: c.name }))]} />
-          <Select value={userF} onChange={e => { setUserF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+          <Select value={userF} onChange={e => { setUserF(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-w-130"
             options={[{ value: 'all', label: 'User' }, ...allUsers.map(u => ({ value: u, label: u }))]} />
-          <Select value={sevF} onChange={e => { setSevF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+          <Select value={sevF} onChange={e => { setSevF(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-w-130"
             options={[{ value: 'all', label: 'Severity' }, { value: 'info', label: 'Info' }, { value: 'warning', label: 'Warning' }, { value: 'critical', label: 'Critical' }]} />
         </div>
       </div>
@@ -800,23 +732,23 @@ function AllLogsSection() {
 
           return (
             <div key={log.id} className="kpmg-table-row kpmg-table-grid-logs">
-              <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{dateStr}</span>
-              <span style={{ color: '#475467', fontSize: 13 }}>{timeStr}</span>
+              <span className="kpmg-admin-cell-title">{dateStr}</span>
+              <span className="kpmg-admin-cell-muted">{timeStr}</span>
               <span>
-                <span className="kpmg-badge" style={{ background: area.bg, color: area.fg, fontSize: 11.5, fontWeight: 600, padding: '3px 10px' }}>
+                <span className="kpmg-badge kpmg-admin-badge-static" style={{ background: area.bg, color: area.fg }}>
                   {log.category}
                 </span>
               </span>
-              <span style={{ color: '#101828', fontSize: 13 }}>{log.description}</span>
-              <span style={{ color: '#475467', fontSize: 13 }}>{log.company || 'Acme Industrial Ltd'}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#EFF6FF', color: '#175CD3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+              <span className="kpmg-admin-cell-dark">{log.description}</span>
+              <span className="kpmg-admin-cell-muted">{log.company || 'Acme Industrial Ltd'}</span>
+              <div className="kpmg-d-flex kpmg-items-center kpmg-gap-8">
+                <div className="kpmg-admin-avatar-sm">
                   {initials}
                 </div>
-                <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{log.user}</span>
+                <span className="kpmg-admin-cell-title">{log.user}</span>
               </div>
               <div className="kpmg-text-right">
-                <span className="kpmg-badge" style={{ background: sev.bg, color: sev.fg, fontSize: 11.5, fontWeight: 600, padding: '3px 10px' }}>
+                <span className="kpmg-badge kpmg-admin-badge-static" style={{ background: sev.bg, color: sev.fg }}>
                   {sev.label}
                 </span>
               </div>
@@ -837,7 +769,8 @@ const StatusHealthIcon = ({ name, size = 16, style }) => (
     alt=""
     width={size}
     height={size}
-    style={{ flexShrink: 0, display: 'block', ...style }}
+    className="kpmg-block-svg kpmg-shrink-0"
+    style={style}
   />
 );
 
@@ -863,14 +796,14 @@ function SystemHealthSection() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="kpmg-flex-col-gap20">
       <Card className="kpmg-inventory-card">
         {/* Card Header Sub-row with legend */}
-        <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #F2F4F7', flexWrap: 'wrap', gap: 12 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Current status by feature</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+        <div className="kpmg-health-header-row">
+          <h2 className="kpmg-admin-card-header-title">Current status by feature</h2>
+          <div className="kpmg-d-flex kpmg-items-center kpmg-gap-18 kpmg-flex-wrap">
             {legends.map(l => (
-              <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#475467', fontWeight: 500 }}>
+              <div key={l.label} className="kpmg-health-legend-item">
                 <StatusHealthIcon name={l.icon} size={15} />
                 <span>{l.label}</span>
               </div>
@@ -879,7 +812,7 @@ function SystemHealthSection() {
         </div>
 
         {/* 2-Column Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+        <div className="kpmg-health-grid">
           {services.map((s, i) => {
             const isLeftCol = i % 2 === 0;
             const isLastRow = i >= services.length - 2;
@@ -887,23 +820,13 @@ function SystemHealthSection() {
             return (
               <div
                 key={s.label}
-                style={{
-                  padding: '20px 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justify: 'space-between',
-                  gap: 16,
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  borderBottom: isLastRow ? 'none' : '1px solid #F2F4F7',
-                  borderRight: isLeftCol ? '1px solid #F2F4F7' : 'none',
-                }}
+                className={`kpmg-health-row ${isLeftCol ? 'col-left' : ''} ${isLastRow ? 'row-last' : ''}`}
               >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>{s.label}</div>
-                  <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>{s.note}</div>
+                <div className="kpmg-flex-1 kpmg-min-w-0">
+                  <div className="kpmg-health-label">{s.label}</div>
+                  <div className="kpmg-health-note">{s.note}</div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                <div className="kpmg-health-icon-wrap">
                   <StatusHealthIcon name={s.icon} size={18} />
                 </div>
               </div>
@@ -1023,29 +946,29 @@ function ClientsSection({ showAdd, setShowAdd }) {
     .map(u => ({ value: u.id, label: `${u.name} (${u.email})` }));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="kpmg-flex-col-gap20">
       {/* Grid of Client Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+      <div className="kpmg-clients-grid">
         {clients.map(c => {
           const instanceUsers = users.filter(u => u.clientId === c.id);
           const formattedDate = new Date(c.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
           return (
-            <div key={c.id} className="kpmg-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
+            <div key={c.id} className="kpmg-card kpmg-client-card">
               <div>
                 {/* Header Row */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>{c.name}</div>
+                <div className="kpmg-client-header">
+                  <div className="kpmg-client-title">{c.name}</div>
 
                   {/* Three Dots Menu Button */}
-                  <div style={{ position: 'relative' }}>
+                  <div className="kpmg-relative">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setActiveMenuId(activeMenuId === c.id ? null : c.id);
                       }}
                       title="Instance options"
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#667085', padding: 4, display: 'flex', alignItems: 'center', borderRadius: 4 }}
+                      className="kpmg-admin-dots-btn"
                     >
                       <PageIcon name="Menu.svg" size={18} />
                     </button>
@@ -1053,39 +976,11 @@ function ClientsSection({ showAdd, setShowAdd }) {
                     {/* Popover Action Menu */}
                     {activeMenuId === c.id && (
                       <>
-                        <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            right: 0,
-                            top: 28,
-                            background: '#ffffff',
-                            border: '1px solid #EAECF0',
-                            borderRadius: 8,
-                            boxShadow: '0 4px 16px rgba(16, 24, 40, 0.12)',
-                            zIndex: 10,
-                            minWidth: 140,
-                            overflow: 'hidden'
-                          }}
-                        >
+                        <div className="kpmg-fixed-backdrop" onClick={(e) => { e.stopPropagation(); setActiveMenuId(null); }} />
+                        <div className="kpmg-admin-popover-menu">
                           <button
                             onClick={() => openEditModal(c)}
-                            style={{
-                              width: '100%',
-                              padding: '9px 14px',
-                              textAlign: 'left',
-                              background: 'none',
-                              border: 'none',
-                              fontSize: 13,
-                              fontWeight: 500,
-                              color: '#344054',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 8
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
-                            onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                            className="kpmg-admin-menu-item"
                           >
                             <PageIcon name="Edit.svg" size={14} />
                             Edit
@@ -1095,21 +990,7 @@ function ClientsSection({ showAdd, setShowAdd }) {
                               setConfirmDel(c);
                               setActiveMenuId(null);
                             }}
-                            style={{
-                              width: '100%',
-                              padding: '9px 14px',
-                              textAlign: 'left',
-                              background: 'none',
-                              border: 'none',
-                              fontSize: 13,
-                              fontWeight: 500,
-                              color: '#D9251B',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 8,
-                              borderTop: '1px solid #F2F4F7'
-                            }}
+                            className="kpmg-admin-menu-item danger"
                           >
                             <PageIcon name="Delete.svg" size={14} />
                             Delete
@@ -1121,17 +1002,17 @@ function ClientsSection({ showAdd, setShowAdd }) {
                 </div>
 
                 {/* Subtitle / Site */}
-                <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>{c.site || 'North Plant'}</div>
+                <div className="kpmg-client-site">{c.site || 'North Plant'}</div>
 
                 {/* Badges */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                <div className="kpmg-client-badges">
                   {c.industry && (
-                    <span className="kpmg-badge" style={{ background: '#EFF6FF', color: '#175CD3', fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 12 }}>
+                    <span className="kpmg-badge kpmg-client-badge-industry">
                       {c.industry}
                     </span>
                   )}
                   {c.size && (
-                    <span className="kpmg-badge" style={{ background: '#F4F3FF', color: '#6941C6', fontSize: 11.5, fontWeight: 500, padding: '3px 10px', borderRadius: 12 }}>
+                    <span className="kpmg-badge kpmg-client-badge-size">
                       {c.size}
                     </span>
                   )}
@@ -1139,16 +1020,16 @@ function ClientsSection({ showAdd, setShowAdd }) {
               </div>
 
               {/* Card Footer */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTop: '1px solid #F2F4F7' }}>
-                <span style={{ fontSize: 11.5, color: '#666666' }}>{instanceUsers.length} users assigned</span>
-                <span style={{ fontSize: 11.5, color: '#666666' }}>Created {formattedDate}</span>
+              <div className="kpmg-client-footer">
+                <span className="kpmg-client-footer-text">{instanceUsers.length} users assigned</span>
+                <span className="kpmg-client-footer-text">Created {formattedDate}</span>
               </div>
             </div>
           );
         })}
 
         {clients.length === 0 && (
-          <div style={{ fontSize: 13, color: '#666666', fontStyle: 'italic', padding: '20px 0' }}>
+          <div className="kpmg-client-empty">
             No client instances yet — create the first one.
           </div>
         )}
@@ -1162,11 +1043,11 @@ function ClientsSection({ showAdd, setShowAdd }) {
           onClose={() => setShowAdd(false)}
           maxWidth={600}
           footer={
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
-              <Btn variant="outline" onClick={() => setShowAdd(false)} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+            <div className="kpmg-modal-footer-end">
+              <Btn variant="outline" onClick={() => setShowAdd(false)} className="kpmg-admin-btn-outline">
                 Cancel
               </Btn>
-              <Btn onClick={handleSaveCreate} disabled={!form.name.trim() || !form.industry} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+              <Btn onClick={handleSaveCreate} disabled={!form.name.trim() || !form.industry} className="kpmg-admin-btn-primary-sm">
                 Create instance
               </Btn>
             </div>
@@ -1198,19 +1079,19 @@ function ClientsSection({ showAdd, setShowAdd }) {
           onClose={() => setEditClient(null)}
           maxWidth={600}
           footer={
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div className="kpmg-modal-footer-between">
               <Btn
                 variant="outline"
                 onClick={() => setConfirmDel(editClient)}
-                style={{ color: '#ED2124', borderColor: '#ED2124', background: 'transparent', borderRadius: 8, padding: '8px 16px', fontWeight: 600 }}
+                className="kpmg-admin-btn-danger-outline"
               >
                 Delete client
               </Btn>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <Btn variant="outline" onClick={() => setEditClient(null)} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+              <div className="kpmg-d-flex kpmg-gap-12">
+                <Btn variant="outline" onClick={() => setEditClient(null)} className="kpmg-admin-btn-outline">
                   Cancel
                 </Btn>
-                <Btn onClick={handleSaveEdit} disabled={!form.name.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+                <Btn onClick={handleSaveEdit} disabled={!form.name.trim()} className="kpmg-admin-btn-primary-sm">
                   Save instance
                 </Btn>
               </div>
@@ -1242,18 +1123,18 @@ function ClientsSection({ showAdd, setShowAdd }) {
           onClose={() => setConfirmDel(null)}
           maxWidth={420}
           footer={
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
-              <Btn variant="outline" onClick={() => setConfirmDel(null)} style={{ borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+            <div className="kpmg-modal-footer-end">
+              <Btn variant="outline" onClick={() => setConfirmDel(null)} className="kpmg-admin-btn-outline-sm">
                 Cancel
               </Btn>
-              <Btn variant="danger" onClick={handleDelete} style={{ background: '#ED2124', color: '#fff', borderRadius: 8, padding: '8px 18px', fontWeight: 600 }}>
+              <Btn variant="danger" onClick={handleDelete} className="kpmg-admin-btn-danger-solid">
                 Delete
               </Btn>
             </div>
           }
         >
-          <div style={{ fontSize: 13, color: '#475467', lineHeight: 1.5 }}>
-            <div style={{ marginBottom: 4 }}>Are you sure you want to delete this client?</div>
+          <div className="kpmg-modal-confirm-body">
+            <div className="kpmg-modal-confirm-text">Are you sure you want to delete this client?</div>
             <div>This action cannot be undone.</div>
           </div>
         </Modal>
@@ -1270,19 +1151,19 @@ function ClientInstanceFormFields({
   handleAssignUser, assignedUsers, updateUserAccess, removeAssignedUser
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="kpmg-flex-col-gap16">
       {/* Row 1: Client name & Primary site */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="kpmg-grid-2col-gap16">
         <FormField label="Client name" required>
-          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Acme Industrial Ltd" style={{ borderRadius: 8 }} />
+          <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Acme Industrial Ltd" className="kpmg-rounded-input" />
         </FormField>
         <FormField label="Primary site">
-          <Input value={form.site} onChange={e => setForm(f => ({ ...f, site: e.target.value }))} placeholder="e.g. North Plant" style={{ borderRadius: 8 }} />
+          <Input value={form.site} onChange={e => setForm(f => ({ ...f, site: e.target.value }))} placeholder="e.g. North Plant" className="kpmg-rounded-input" />
         </FormField>
       </div>
 
       {/* Row 2: Industry & Size */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="kpmg-grid-2col-gap16">
         <FormField label="Industry" required>
           <Select
             value={form.industry}
@@ -1291,35 +1172,36 @@ function ClientInstanceFormFields({
               { value: '', label: 'Select Industry' },
               ...INDUSTRIES.map(i => ({ value: i, label: i }))
             ]}
-            style={{ borderRadius: 8 }}
+            className="kpmg-rounded-input"
           />
         </FormField>
         <FormField label="Size">
-          <Select value={form.size} onChange={e => setForm(f => ({ ...f, size: e.target.value }))} options={SIZES} style={{ borderRadius: 8 }} />
+          <Select value={form.size} onChange={e => setForm(f => ({ ...f, size: e.target.value }))} options={SIZES} className="kpmg-rounded-input" />
         </FormField>
       </div>
 
       {/* Add user Dropdown Section */}
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#344054', marginBottom: 8 }}>Add user</div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div className="kpmg-admin-form-subheading">Add user</div>
+        <div className="kpmg-admin-assign-bar">
           <Select
             value={selectedUserToAdd}
             onChange={e => setSelectedUserToAdd(e.target.value)}
             options={[{ value: '', label: 'Select available user from Manage Users' }, ...availableUserOptions]}
-            style={{ flex: 1, borderRadius: 8 }}
+            className="kpmg-flex-1 kpmg-rounded-input"
           />
           <Select
             value={newUserRole}
             onChange={e => setNewUserRole(e.target.value)}
             options={['Can edit', 'Can view']}
-            style={{ width: 110, borderRadius: 8 }}
+            className="kpmg-w-110 kpmg-rounded-input"
           />
           <Btn
             variant="outline"
             onClick={handleAssignUser}
             disabled={!selectedUserToAdd}
-            style={{ borderRadius: 8, padding: '8px 16px', color: selectedUserToAdd ? '#1D4ED8' : '#98A2B3', borderColor: selectedUserToAdd ? '#1D4ED8' : '#D0D5DD', fontWeight: 600 }}
+            className="kpmg-admin-btn-add-user"
+            style={{ color: selectedUserToAdd ? '#1D4ED8' : '#98A2B3', borderColor: selectedUserToAdd ? '#1D4ED8' : '#D0D5DD' }}
           >
             Add
           </Btn>
@@ -1327,48 +1209,34 @@ function ClientInstanceFormFields({
       </div>
 
       {/* Assigned User List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8, maxHeight: 185, overflowY: 'auto', paddingRight: 4 }}>
+      <div className="kpmg-assigned-users-list">
         {assignedUsers.length === 0 ? (
-          <div style={{ fontSize: 12, color: '#667085', fontStyle: 'italic', padding: '8px 0' }}>No users assigned to this client instance yet.</div>
+          <div className="kpmg-assigned-empty">No users assigned to this client instance yet.</div>
         ) : (
           assignedUsers.map(u => {
             const initials = u.name ? u.name.split(' ').map(n => n[0]).join('') : 'U';
             return (
-              <div key={u.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid #F2F4F7' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: '50%',
-                      background: '#EFF6FF',
-                      color: '#1D4ED8',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}
-                  >
+              <div key={u.id} className="kpmg-assigned-user-row">
+                <div className="kpmg-d-flex kpmg-items-center kpmg-gap-12">
+                  <div className="kpmg-assigned-avatar">
                     {initials}
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#101828' }}>{u.name}</div>
-                    <div style={{ fontSize: 12, color: '#667085' }}>{u.email}</div>
+                    <div className="kpmg-assigned-user-name">{u.name}</div>
+                    <div className="kpmg-assigned-user-email">{u.email}</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="kpmg-d-flex kpmg-items-center kpmg-gap-8">
                   <Select
                     value={u.access || 'Can edit'}
                     onChange={e => updateUserAccess(u.id, e.target.value)}
                     options={['Can edit', 'Can view']}
-                    style={{ width: 105, border: 'none', background: 'transparent', fontSize: 12, fontWeight: 600, color: '#344054' }}
+                    className="kpmg-assigned-access-select"
                   />
                   <button
                     onClick={() => removeAssignedUser(u.id)}
                     title="Remove user"
-                    style={{ background: 'none', border: 'none', color: '#98A2B3', cursor: 'pointer', padding: 2, fontSize: 14 }}
+                    className="kpmg-assigned-remove-btn"
                   >
                     ✕
                   </button>
@@ -1389,7 +1257,8 @@ const PublicIcon = ({ name, size = 16, style }) => (
     alt=""
     width={size}
     height={size}
-    style={{ flexShrink: 0, display: 'block', ...style }}
+    className="kpmg-block-svg kpmg-shrink-0"
+    style={style}
   />
 );
 
@@ -1460,8 +1329,8 @@ export default function AdminPortal({ onExit }) {
         </nav>
 
         {/* Footer — Back to Main Portal */}
-        <div style={{ paddingTop: 12, borderTop: '1px solid #EAEBF0' }}>
-          <button className="kpmg-btn-outline" onClick={onExit} style={{ width: '100%', justifyContent: 'center' }}>
+        <div className="kpmg-sidebar-bottom-action">
+          <button className="kpmg-btn-outline kpmg-w-full-justify-center" onClick={onExit}>
             ← Back to Main Portal
           </button>
         </div>
@@ -1470,41 +1339,29 @@ export default function AdminPortal({ onExit }) {
       {/* Main Area */}
       <div className="kpmg-main-area">
         <header className="kpmg-header">
-          <div className="kpmg-header-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div className="kpmg-header-row kpmg-header-flex">
             <h1 className="kpmg-title">{NAV.find(n => n.id === tab)?.label}</h1>
 
             {/* Right side action container with floating DEMO text */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', position: 'relative', marginTop: 4 }}>
+            <div className="kpmg-header-action-col">
               <span
                 title="This portal has no real access control — demo UI scaffolding"
-                className="kpmg-tag-illustrative"
-                style={{
-                  position: 'absolute',
-                  top: -24,
-                  right: 0,
-                  background: '#FEF0C7',
-                  color: '#B54708',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: '2px 8px',
-                  borderRadius: 12,
-                  whiteSpace: 'nowrap'
-                }}
+                className="kpmg-tag-illustrative kpmg-tag-demo-float"
               >
                 DEMO ONLY — NOT REAL ACCESS CONTROL
               </span>
 
               {tab === 'clients' && (
-                <Btn onClick={() => setShowAddClient(true)} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 18px', borderRadius: 8, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, display: 'block' }}>
+                <Btn onClick={() => setShowAddClient(true)} className="kpmg-btn-admin-action">
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="kpmg-shrink-0 kpmg-block-svg">
                     <path d="M9.16699 10.8346H5.00033C4.76421 10.8346 4.5663 10.7548 4.40658 10.5951C4.24685 10.4353 4.16699 10.2374 4.16699 10.0013C4.16699 9.76519 4.24685 9.56727 4.40658 9.40755C4.5663 9.24783 4.76421 9.16797 5.00033 9.16797H9.16699V5.0013C9.16699 4.76519 9.24685 4.56727 9.40658 4.40755C9.5663 4.24783 9.76421 4.16797 10.0003 4.16797C10.2364 4.16797 10.4344 4.24783 10.5941 4.40755C10.7538 4.56727 10.8337 4.76519 10.8337 5.0013V9.16797H15.0003C15.2364 9.16797 15.4344 9.24783 15.5941 9.40755C15.7538 9.56727 15.8337 9.76519 15.8337 10.0013C15.8337 10.2374 15.7538 10.4353 15.5941 10.5951C15.4344 10.7548 15.2364 10.8346 15.0003 10.8346H10.8337V15.0013C10.8337 15.2374 10.7538 15.4353 10.5941 15.5951C10.4344 15.7548 10.2364 15.8346 10.0003 15.8346C9.76421 15.8346 9.5663 15.7548 9.40658 15.5951C9.24685 15.4353 9.16699 15.2374 9.16699 15.0013V10.8346Z" fill="#ffffff"/>
                   </svg>
                   <span>New client instance</span>
                 </Btn>
               )}
               {tab === 'users' && (
-                <Btn onClick={() => setShowAddUser(true)} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 18px', borderRadius: 8, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0, display: 'block' }}>
+                <Btn onClick={() => setShowAddUser(true)} className="kpmg-btn-admin-action">
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className="kpmg-shrink-0 kpmg-block-svg">
                     <path d="M9.16699 10.8346H5.00033C4.76421 10.8346 4.5663 10.7548 4.40658 10.5951C4.24685 10.4353 4.16699 10.2374 4.16699 10.0013C4.16699 9.76519 4.24685 9.56727 4.40658 9.40755C4.5663 9.24783 4.76421 9.16797 5.00033 9.16797H9.16699V5.0013C9.16699 4.76519 9.24685 4.56727 9.40658 4.40755C9.5663 4.24783 9.76421 4.16797 10.0003 4.16797C10.2364 4.16797 10.4344 4.24783 10.5941 4.40755C10.7538 4.56727 10.8337 4.76519 10.8337 5.0013V9.16797H15.0003C15.2364 9.16797 15.4344 9.24783 15.5941 9.40755C15.7538 9.56727 15.8337 9.76519 15.8337 10.0013C15.8337 10.2374 15.7538 10.4353 15.5941 10.5951C15.4344 10.7548 15.2364 10.8346 15.0003 10.8346H10.8337V15.0013C10.8337 15.2374 10.7538 15.4353 10.5941 15.5951C10.4344 15.7548 10.2364 15.8346 10.0003 15.8346C9.76421 15.8346 9.5663 15.7548 9.40658 15.5951C9.24685 15.4353 9.16699 15.2374 9.16699 15.0013V10.8346Z" fill="#ffffff"/>
                   </svg>
                   <span>Add User</span>
@@ -1512,7 +1369,7 @@ export default function AdminPortal({ onExit }) {
               )}
             </div>
           </div>
-          <div className="kpmg-subtitle" style={{ marginTop: 4 }}>
+          <div className="kpmg-subtitle kpmg-mt-4">
             {SUBTITLES[tab] || 'Manage system instances, users, audit logs, and service health'}
           </div>
         </header>

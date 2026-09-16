@@ -20,7 +20,7 @@ const loadClient = () => { try { return JSON.parse(localStorage.getItem('ot_over
 // ── Report data ────────────────────────────────────────────────────────────────
 // ── Small components ──────────────────────────────────────────────────────────
 const Section = ({ title, children }) => (
-  <div style={{ marginBottom: 26 }}>
+  <div className="kpmg-mb-26">
     <div className="kpmg-report-section-title">
       {title}
     </div>
@@ -342,16 +342,16 @@ export default function ReportTab({ onNavigate = () => {} }) {
     .filter(c => c.critical.length + c.compliance.length > 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="kpmg-page-stack kpmg-gap-20">
       {/* Main 2-Column Section */}
       <div className="kpmg-report-main-grid">
         
         {/* LEFT COLUMN: Overall Risk Arc Gauge + 5 Metric Cards */}
-        <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 16, padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="kpmg-report-left-panel">
           
           {/* 70% Circle Arc Gauge for Overall Risk with Perspective Grid & Glow */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: '10px 0 0', overflow: 'hidden' }}>
-            <svg width="250" height="200" viewBox="0 0 250 200" style={{ overflow: 'visible' }}>
+          <div className="kpmg-report-gauge-wrap">
+            <svg width="250" height="200" viewBox="0 0 250 200" className="kpmg-overflow-visible">
               <defs>
                 <filter id="redArcGlow" x="-20%" y="-20%" width="140%" height="140%">
                   <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#FF1F1F" floodOpacity="0.4" />
@@ -409,65 +409,65 @@ export default function ReportTab({ onNavigate = () => {} }) {
             </svg>
 
             {/* Text nested neatly inside the circle */}
-            <div style={{ position: 'absolute', top: 82, textAlign: 'center', width: '100%' }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: '#A0AEC0', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 2 }}>OVERALL RISK</div>
-              <div style={{ fontSize: 52, fontWeight: 800, color: '#E02424', lineHeight: 1, letterSpacing: '-1.5px' }}>{overallRisk}</div>
-              <div style={{ fontSize: 13, color: '#4A5568', fontWeight: 600, marginTop: 6 }}>/ 10 · {overallBand.label}</div>
+            <div className="kpmg-report-gauge-text">
+              <div className="kpmg-report-gauge-title">OVERALL RISK</div>
+              <div className="kpmg-report-gauge-score">{overallRisk}</div>
+              <div className="kpmg-report-gauge-sub">/ 10 · {overallBand.label}</div>
             </div>
           </div>
 
           {/* 5 Metric Cards Grid */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF' }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#111827', lineHeight: 1 }}>{zones.length < 10 ? `0${zones.length}` : zones.length}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>Zones</div>
-                <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Tap to review in Model</div>
+          <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-12">
+            <div className="kpmg-grid-2col-gap12">
+              <div className="kpmg-report-kpi-card">
+                <div className="kpmg-report-kpi-val">{zones.length < 10 ? `0${zones.length}` : zones.length}</div>
+                <div className="kpmg-report-kpi-title">Zones</div>
+                <div className="kpmg-report-kpi-sub">Tap to review in Model</div>
               </div>
 
-              <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF', position: 'relative' }}>
-                <span style={{ position: 'absolute', top: 12, right: 12, background: '#EFF6FF', color: '#1D4ED8', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+              <div className="kpmg-report-kpi-card">
+                <span className="kpmg-report-kpi-badge">
                   {assets.length || 30} assets
                 </span>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#111827', lineHeight: 1 }}>{previewVis.score !== null ? `${previewVis.score}%` : '78%'}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>Asset visibility</div>
-                <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Tap to review in Assets</div>
+                <div className="kpmg-report-kpi-val">{previewVis.score !== null ? `${previewVis.score}%` : '78%'}</div>
+                <div className="kpmg-report-kpi-title">Asset visibility</div>
+                <div className="kpmg-report-kpi-sub">Tap to review in Assets</div>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF' }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#111827', lineHeight: 1 }}>
-                  07<span style={{ fontSize: 15, fontWeight: 600, color: '#6B7280' }}>/10</span>
+            <div className="kpmg-grid-2col-gap12">
+              <div className="kpmg-report-kpi-card">
+                <div className="kpmg-report-kpi-val">
+                  07<span className="kpmg-kpi-sub-15">/10</span>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>High risk zone</div>
-                <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Safety (SIS)</div>
+                <div className="kpmg-report-kpi-title">High risk zone</div>
+                <div className="kpmg-report-kpi-sub">Safety (SIS)</div>
               </div>
 
-              <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF' }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#E02424', lineHeight: 1 }}>
+              <div className="kpmg-report-kpi-card">
+                <div className="kpmg-report-kpi-val danger">
                   {typeof overallCov === 'number' ? `${overallCov}%` : '31%'}
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>62443 Coverage</div>
-                <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Tap to open IEC 62443</div>
+                <div className="kpmg-report-kpi-title">62443 Coverage</div>
+                <div className="kpmg-report-kpi-sub">Tap to open IEC 62443</div>
               </div>
             </div>
 
-            <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '14px 16px', background: '#FFFFFF' }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: '#E02424', lineHeight: 1 }}>50%</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 6 }}>Overall risk score</div>
-              <div style={{ fontSize: 11.5, color: '#6B7280', marginTop: 2 }}>Tap to review in Risk Landscape</div>
+            <div className="kpmg-report-kpi-card">
+              <div className="kpmg-report-kpi-val danger">50%</div>
+              <div className="kpmg-report-kpi-title">Overall risk score</div>
+              <div className="kpmg-report-kpi-sub">Tap to review in Risk Landscape</div>
             </div>
           </div>
         </div>
 
         {/* RIGHT COLUMN: Risk by zone grid, Report Configuration & Report Contents */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-20">
           
           {/* 1. Risk by zone Card */}
-          <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 20px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-section-card">
+            <div className="kpmg-card-header-bar kpmg-report-section-bar">
+              <div className="kpmg-report-section-title">
                 Risk by zone
               </div>
             </div>
@@ -491,16 +491,16 @@ export default function ReportTab({ onNavigate = () => {} }) {
                 const tickColor = b.label === 'Low' ? '#12B76A' : b.label === 'High' || b.label === 'Critical' ? '#D9251B' : '#F79009';
 
                 return (
-                  <div key={z.id || i} style={{ border: '1px solid #EAECF0', borderRadius: 8, padding: '12px 14px', background: '#FFFFFF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div key={z.id || i} className="kpmg-zone-risk-card">
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: '#344054' }}>{z.name}</span>
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: badgeBg, color: badgeFg }}>
+                      <div className="kpmg-zone-risk-header">
+                        <span className="kpmg-zone-risk-name">{z.name}</span>
+                        <span className="kpmg-zone-risk-badge" style={{ background: badgeBg, color: badgeFg }}>
                           {b.label}
                         </span>
                       </div>
 
-                      <div style={{ fontSize: 20, fontWeight: 800, color: scoreFg, lineHeight: 1, marginBottom: 12 }}>
+                      <div className="kpmg-zone-risk-score" style={{ color: scoreFg }}>
                         {z.risk ? z.risk.toFixed(1) : '2.4'}
                       </div>
                     </div>
@@ -509,7 +509,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
                     <DynamicSegmentedBar
                       matchedRatio={(z.risk || 2.4) / 10}
                       color={tickColor}
-                      style={{ margin: '8px 0 2px' }}
+                      className="kpmg-seg-bar-margin"
                     />
                   </div>
                 );
@@ -518,14 +518,14 @@ export default function ReportTab({ onNavigate = () => {} }) {
           </div>
 
           {/* 2. Report Configuration Card */}
-          <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 12px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-section-card">
+            <div className="kpmg-card-header-bar kpmg-report-section-bar kpmg-mb-12">
+              <div className="kpmg-report-section-title">
                 Report Configuration
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%' }}>
+            <div className="kpmg-d-flex kpmg-flex-col kpmg-w-100p">
               {[
                 ['Organisation', client.orgName || 'Acme Utilities'],
                 ['Site', client.siteName || 'North Plant'],
@@ -533,30 +533,19 @@ export default function ReportTab({ onNavigate = () => {} }) {
                 ['Criticality', client.criticality || 'Not set'],
                 ['Assessment date', '10 March 2025'],
                 ['Prepared by', 'OT Overview v2.0'],
-              ].map(([label, val], idx, arr) => (
-                <div
-                  key={label}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    padding: '14px 0',
-                    borderBottom: idx < arr.length - 1 ? '1px solid #EAECF0' : 'none'
-                  }}
-                >
-                  <span style={{ fontSize: 12.5, color: '#344054', fontWeight: 600, flexShrink: 0 }}>{label}</span>
-                  <span style={{ fontSize: 12.5, color: val === 'Not set' ? '#475467' : '#344054', fontWeight: 600, textAlign: 'right', marginLeft: 'auto' }}>{val}</span>
+              ].map(([label, val]) => (
+                <div key={label} className="kpmg-report-config-row">
+                  <span className="kpmg-report-config-label">{label}</span>
+                  <span className="kpmg-report-config-val" style={{ color: val === 'Not set' ? '#475467' : '#344054' }}>{val}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* 3. Report Contents Card */}
-          <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 12px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-panel-card">
+            <div className="kpmg-card-header-bar kpmg-report-inset-header-12">
+              <div className="kpmg-report-panel-title">
                 Report Contents
               </div>
             </div>
@@ -568,18 +557,15 @@ export default function ReportTab({ onNavigate = () => {} }) {
               { n: '4', title: 'Attack Path Scenarios', desc: 'Three named threat scenarios with actor attribution' },
               { n: '5', title: 'Mitigation Roadmap', desc: 'Critical Plan + Complementary Plan by capability' },
               { n: '6', title: 'AI Methodology & Transparency', desc: 'How findings were derived, confidence levels' },
-            ].map(({ n, title, desc }, idx, arr) => (
+            ].map(({ n, title, desc }) => (
               <div
                 key={n}
-                style={{
-                  padding: '10px 0',
-                  borderBottom: idx < arr.length - 1 ? '1px solid #EAECF0' : 'none'
-                }}
+                className="kpmg-report-content-item"
               >
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>
+                <div className="kpmg-report-content-num-title">
                   {n}. {title}
                 </div>
-                <div style={{ fontSize: 11.5, color: '#667085', marginTop: 2 }}>
+                <div className="kpmg-report-content-desc">
                   {desc}
                 </div>
               </div>
@@ -590,84 +576,84 @@ export default function ReportTab({ onNavigate = () => {} }) {
       </div>
 
       {/* Preview toggle */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
+      <div className="kpmg-report-preview-toggle-wrap">
         <button onClick={() => setPreview(!preview)}
-          style={{ padding: '7px 16px', borderRadius: 8, background: preview ? C.navy : '#fff', border: `1px solid ${preview ? C.navy : C.border}`, fontSize: 12, fontWeight: 500, cursor: 'pointer', color: preview ? '#fff' : C.text, fontFamily: 'inherit' }}>
+          className={`kpmg-btn-preview-toggle ${preview ? 'active' : ''}`}>
           {preview ? 'Hide Preview' : 'Preview Report Content'}
         </button>
-        <span style={{ fontSize: 12, color: C.muted }}>See how the assessment reads as a narrative — this is the content of the downloadable Word document</span>
+        <span className="kpmg-report-preview-hint">See how the assessment reads as a narrative — this is the content of the downloadable Word document</span>
       </div>
 
       {/* ── Report preview ──────────────────────────────────────────────────── */}
       {preview && (
-        <div style={{ background: '#FFFFFF', borderRadius: 12, border: '1px solid #EAECF0', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="kpmg-report-preview-container">
 
           {/* Report Document Title Header Box */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '24px 28px', background: '#FFFFFF' }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#667085', marginBottom: 4 }}>OT Security Assessment</div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: '#101828', marginBottom: 8 }}>
+          <div className="kpmg-report-doc-title-box">
+            <div className="kpmg-report-doc-sub">OT Security Assessment</div>
+            <div className="kpmg-report-doc-title">
               {client.orgName || 'Acme Utilities'} - {client.siteName || 'North Plant'}
             </div>
-            <div style={{ fontSize: 12, color: '#667085' }}>
+            <div className="kpmg-report-doc-meta">
               01 September 2026 · OT Overview · Confidential
             </div>
           </div>
 
           {/* 1. Executive summary — what we found */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 Executive summary — what we found
               </div>
             </div>
 
             {/* 3 Metric Summary Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
-              <div style={{ background: '#FFF7F7', border: '1px solid #FECDCA', borderRadius: 10, padding: '16px 20px' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>
+            <div className="kpmg-grid-3col-gap16-mb20">
+              <div className="kpmg-report-stat-card-red">
+                <div className="kpmg-report-stat-num-red">
                   {overallRisk}/10
                 </div>
-                <div style={{ fontSize: 11, color: '#667085', marginTop: 4 }}>Overall risk</div>
+                <div className="kpmg-report-stat-label">Overall risk</div>
               </div>
 
-              <div style={{ background: '#FFF7F7', border: '1px solid #FECDCA', borderRadius: 10, padding: '16px 20px' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>
+              <div className="kpmg-report-stat-card-red">
+                <div className="kpmg-report-stat-num-red">
                   {overallBand.label}
                 </div>
-                <div style={{ fontSize: 11, color: '#667085', marginTop: 4 }}>Risk level</div>
+                <div className="kpmg-report-stat-label">Risk level</div>
               </div>
 
-              <div style={{ background: '#FFF7F7', border: '1px solid #FECDCA', borderRadius: 10, padding: '16px 20px' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>
+              <div className="kpmg-report-stat-card-red">
+                <div className="kpmg-report-stat-num-red">
                   {typeof overallCov === 'number' ? `${overallCov}%` : '26%'}
                 </div>
-                <div style={{ fontSize: 11, color: '#667085', marginTop: 4 }}>IEC 62443 compliance</div>
+                <div className="kpmg-report-stat-label">IEC 62443 compliance</div>
               </div>
             </div>
 
-            <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.6, marginBottom: 12 }}>
+            <div className="kpmg-report-zone-summary-text">
               <strong>Risk by zone:</strong> {zoneRisks.length > 0 ? zoneRisks.map(z => `${z.name} ${z.risk.toFixed(1)} (${riskBand(z.risk).label.toLowerCase()})`).join('; ') : 'Safety (SIS) 7.0 (high); Control 6.8 (high); Operations 5.0 (medium); OT DMZ 4.9 (medium); Asasdasd 4.7 (medium).'}.
             </div>
 
-            <div style={{ fontSize: 12, color: '#344054', lineHeight: 1.6 }}>
+            <div className="kpmg-report-narrative-text">
               We assessed {assets.length || 27} assets across {client.orgName || 'Acme Utilities'} environment against IEC 62443-3-3. The environment carries an overall risk of {overallRisk}/10 ({overallBand.label.toLowerCase()}), with {typeof overallCov === 'number' ? overallCov : 37}% of applicable requirements currently met. {previewShadow.length || 6} unmanaged shadow assets were found communicating but absent from the register. The sections below walk from what your environment is, to how an attacker would move through it, to the prioritised actions that reduce risk fastest.
             </div>
           </div>
 
           {/* 2. 1. Your environment — zones & conduits */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 1. Your environment — zones &amp; conduits
               </div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+            <div className="kpmg-report-section-subtext">
               The security zones and the conduits that connect them — the structure everything else is anchored to.
             </div>
 
             {/* 6 Zone Metric Cards with Ring Badges */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+            <div className="kpmg-grid-3col-gap16-mb24">
               {(zoneRisks.length > 0 ? zoneRisks : [
                 { id: '1', name: 'Enterprise', risk: 9.6, slT: 2, slA: 0 },
                 { id: '2', name: 'OT DMZ', risk: 9.6, slT: 2, slA: 0 },
@@ -680,20 +666,11 @@ export default function ReportTab({ onNavigate = () => {} }) {
                 return (
                   <div
                     key={z.id || idx}
-                    style={{
-                      border: '1px solid #EAECF0',
-                      borderRadius: 10,
-                      padding: '14px 16px',
-                      background: '#F8FAFC',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      position: 'relative'
-                    }}
+                    className="kpmg-report-zone-ring-card"
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div className="kpmg-d-flex kpmg-items-center kpmg-gap-12">
                       {/* SVG Donut Progress Ring Badge */}
-                      <div style={{ position: 'relative', width: 42, height: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div className="kpmg-donut-ring-wrap">
                         <svg width="42" height="42" viewBox="0 0 42 42">
                           {/* Track Ring */}
                           <circle cx="21" cy="21" r="17" fill="none" stroke="#EAECF0" strokeWidth="3.5" />
@@ -711,34 +688,26 @@ export default function ReportTab({ onNavigate = () => {} }) {
                             transform="rotate(-90 21 21)"
                           />
                         </svg>
-                        <div style={{ position: 'absolute', fontSize: 11.5, fontWeight: 800, color: b.label === 'Low' ? '#027A48' : b.label === 'Medium' ? '#B54708' : '#D9251B' }}>
+                        <div className="kpmg-donut-ring-val" style={{ color: b.label === 'Low' ? '#027A48' : b.label === 'Medium' ? '#B54708' : '#D9251B' }}>
                           {z.risk ? z.risk.toFixed(1) : '9.6'}
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>{z.name}</div>
-                        <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>
+                        <div className="kpmg-report-zone-ring-name">{z.name}</div>
+                        <div className="kpmg-report-zone-ring-sub">
                           SL-T {z.slT || 2} · SL-A {slaForZone(srSeed, z) || 0}
                         </div>
                       </div>
                     </div>
 
                     <span
+                      className="kpmg-report-risk-tag"
                       style={{
-                        fontSize: 10.5,
-                        fontWeight: 600,
-                        padding: '2px 8px',
-                        borderRadius: 10,
                         background: b.label === 'Low' ? '#ECFDF3' : b.label === 'Medium' ? '#FFFAEB' : '#FEF3F2',
                         color: b.label === 'Low' ? '#027A48' : b.label === 'Medium' ? '#B54708' : '#B42318',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        marginLeft: 'auto',
-                        flexShrink: 0
                       }}
                     >
-                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: b.label === 'Low' ? '#027A48' : b.label === 'Medium' ? '#B54708' : '#B42318' }} />
+                      <span className="kpmg-dot-5" style={{ background: b.label === 'Low' ? '#027A48' : b.label === 'Medium' ? '#B54708' : '#B42318' }} />
                       {b.label}
                     </span>
                   </div>
@@ -746,58 +715,49 @@ export default function ReportTab({ onNavigate = () => {} }) {
               })}
             </div>
 
-            {/* Conduits section */}
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#475467', marginBottom: 12 }}>Conduits</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-              {Array.from({ length: 6 }).map((_, idx) => (
+            {/* 1.2 Identified conduits */}
+            <div className="kpmg-report-section-subtext">
+              1.2 Identified conduits between zones
+            </div>
+            <div className="kpmg-grid-2col-gap12">
+              {[0, 1].map((c, idx) => (
                 <div
                   key={idx}
-                  style={{
-                    border: '1px solid #EAECF0',
-                    borderRadius: 8,
-                    padding: '14px 16px',
-                    background: '#FFFFFF',
-                    fontSize: 11.5,
-                    color: '#344054',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justify: 'center',
-                    gap: 6
-                  }}
+                  className="kpmg-report-conduit-card"
                 >
-                  <span style={{ fontWeight: 600, color: '#101828' }}>Corporate</span>
-                  <span style={{ color: '#475467' }}>↔</span>
-                  <span style={{ fontWeight: 600, color: '#101828' }}>DMZ firewall</span>
-                  <span style={{ color: '#667085', fontSize: 10.5 }}>(Enterprise ↔ OT DMZ)</span>
+                  <span className="kpmg-report-conduit-name">Corporate</span>
+                  <span className="kpmg-report-conduit-arrow">↔</span>
+                  <span className="kpmg-report-conduit-name">DMZ firewall</span>
+                  <span className="kpmg-report-conduit-sub">(Enterprise ↔ OT DMZ)</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* 3. 2. How well we know your environment - asset visibility */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 2. How well we know your environment - asset visibility
               </div>
             </div>
 
             {/* Asset visibility percentage box */}
-            <div style={{ background: '#FFF7F7', border: '1px solid #EAECF0', borderRadius: 10, padding: '20px 24px', marginBottom: 20 }}>
-              <div style={{ fontSize: 28, fontWeight: 800, color: '#1D4ED8', lineHeight: 1 }}>
+            <div className="kpmg-report-vis-hero-box">
+              <div className="kpmg-report-vis-hero-score">
                 {previewVis.score !== null ? `${previewVis.score}%` : '77%'}
               </div>
-              <div style={{ fontSize: 12, color: '#475467', marginTop: 6 }}>
+              <div className="kpmg-report-vis-hero-desc">
                 Asset visibility - Register agrees with what was observed in logs and traffic
               </div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+            <div className="kpmg-report-section-subtext">
               The security zones and the conduits that connect them - the structure everything else is anchored to.
             </div>
 
             {/* Zone Visibility Bars */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            <div className="kpmg-grid-3col-gap16">
               {(zoneRisks.length > 0 ? zoneRisks : [
                 { id: '1', name: 'Enterprise', risk: 6.8 },
                 { id: '2', name: 'OT DMZ', risk: 6.8 },
@@ -811,18 +771,18 @@ export default function ReportTab({ onNavigate = () => {} }) {
                 const examples = unmet.length > 0 ? unmet.slice(0, 3).map(x => x.split('—')[0].trim()).join(', ') : 'SR1.3, SR1.7 RE1, SR2.1 RE1';
 
                 return (
-                  <div key={z.id || i} style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', background: '#FFFFFF' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>{z.name}</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#D9251B' }}>68%</span>
+                  <div key={z.id || i} className="kpmg-report-vis-zone-card">
+                    <div className="kpmg-flex-between-mb8">
+                      <span className="kpmg-report-vis-zone-name">{z.name}</span>
+                      <span className="kpmg-report-vis-zone-pct">68%</span>
                     </div>
 
-                    <DynamicSegmentedBar matchedRatio={0.68} color="#D9251B" style={{ margin: '0 0 12px' }} />
+                    <DynamicSegmentedBar matchedRatio={0.68} color="#D9251B" className="kpmg-mb-12" />
 
-                    <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.4 }}>
+                    <div className="kpmg-report-vis-zone-count">
                       {count} requirement(s) have no evidence yet
                     </div>
-                    <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>
+                    <div className="kpmg-report-vis-zone-eg">
                       (e.g. {examples})
                     </div>
                   </div>
@@ -832,19 +792,19 @@ export default function ReportTab({ onNavigate = () => {} }) {
           </div>
 
           {/* 4. 3. What you may not know is there — shadow assets */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 3. What you may not know is there — shadow assets
               </div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+            <div className="kpmg-report-section-subtext">
               {previewShadow.length || 6} devices were observed communicating but are absent from the asset register. Controls and patching can't be applied to assets you don't know exist, so these often sit on the highest-risk paths.
             </div>
 
             {/* 3-Column Cards Grid for Shadow Assets */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            <div className="kpmg-grid-3col-gap16">
               {(previewShadow.length > 0 ? previewShadow : [
                 { id: '1', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
                 { id: '2', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
@@ -853,35 +813,35 @@ export default function ReportTab({ onNavigate = () => {} }) {
                 { id: '5', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
                 { id: '6', name: '10.20.3.47 (unregistered host)', seenAs: 'RDP + SMB to ENG-WS-01', zone: 'Operations' },
               ]).slice(0, 6).map((s, idx) => (
-                <div key={idx} style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', background: '#FFFFFF' }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828', marginBottom: 4 }}>{s.name}</div>
-                  <div style={{ fontSize: 11.5, color: '#667085', marginBottom: 4 }}>observed {s.seenAs || 'RDP + SMB to ENG-WS-01'}</div>
-                  <div style={{ fontSize: 11.5, color: '#344054', fontWeight: 500 }}>{zones.find(z => z.id === s.zone)?.name || s.zone || 'Operations'}</div>
+                <div key={idx} className="kpmg-report-shadow-card">
+                  <div className="kpmg-report-shadow-name">{s.name}</div>
+                  <div className="kpmg-report-shadow-seen">observed {s.seenAs || 'RDP + SMB to ENG-WS-01'}</div>
+                  <div className="kpmg-report-shadow-zone">{zones.find(z => z.id === s.zone)?.name || s.zone || 'Operations'}</div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* 5. 4. Control posture — IEC 62443 compliance */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 4. Control posture — IEC 62443 compliance
               </div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+            <div className="kpmg-report-section-subtext">
               Where each zone's achieved level (SL-A) falls short of its target (SL-T), and the specific requirements driving the gap. These gaps are the conditions that let an isolated vulnerability become a traversable path.
             </div>
 
             {/* 2-Column Cards Grid for Gap Zones */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="kpmg-grid-2col-gap16">
               {Array.from({ length: 6 }).map((_, idx) => (
-                <div key={idx} style={{ border: '1px solid #FECDCA', borderRadius: 10, padding: '16px 20px', background: '#FFF7F7' }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#D9251B', marginBottom: 10 }}>
+                <div key={idx} className="kpmg-report-gap-card">
+                  <div className="kpmg-report-gap-title">
                     {idx % 2 === 0 ? 'Enterprise: SL-A 0 vs SL-T 2 — gap of 2' : 'OT DMZ: SL-A 0 vs SL-T 3 — gap of 3'}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div className="kpmg-flex-col-gap4">
                     {(idx % 2 === 0 ? [
                       'SR1.5 — Authenticator management',
                       'SR1.7 — Strength of password-based authentication',
@@ -897,7 +857,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
                       'SR1.7 RE1 — Password generation & lifetime (human)',
                       'SR2.3 — Use control for portable & mobile devices'
                     ]).map((item, itemIdx) => (
-                      <div key={itemIdx} style={{ fontSize: 11.5, color: '#344054', lineHeight: 1.5 }}>
+                      <div key={itemIdx} className="kpmg-report-gap-item">
                         • {item}
                       </div>
                     ))}
@@ -908,45 +868,45 @@ export default function ReportTab({ onNavigate = () => {} }) {
           </div>
 
           {/* 6. 5. Critical vulnerabilities */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 5. Critical vulnerabilities
               </div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+            <div className="kpmg-report-section-subtext">
               Where each zone's achieved level (SL-A) falls short of its target (SL-T), and the specific requirements driving the gap. These gaps are the conditions that let an isolated vulnerability become a traversable path.
             </div>
 
             {/* 3-Column Vulnerabilities Cards Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            <div className="kpmg-grid-3col-gap16">
               {Array.from({ length: 6 }).map((_, idx) => (
-                <div key={idx} style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '16px 18px', background: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div key={idx} className="kpmg-report-vuln-card">
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 8 }}>
+                    <div className="kpmg-report-vuln-title">
                       Unauthenticated command injection in PLC firmware
                     </div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 10 }}>High exploitability</span>
-                      <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 10 }}>RDP + SMB to ENG-WS-01</span>
-                      <span style={{ background: '#FFFAEB', color: '#B54708', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 10 }}>CVSS 9.6</span>
-                      <span style={{ background: '#EFF6FF', color: '#1D4ED8', fontSize: 10.5, fontWeight: 600, padding: '2px 8px', borderRadius: 10 }}>P1</span>
+                    <div className="kpmg-chips-wrap">
+                      <span className="kpmg-badge-red">High exploitability</span>
+                      <span className="kpmg-badge-red">RDP + SMB to ENG-WS-01</span>
+                      <span className="kpmg-badge-orange">CVSS 9.6</span>
+                      <span className="kpmg-badge-blue">P1</span>
                     </div>
                   </div>
 
                   {/* Why it's exploitable sub-card */}
-                  <div style={{ background: '#FFF7F7', border: '1px solid #EAECF0', borderRadius: 8, padding: '12px 14px' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#D9251B', marginBottom: 6 }}>Why it's exploitable</div>
-                    <div style={{ fontSize: 11.5, color: '#344054', lineHeight: 1.5 }}>
+                  <div className="kpmg-report-subcard-red">
+                    <div className="kpmg-report-subcard-title-red">Why it's exploitable</div>
+                    <div className="kpmg-report-subcard-body">
                       Control effectiveness 1.06× (SL-A 1/SL-T 3) at 91% exposure probability - the same figures behind the risk score. - Unauthenticated attacker can inject controller commands over the control protocol.
                     </div>
                   </div>
 
                   {/* 62443 enabler sub-card */}
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '12px 14px' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#101828', marginBottom: 6 }}>62443 enabler</div>
-                    <div style={{ fontSize: 11.5, color: '#344054', lineHeight: 1.5 }}>
+                  <div className="kpmg-report-subcard-slate">
+                    <div className="kpmg-report-subcard-title-dark">62443 enabler</div>
+                    <div className="kpmg-report-subcard-body">
                       Maps to FR3 — System Integrity. Closing this requirement in Control removes the enabler.
                     </div>
                   </div>
@@ -956,49 +916,49 @@ export default function ReportTab({ onNavigate = () => {} }) {
           </div>
 
           {/* 7. 6. How an attacker would move - top paths */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 6. How an attacker would move - top paths
               </div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#667085', marginBottom: 16 }}>
+            <div className="kpmg-report-section-subtext">
               Each path is qualified by the consequence it reaches, how many 62443 control layers an attacker defeats along the way, and whether the intrusion would be visible. Paths trace declared conduits; the value is the resistance and visibility at each crossing.
             </div>
 
             {/* 3-Column Attack Paths Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            <div className="kpmg-grid-3col-gap16">
               {[
                 { title: 'Loss of Safety', via: 'Internet → Safety', effort: 'Low', silent: false, actor: 'LOCKBIT-OT, SANDWORM (process sabotage)' },
                 { title: 'Loss of Safety', via: 'Internet → Safety', effort: 'Low', silent: true, actor: 'APT33 (MAGNALLIUM), insider-assisted' },
                 { title: 'Loss of Safety', via: 'Internet → Safety', effort: 'Low', silent: true, actor: 'CHERNOVITE (PIPEDREAM toolkit)' },
               ].map((pathItem, idx) => (
-                <div key={idx} style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '16px 18px', background: '#FFFFFF', display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'space-between' }}>
+                <div key={idx} className="kpmg-report-path-card">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 14, whiteSpace: 'nowrap' }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: '#101828', whiteSpace: 'nowrap' }}>{pathItem.title}</span>
-                      <div style={{ display: 'flex', gap: 4, alignItems: 'center', marginLeft: 'auto', flexShrink: 0 }}>
+                    <div className="kpmg-report-path-header">
+                      <span className="kpmg-report-path-title">{pathItem.title}</span>
+                      <div className="kpmg-report-path-tags">
                         {pathItem.silent && (
-                          <span style={{ background: '#FFFAEB', color: '#B54708', fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>Silent end-to-end</span>
+                          <span className="kpmg-tag-silent">Silent end-to-end</span>
                         )}
-                        <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 10, whiteSpace: 'nowrap' }}>Attacker effort: {pathItem.effort}</span>
+                        <span className="kpmg-tag-effort">Attacker effort: {pathItem.effort}</span>
                       </div>
                     </div>
 
-                    <div style={{ fontSize: 11.5, color: '#667085', marginBottom: 14 }}>
-                      Via <span style={{ background: '#F2F4F7', color: '#344054', fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>{pathItem.via}</span>
+                    <div className="kpmg-report-path-via-row">
+                      Via <span className="kpmg-tag-via">{pathItem.via}</span>
                     </div>
 
-                    <div style={{ fontSize: 11.5, color: '#344054', lineHeight: 1.5, marginBottom: 12 }}>
+                    <div className="kpmg-report-path-desc">
                       Safety instrumented functions could be disabled or spoofed. Across 4 crossings the attacker defeats 12 control layers, 2 of them open doors.
                     </div>
                   </div>
 
                   {/* Representative actors box */}
-                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 8, padding: '10px 12px' }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#101828', marginBottom: 6 }}>Representative actors</div>
-                    <div style={{ fontSize: 11.5, color: '#344054' }}>{pathItem.actor}</div>
+                  <div className="kpmg-report-subcard-slate-pad10">
+                    <div className="kpmg-report-subcard-title-dark">Representative actors</div>
+                    <div className="kpmg-report-subcard-body">{pathItem.actor}</div>
                   </div>
                 </div>
               ))}
@@ -1006,82 +966,82 @@ export default function ReportTab({ onNavigate = () => {} }) {
           </div>
 
           {/* 8. 7. Risks formally accepted */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 7. Risks formally accepted
               </div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#667085', marginBottom: 12 }}>
+            <div className="kpmg-report-section-subtext">
               Items the consultant has formally accepted as residual risk, with rationale.
             </div>
 
-            <div style={{ fontSize: 12, color: '#475467' }}>
+            <div className="kpmg-report-accepted-empty">
               No risks have been formally accepted for this assessment.
             </div>
           </div>
 
           {/* 9. 8. What to do next - ranked roadmap */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 8. What to do next - ranked roadmap
               </div>
             </div>
 
             {/* Top 2 summary blocks */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-              <div style={{ background: '#FFF7F7', border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>03</div>
+            <div className="kpmg-grid-2col-gap16 kpmg-mb-20">
+              <div className="kpmg-report-roadmap-stat-red">
+                <div className="kpmg-report-roadmap-num-red">03</div>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Critical Mitigations</div>
-                  <div style={{ fontSize: 11.5, color: '#667085', marginTop: 2 }}>Close the highest vulnerabilities (CVSS ≥ 9 / active exploitation)</div>
+                  <div className="kpmg-report-roadmap-stat-title">Critical Mitigations</div>
+                  <div className="kpmg-report-roadmap-stat-sub">Close the highest vulnerabilities (CVSS ≥ 9 / active exploitation)</div>
                 </div>
               </div>
 
-              <div style={{ background: '#ECFDF5', border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: '#027A48', lineHeight: 1 }}>13</div>
+              <div className="kpmg-report-roadmap-stat-green">
+                <div className="kpmg-report-roadmap-num-green">13</div>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Compliance Mitigations</div>
-                  <div style={{ fontSize: 11.5, color: '#667085', marginTop: 2 }}>Reach the target IEC 62443 security levels per zone</div>
+                  <div className="kpmg-report-roadmap-stat-title">Compliance Mitigations</div>
+                  <div className="kpmg-report-roadmap-stat-sub">Reach the target IEC 62443 security levels per zone</div>
                 </div>
               </div>
             </div>
 
             {/* FR1 Section */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>FR1 - Identification &amp; Authentication Control</div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>SR1.3</span>
-                  <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>SR1.1</span>
+            <div className="kpmg-mb-20">
+              <div className="kpmg-flex-between-mb10">
+                <div className="kpmg-report-fr-header-title">FR1 - Identification &amp; Authentication Control</div>
+                <div className="kpmg-d-flex kpmg-gap-6">
+                  <span className="kpmg-badge-sr">SR1.3</span>
+                  <span className="kpmg-badge-sr">SR1.1</span>
                 </div>
               </div>
 
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475467', marginBottom: 8 }}>Critical Mitigations</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
-                <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '12px 14px', background: '#FFF8F8', display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 2, height: 32, background: '#D9251B', borderRadius: 2, flexShrink: 0 }} />
+              <div className="kpmg-report-fr-plan-sub">Critical Mitigations</div>
+              <div className="kpmg-grid-3col-gap12 kpmg-mb-12">
+                <div className="kpmg-report-mitigation-card-red">
+                  <div className="kpmg-report-mit-bar-red" />
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#101828', marginBottom: 4 }}>1. Replace default credentials on all HMI devices</div>
-                    <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>CVE-2022-38765</span>
+                    <div className="kpmg-report-mit-title">1. Replace default credentials on all HMI devices</div>
+                    <span className="kpmg-badge-cve-red">CVE-2022-38765</span>
                   </div>
                 </div>
               </div>
 
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475467', marginBottom: 8 }}>Compliance Mitigations</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div className="kpmg-report-fr-plan-sub">Compliance Mitigations</div>
+              <div className="kpmg-grid-3col-gap12">
                 {[
                   '1. Enable MFA and NLA for all remote access sessions',
                   '2. Enable Kerberos authentication on PI Web API',
                   '3. Audit and restrict third-party remote access accounts'
                 ].map((title, i) => (
-                  <div key={i} style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '12px 14px', background: '#F6FEF9', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 2, height: 32, background: '#027A48', borderRadius: 2, flexShrink: 0 }} />
+                  <div key={i} className="kpmg-report-mitigation-card-green">
+                    <div className="kpmg-report-mit-bar-green" />
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#101828', marginBottom: 4 }}>{title}</div>
-                      <span style={{ background: '#ECFDF5', color: '#027A48', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>CVE-2022-38765</span>
+                      <div className="kpmg-report-mit-title">{title}</div>
+                      <span className="kpmg-badge-cve-green">CVE-2022-38765</span>
                     </div>
                   </div>
                 ))}
@@ -1090,32 +1050,32 @@ export default function ReportTab({ onNavigate = () => {} }) {
 
             {/* FR3 Section */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>FR3 - System Integrity</div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>SR1.3</span>
-                  <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>SR1.1</span>
+              <div className="kpmg-flex-between-mb10">
+                <div className="kpmg-report-fr-header-title">FR3 - System Integrity</div>
+                <div className="kpmg-d-flex kpmg-gap-6">
+                  <span className="kpmg-badge-sr">SR1.3</span>
+                  <span className="kpmg-badge-sr">SR1.1</span>
                 </div>
               </div>
 
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475467', marginBottom: 8 }}>Critical Mitigations</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
+              <div className="kpmg-report-fr-plan-sub">Critical Mitigations</div>
+              <div className="kpmg-grid-3col-gap12 kpmg-mb-12">
                 {[
                   '1. Upgrade FortiOS to v7.2.5+ (SSL-VPN heap overflow)',
                   '2. Patch BlueKeep (CVE-2019-0708) on engineering workstation'
                 ].map((title, i) => (
-                  <div key={i} style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '12px 14px', background: '#FFF8F8', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 2, height: 32, background: '#D9251B', borderRadius: 2, flexShrink: 0 }} />
+                  <div key={i} className="kpmg-report-mitigation-card-red">
+                    <div className="kpmg-report-mit-bar-red" />
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#101828', marginBottom: 4 }}>{title}</div>
-                      <span style={{ background: '#FEF3F2', color: '#B42318', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>CVE-2022-38765</span>
+                      <div className="kpmg-report-mit-title">{title}</div>
+                      <span className="kpmg-badge-cve-red">CVE-2022-38765</span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: '#475467', marginBottom: 8 }}>Compliance Mitigations</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div className="kpmg-report-fr-plan-sub">Compliance Mitigations</div>
+              <div className="kpmg-grid-3col-gap12">
                 {[
                   '1. Disable Print Spooler service on SCADA server',
                   '2. Apply ICONICS GENESIS64 security patch v10.97.3',
@@ -1124,11 +1084,11 @@ export default function ReportTab({ onNavigate = () => {} }) {
                   '5. Establish quarterly OT firmware advisory review',
                   '6. Verify engineering software update provenance'
                 ].map((title, i) => (
-                  <div key={i} style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '12px 14px', background: '#F6FEF9', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 2, height: 32, background: '#027A48', borderRadius: 2, flexShrink: 0 }} />
+                  <div key={i} className="kpmg-report-mitigation-card-green">
+                    <div className="kpmg-report-mit-bar-green" />
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#101828', marginBottom: 4 }}>{title}</div>
-                      <span style={{ background: '#ECFDF5', color: '#027A48', fontSize: 10.5, fontWeight: 600, padding: '2px 6px', borderRadius: 4 }}>CVE-2022-38765</span>
+                      <div className="kpmg-report-mit-title">{title}</div>
+                      <span className="kpmg-badge-cve-green">CVE-2022-38765</span>
                     </div>
                   </div>
                 ))}
@@ -1137,32 +1097,25 @@ export default function ReportTab({ onNavigate = () => {} }) {
           </div>
 
           {/* How we improved your system */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', background: '#FFFFFF' }}>
-            <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-report-preview-card">
+            <div className="kpmg-card-header-bar kpmg-report-preview-header">
+              <div className="kpmg-report-preview-title">
                 How we improved your system
               </div>
             </div>
 
-            <div style={{ fontSize: 12, color: '#667085', lineHeight: 1.6, marginBottom: 20 }}>
+            <div className="kpmg-report-improve-subtext">
               Everything above reflects your environment as it stands now, after the mitigations actioned and shadow assets brought under management.
               <br />
               Below compares that against the as-is baseline captured at the start.
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', width: '100%' }}>
+            <div className="kpmg-report-improve-table">
               {/* Clean Light Table Header */}
-              {['Measure', 'At baseline', 'Now', 'Change'].map((h, idx) => (
+              {['Measure', 'At baseline', 'Now', 'Change'].map((h) => (
                 <div
                   key={h}
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: '#475467',
-                    padding: '12px 0',
-                    borderBottom: '1px solid #EAECF0',
-                    textAlign: idx === 0 ? 'left' : 'left'
-                  }}
+                  className="kpmg-report-improve-th"
                 >
                   {h}
                 </div>
@@ -1197,13 +1150,13 @@ export default function ReportTab({ onNavigate = () => {} }) {
                   const col = isNoChange ? '#344054' : improved ? '#027A48' : '#B42318';
                   const changeText = isNoChange ? 'No change' : `${delta > 0 ? '+' : ''}${delta}${label.includes('%') || label.includes('compliance') || label.includes('visibility') ? '%' : ''}`;
 
-                  const borderStyle = i < arr.length - 1 ? '1px solid #EAECF0' : 'none';
+                  const isLast = i === arr.length - 1;
 
                   return [
-                    <div key={`${i}a`} style={{ fontSize: 12.5, color: '#101828', padding: '16px 0', borderBottom: borderStyle, fontWeight: 500 }}>{label}</div>,
-                    <div key={`${i}b`} style={{ fontSize: 12.5, color: '#344054', padding: '16px 0', borderBottom: borderStyle, fontWeight: 500 }}>{baseVal}</div>,
-                    <div key={`${i}c`} style={{ fontSize: 12.5, color: '#344054', padding: '16px 0', borderBottom: borderStyle, fontWeight: 500 }}>{nowVal}</div>,
-                    <div key={`${i}d`} style={{ fontSize: 12.5, color: col, padding: '16px 0', borderBottom: borderStyle, fontWeight: 500 }}>{changeText}</div>,
+                    <div key={`${i}a`} className={`kpmg-report-improve-cell-dark ${isLast ? 'kpmg-border-none' : ''}`}>{label}</div>,
+                    <div key={`${i}b`} className={`kpmg-report-improve-cell-muted ${isLast ? 'kpmg-border-none' : ''}`}>{baseVal}</div>,
+                    <div key={`${i}c`} className={`kpmg-report-improve-cell-muted ${isLast ? 'kpmg-border-none' : ''}`}>{nowVal}</div>,
+                    <div key={`${i}d`} className={`kpmg-report-improve-cell-delta ${isLast ? 'kpmg-border-none' : ''}`} style={{ color: col }}>{changeText}</div>,
                   ];
                 }).flat();
               })()}
@@ -1214,55 +1167,32 @@ export default function ReportTab({ onNavigate = () => {} }) {
       )}
 
       {/* Consultant sign-off checklist */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px' }}>
-        <div className="kpmg-card-header-bar" style={{ margin: '-20px -24px 16px -24px', padding: '16px 24px', borderBottom: '1px solid #EAECF0' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>
+      <div className="kpmg-report-preview-card">
+        <div className="kpmg-card-header-bar kpmg-report-preview-header">
+          <div className="kpmg-report-preview-title">
             Sign-off before generating
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="kpmg-flex-col-gap10">
           {SIGNOFF.map(([k, label]) => {
             const isChecked = !!checks[k];
             return (
               <div
                 key={k}
                 onClick={() => setChecks(c => ({ ...c, [k]: !c[k] }))}
-                style={{
-                  border: '1px solid #EAECF0',
-                  borderRadius: 10,
-                  padding: '12px 16px',
-                  background: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  cursor: 'pointer',
-                  transition: 'border-color 0.15s'
-                }}
+                className="kpmg-signoff-row"
               >
                 <div
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 6,
-                    border: isChecked ? '1px solid #1D4ED8' : '1px solid #D0D5DD',
-                    background: isChecked ? '#EFF6FF' : '#FFFFFF',
-                    color: '#1D4ED8',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    transition: 'all 0.15s',
-                    padding: 0
-                  }}
+                  className={`kpmg-signoff-checkbox ${isChecked ? 'checked' : ''}`}
                 >
                   {isChecked && (
-                    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+                    <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="kpmg-block-svg">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
                 </div>
-                <span style={{ fontSize: 12.5, color: '#344054', fontWeight: 500 }}>
+                <span className="kpmg-signoff-label">
                   {label}
                 </span>
               </div>
@@ -1272,33 +1202,19 @@ export default function ReportTab({ onNavigate = () => {} }) {
       </div>
 
       {/* Generate Full Assessment Report Card */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 12, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap' }}>
+      <div className="kpmg-report-bottom-cta-card">
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>
+          <div className="kpmg-report-cta-title">
             Generate Full Assessment Report
           </div>
-          <div style={{ fontSize: 12, color: '#667085' }}>
+          <div className="kpmg-report-cta-sub">
             Compiles the overall and per-zone risk scores, findings, attack paths, and the mitigation roadmap into a report.
           </div>
         </div>
 
         <button
           onClick={!reportBlocked ? generate : undefined}
-          style={{
-            background: !reportBlocked ? '#1D4ED8' : '#93C5FD',
-            color: '#FFFFFF',
-            border: 'none',
-            borderRadius: 8,
-            padding: '10px 20px',
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: !reportBlocked ? 'pointer' : 'not-allowed',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            flexShrink: 0,
-            whiteSpace: 'nowrap'
-          }}
+          className={`kpmg-btn-download-report ${reportBlocked ? 'blocked' : ''}`}
         >
           <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />

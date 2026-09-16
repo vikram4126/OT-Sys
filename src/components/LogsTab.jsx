@@ -65,22 +65,22 @@ export default function LogsTab() {
       {/* KPI Row */}
       <div className="kpmg-kpi-grid-4">
         <Card className="kpmg-kpi-card">
-          <div className="kpmg-kpi-number" style={{ color: '#00338D' }}>{counts.total}</div>
+          <div className="kpmg-kpi-number kpmg-kpi-num-blue">{counts.total}</div>
           <div className="kpmg-kpi-label">Total Changes</div>
           <div className="kpmg-kpi-subtext">All recorded change events</div>
         </Card>
         <Card className="kpmg-kpi-card">
-          <div className="kpmg-kpi-number" style={{ color: '#101828' }}>{counts.users < 10 ? `0${counts.users}` : counts.users}</div>
+          <div className="kpmg-kpi-number kpmg-kpi-num-dark">{counts.users < 10 ? `0${counts.users}` : counts.users}</div>
           <div className="kpmg-kpi-label">Users with Access</div>
           <div className="kpmg-kpi-subtext">Active accounts on this assessment</div>
         </Card>
         <Card className="kpmg-kpi-card">
-          <div className="kpmg-kpi-number" style={{ color: '#D9251B' }}>{counts.warning < 10 ? `0${counts.warning}` : counts.warning}</div>
+          <div className="kpmg-kpi-number kpmg-kpi-num-red">{counts.warning < 10 ? `0${counts.warning}` : counts.warning}</div>
           <div className="kpmg-kpi-label">Warnings</div>
           <div className="kpmg-kpi-subtext">Overrides and manual entries</div>
         </Card>
         <Card className="kpmg-kpi-card">
-          <div className="kpmg-kpi-number" style={{ color: '#101828' }}>{counts.critical < 10 ? `0${counts.critical}` : counts.critical}</div>
+          <div className="kpmg-kpi-number kpmg-kpi-num-dark">{counts.critical < 10 ? `0${counts.critical}` : counts.critical}</div>
           <div className="kpmg-kpi-label">Critical Changes</div>
           <div className="kpmg-kpi-subtext">Deletions and high-risk edits</div>
         </Card>
@@ -88,17 +88,17 @@ export default function LogsTab() {
 
       {/* Filter / Search Bar */}
       <Card className="kpmg-filter-bar-card">
-        <div className="kpmg-search-box" style={{ width: 280 }}>
+        <div className="kpmg-search-box kpmg-search-box-280">
           <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
           <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search" className="kpmg-search-input" />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Select value={userF} onChange={e => { setUserF(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 140 }}
+        <div className="kpmg-filter-select-group">
+          <Select value={userF} onChange={e => { setUserF(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-select-w140"
             options={[{ value: 'All', label: 'User' }, ...allUsers.map(u => ({ value: u, label: u }))]} />
-          <Select value={category} onChange={e => { setCat(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+          <Select value={category} onChange={e => { setCat(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-select-w130"
             options={[{ value: 'All', label: 'Area' }, ...CHANGE_CATEGORIES.map(c => ({ value: c, label: c }))]} />
-          <Select value={severity} onChange={e => { setSev(e.target.value); setPage(1); }} className="kpmg-zone-select" style={{ width: 130 }}
+          <Select value={severity} onChange={e => { setSev(e.target.value); setPage(1); }} className="kpmg-zone-select kpmg-select-w130"
             options={[{ value: 'All', label: 'Severity' }, { value: 'info', label: 'Info' }, { value: 'warning', label: 'Warning' }, { value: 'critical', label: 'Critical' }]} />
         </div>
       </Card>
@@ -126,22 +126,22 @@ export default function LogsTab() {
 
           return (
             <div key={log.id} className="kpmg-table-row kpmg-table-grid-audit-logs">
-              <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{dateStr}</span>
-              <span style={{ color: '#475467', fontSize: 13 }}>{timeStr}</span>
+              <span className="kpmg-log-date">{dateStr}</span>
+              <span className="kpmg-log-time">{timeStr}</span>
               <span>
-                <span className="kpmg-badge" style={{ background: area.bg, color: area.fg, fontSize: 11.5, fontWeight: 600, padding: '3px 10px' }}>
+                <span className="kpmg-badge kpmg-log-badge" style={{ background: area.bg, color: area.fg }}>
                   {log.category}
                 </span>
               </span>
-              <span style={{ color: '#101828', fontSize: 13 }}>{log.description}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="kpmg-log-desc">{log.description}</span>
+              <div className="kpmg-log-user-group">
                 <div className="kpmg-user-avatar-sm">
                   {initials}
                 </div>
-                <span style={{ color: '#101828', fontSize: 13, fontWeight: 500 }}>{log.user}</span>
+                <span className="kpmg-log-user-name">{log.user}</span>
               </div>
               <div className="kpmg-text-right">
-                <span className="kpmg-badge" style={{ background: sev.bg, color: sev.fg, fontSize: 11.5, fontWeight: 600, padding: '3px 10px' }}>
+                <span className="kpmg-badge kpmg-log-badge" style={{ background: sev.bg, color: sev.fg }}>
                   {sev.label}
                 </span>
               </div>

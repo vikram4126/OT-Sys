@@ -46,7 +46,7 @@ const SEV_PILL = {
 function SevBadge({ c }) {
   const s = SEV_PILL[c] || SEV_PILL.Low;
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 11px', borderRadius:20, fontSize:11, fontWeight:600, color:s.color, background:s.bg, whiteSpace:'nowrap' }}>
+    <span className="kpmg-sev-badge" style={{ color: s.color, background: s.bg }}>
       {c}
     </span>
   );
@@ -54,12 +54,12 @@ function SevBadge({ c }) {
 
 // ── Status icons ──────────────────────────────────────────────────────────────
 const MitigatedIcon = () => (
-  <div title="Mitigation applied" style={{width:18,height:18,borderRadius:'50%',background:'#22C55E',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+  <div title="Mitigation applied" className="kpmg-vuln-status-mitigated">
     <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
   </div>
 );
 const AcceptedIcon = () => (
-  <div title="Risk accepted" style={{width:18,height:18,borderRadius:'50%',background:C.navy,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+  <div title="Risk accepted" className="kpmg-vuln-status-accepted">
     <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round">
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
       <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -86,60 +86,20 @@ function DotsMenu({ vuln, onEdit, onRemove, isLastRow }) {
   }, [open]);
 
   return (
-    <div ref={ref} style={{position:'relative'}} onClick={e=>e.stopPropagation()}>
+    <div ref={ref} className="kpmg-relative kpmg-inline-block" onClick={e=>e.stopPropagation()}>
       <button onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}
-        style={{width:28,height:28,borderRadius:6,background:open?`${C.navy}0E`:'transparent',border:`1px solid ${open?C.border:'transparent'}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>
+        className={`kpmg-dots-btn ${open ? 'active' : ''}`}>
         <PageIcon name="Menu.svg" size={18} />
       </button>
       {open&&(
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setOpen(false)} />
-          <div style={{
-            position: 'absolute',
-            right: 0,
-            ...(isLastRow ? { bottom: '100%', marginBottom: 4 } : { top: '100%', marginTop: 4 }),
-            background: '#ffffff',
-            border: '1px solid #EAECF0',
-            borderRadius: 8,
-            boxShadow: '0 4px 16px rgba(16,24,40,0.12)',
-            zIndex: 100,
-            minWidth: 140,
-            padding: '4px 0',
-            overflow: 'hidden',
-          }}>
-            <button onClick={()=>{onEdit();setOpen(false);}}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                width: '100%',
-                padding: '8px 14px',
-                background: 'none',
-                border: 'none',
-                fontSize: 13,
-                color: '#344054',
-                cursor: 'pointer',
-                textAlign: 'left',
-                fontFamily: 'inherit',
-              }}>
+          <div className="kpmg-fixed-backdrop" onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
+          <div className={`kpmg-dots-dropdown ${isLastRow ? 'last-row' : ''}`}>
+            <button onClick={()=>{onEdit();setOpen(false);}} className="kpmg-dots-item">
               <PageIcon name="Edit.svg" size={14} />
               Edit / Override
             </button>
-            <button onClick={()=>{onRemove();setOpen(false);}}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                width: '100%',
-                padding: '8px 14px',
-                background: 'none',
-                border: 'none',
-                fontSize: 13,
-                color: '#ED2124',
-                cursor: 'pointer',
-                textAlign: 'left',
-                fontFamily: 'inherit',
-              }}>
+            <button onClick={()=>{onRemove();setOpen(false);}} className="kpmg-dots-item danger">
               <PageIcon name="Delete.svg" size={14} />
               Remove
             </button>
@@ -166,10 +126,10 @@ function RemoveModal({ vuln, onClose, onDeleted }) {
   return (
     <Modal title="Remove Finding" subtitle="This action will be logged" onClose={onClose}
       footer={<><Btn variant="outline" onClick={onClose}>Cancel</Btn><Btn variant="danger" onClick={confirm} disabled={saving}>{saving?'Removing…':'Remove'}</Btn></>}>
-      <p style={{fontSize:13,color:C.text,lineHeight:1.7,marginBottom:14}}>Remove: <strong style={{fontWeight:500}}>{vuln.title}</strong>?</p>
+      <p className="kpmg-vuln-remove-text">Remove: <strong className="kpmg-fw-500">{vuln.title}</strong>?</p>
       <FormField label="Reason" required>
         <Textarea value={reason} onChange={e=>setReason(e.target.value)} rows={2} placeholder="e.g. Duplicate, false positive, resolved out of band…"/>
-        {err&&<div style={{color:C.critical,fontSize:12,marginTop:4}}>{err}</div>}
+        {err&&<div className="kpmg-err-text-12">{err}</div>}
       </FormField>
     </Modal>
   );
@@ -233,7 +193,7 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
             <span className="kpmg-metric-navy-title">{label}</span>
             {meaning && <span className="kpmg-text-muted-sm">{meaning}</span>}
             {locked && <span title="Pulled from an external source — not editable here" className="kpmg-badge-readonly">read-only</span>}
-            {weight!=null && <span className="kpmg-text-muted-sm" style={{ marginLeft:'auto' }}>weight {weight}</span>}
+            {weight!=null && <span className="kpmg-text-muted-sm kpmg-ml-auto">weight {weight}</span>}
           </div>
         </div>
         <div className="kpmg-metric-val-col">
@@ -246,19 +206,19 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
   );
   const SupLabel = ({children}) => <div className="kpmg-sup-label">{children}</div>;
   const Chips = ({items, color=C.navy}) => (
-    <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-      {items.map((t,i)=><span key={i} style={{ fontSize:10.5, color, background:`${color}0E`, border:`1px solid ${color}22`, borderRadius:5, padding:'2px 8px' }}>{t}</span>)}
+    <div className="kpmg-chips-wrap">
+      {items.map((t,i)=><span key={i} className="kpmg-chip-sm" style={{ color, background:`${color}0E`, border:`1px solid ${color}22` }}>{t}</span>)}
     </div>
   );
 
   return (
     <Modal title={vuln.title || 'Unauthenticated command injection in PLC firmware'} subtitle={`${vuln.vuln_id || 'V-1001'} · CVE - based`} onClose={onClose} maxWidth={780}
       footer={edit
-        ? <div style={{display:'flex',gap:8,alignItems:'center',width:'100%'}}><Input placeholder="Reason for this change (required)" value={reason} onChange={e=>setReason(e.target.value)} style={{flex:1}}/><Btn variant="outline" onClick={()=>setEdit(false)}>Cancel</Btn><Btn onClick={save} disabled={saving}>{saving?'Saving…':'Save & recalculate'}</Btn></div>
+        ? <div className="kpmg-explain-footer-edit"><Input placeholder="Reason for this change (required)" value={reason} onChange={e=>setReason(e.target.value)} className="kpmg-flex-1"/><Btn variant="outline" onClick={()=>setEdit(false)}>Cancel</Btn><Btn onClick={save} disabled={saving}>{saving?'Saving…':'Save & recalculate'}</Btn></div>
         : <Btn variant="outline" onClick={()=>setEdit(true)}>Edit inputs</Btn>}>
 
       {/* Top Banner Card: Formula */}
-      <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '12px 16px', marginBottom: 14, fontSize: 11.5, color: '#334155' }}>
+      <div className="kpmg-vuln-formula-banner">
         <strong>Final risk</strong> = <strong>CVE core (Worst-case CVSS / EPSS / KEV across ALL linked CVEs)</strong> × <strong>Exposure probability</strong> ÷ <strong>Control effectiveness</strong>
       </div>
 
@@ -282,12 +242,12 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
               { cve: 'CVE-2022-357824', cvss: '0.1', epss: '20%', kev: 'No' },
             ]).map((row, idx) => (
               <tr key={idx} style={{ borderBottom: idx !== 3 ? `1px solid ${C.border}` : 'none' }}>
-                <td style={{ fontWeight: 500 }}>{row.cve}</td>
+                <td className="kpmg-fw-500">{row.cve}</td>
                 <td style={{ fontWeight: row.isMaxCvss ? 700 : 400 }}>
-                  {row.cvss} {row.isMaxCvss && <PageIcon name="Star.svg" size={13} style={{ marginLeft: 3 }} />}
+                  {row.cvss} {row.isMaxCvss && <PageIcon name="Star.svg" size={13} className="kpmg-ml-3" />}
                 </td>
                 <td style={{ fontWeight: row.isMaxEpss ? 700 : 400 }}>
-                  {row.epss} {row.isMaxEpss && <PageIcon name="Star.svg" size={13} style={{ marginLeft: 3 }} />}
+                  {row.epss} {row.isMaxEpss && <PageIcon name="Star.svg" size={13} className="kpmg-ml-3" />}
                 </td>
                 <td>{row.kev}</td>
               </tr>
@@ -297,108 +257,108 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
       </div>
 
       {/* 2x2 Grid of Metrics */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+      <div className="kpmg-grid-2col-mb14">
         {/* CVSS Card */}
-        <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div className="kpmg-explain-card">
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="kpmg-explain-card-header">
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>CVSS - Severity</div>
-                <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>How severe the flaw is (IT base, OT-adjusted)</div>
+                <div className="kpmg-explain-card-title">CVSS - Severity</div>
+                <div className="kpmg-explain-card-sub">How severe the flaw is (IT base, OT-adjusted)</div>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#1E3A8A' }}>
+              <div className="kpmg-explain-card-val">
                 {(bd.base?.cvss?.ot_adjusted ?? vuln.cvss) ?? '0.6'}
               </div>
             </div>
-            <div style={{ marginTop: 12, fontSize: 10.5, color: '#64748B' }}>
+            <div className="kpmg-explain-meta-block">
               <strong>Source</strong><br />
-              <span style={{ color: '#334155' }}>NVD CVSS 8.2 → OT-adjusted 9.11</span>
+              <span>NVD CVSS 8.2 → OT-adjusted 9.11</span>
             </div>
-            <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748B' }}>
+            <div className="kpmg-explain-meta-block kpmg-mt-8">
               <strong>Supporting Input</strong><br />
-              <span style={{ color: '#334155' }}>Connected asset(s) - where it is. Changing these moves the finding between zones/Purdue levels and recalculates the exposure score.</span>
+              <span>Connected asset(s) - where it is. Changing these moves the finding between zones/Purdue levels and recalculates the exposure score.</span>
             </div>
           </div>
         </div>
 
         {/* EPSS Card */}
-        <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div className="kpmg-explain-card">
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="kpmg-explain-card-header">
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>EPSS - Exploitation likelihood</div>
-                <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>Probability it will be exploited</div>
+                <div className="kpmg-explain-card-title">EPSS - Exploitation likelihood</div>
+                <div className="kpmg-explain-card-sub">Probability it will be exploited</div>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#1E3A8A' }}>
+              <div className="kpmg-explain-card-val">
                 {vuln.epss != null ? `${(vuln.epss * 100).toFixed(0)}%` : '1.2'}
               </div>
             </div>
-            <div style={{ marginTop: 12, fontSize: 10.5, color: '#64748B' }}>
+            <div className="kpmg-explain-meta-block">
               <strong>Source</strong><br />
-              <span style={{ color: '#334155' }}>FIRST.org EPSS</span>
+              <span>FIRST.org EPSS</span>
             </div>
-            <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748B' }}>
+            <div className="kpmg-explain-meta-block kpmg-mt-8">
               <strong>Supporting Input</strong><br />
-              <span style={{ color: '#334155' }}>EPSS model score {vuln.epss ?? '0.66'} (0–1) for this CVE.</span>
+              <span>EPSS model score {vuln.epss ?? '0.66'} (0–1) for this CVE.</span>
             </div>
           </div>
         </div>
 
         {/* KEV Card */}
-        <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div className="kpmg-explain-card">
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="kpmg-explain-card-header">
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>KEV - Exploited in the wild</div>
-                <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>Confirmed real-world exploitation</div>
+                <div className="kpmg-explain-card-title">KEV - Exploited in the wild</div>
+                <div className="kpmg-explain-card-sub">Confirmed real-world exploitation</div>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#1E3A8A' }}>
+              <div className="kpmg-explain-card-val">
                 {vuln.in_kev ? 'Yes' : 'Yes'}
               </div>
             </div>
-            <div style={{ marginTop: 12, fontSize: 10.5, color: '#64748B' }}>
+            <div className="kpmg-explain-meta-block">
               <strong>Source</strong><br />
-              <span style={{ color: '#334155' }}>CISA KEV catalogue</span>
+              <span>CISA KEV catalogue</span>
             </div>
-            <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748B' }}>
+            <div className="kpmg-explain-meta-block kpmg-mt-8">
               <strong>Supporting Input</strong><br />
-              <span style={{ color: '#334155' }}>Listed in the CISA Known Exploited Vulnerabilities catalogue — a strong severity boost.</span>
+              <span>Listed in the CISA Known Exploited Vulnerabilities catalogue — a strong severity boost.</span>
             </div>
           </div>
         </div>
 
         {/* Exposure probability Card */}
-        <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div className="kpmg-explain-card">
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="kpmg-explain-card-header">
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>Exposure probability</div>
-                <div style={{ fontSize: 11, color: '#64748B', marginTop: 1 }}>Reachability from connectivity</div>
+                <div className="kpmg-explain-card-title">Exposure probability</div>
+                <div className="kpmg-explain-card-sub">Reachability from connectivity</div>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#1E3A8A' }}>
+              <div className="kpmg-explain-card-val">
                 {bd.exposure?.probability ?? '1.2'}
               </div>
             </div>
-            <div style={{ marginTop: 12, fontSize: 10.5, color: '#64748B' }}>
+            <div className="kpmg-explain-meta-block">
               <strong>Source</strong><br />
-              <span style={{ color: '#334155' }}>Zone connectivity / conduits</span>
+              <span>Zone connectivity / conduits</span>
             </div>
-            <div style={{ marginTop: 8, fontSize: 10.5, color: '#64748B' }}>
+            <div className="kpmg-explain-meta-block kpmg-mt-8">
               <strong>Supporting Input</strong><br />
-              <span style={{ color: '#334155' }}>Observed connections {bd.exposure?.observed_conn ?? 2}, allowed {bd.exposure?.allowed_conn ?? 1}, Purdue adjacency {bd.exposure?.purdue_adjacency ?? 1}.</span>
+              <span>Observed connections {bd.exposure?.observed_conn ?? 2}, allowed {bd.exposure?.allowed_conn ?? 1}, Purdue adjacency {bd.exposure?.purdue_adjacency ?? 1}.</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* 62443 - Control effectiveness Card */}
-      <div style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A' }}>62443 - Control effectiveness</div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#1E3A8A' }}>SL-A 1 / SL-T 3</div>
+      <div className="kpmg-vuln-controls-card">
+        <div className="kpmg-flex-between-mb12">
+          <div className="kpmg-explain-card-title">62443 - Control effectiveness</div>
+          <div className="kpmg-vuln-sla-title">SL-A 1 / SL-T 3</div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="kpmg-vuln-controls-list">
           {(controlRows.length > 0 ? controlRows : [
             { name: 'Network segmentation', id: 'SR 5.1', met: false },
             { name: 'Physical network segmentation', id: 'SR 5.1 RE1', met: true },
@@ -407,39 +367,39 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
             { name: 'Island mode / fail close', id: 'SR 5.1', met: false },
             { name: 'General purpose person-to-person comm restrictions', id: 'SR 5.1', met: false },
           ]).map((ctrl, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, borderBottom: i !== 5 ? `1px solid ${C.border}` : 'none', paddingBottom: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ color: '#0F172A' }}>{ctrl.name}</span>
-                <span style={{ fontSize: 10, color: '#2563EB', background: '#EFF6FF', padding: '1px 5px', borderRadius: 4, fontWeight: 500 }}>{ctrl.id}</span>
+            <div key={i} className="kpmg-vuln-ctrl-row" style={{ borderBottom: i !== 5 ? `1px solid ${C.border}` : 'none' }}>
+              <div className="kpmg-d-flex kpmg-items-center kpmg-gap-6">
+                <span className="kpmg-text-slate-900">{ctrl.name}</span>
+                <span className="kpmg-vuln-ctrl-code">{ctrl.id}</span>
               </div>
               {ctrl.met ? (
-                <span style={{ fontSize: 10.5, color: '#166534', background: '#DCFCE7', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>Implemented</span>
+                <span className="kpmg-pill-implemented">Implemented</span>
               ) : (
-                <span style={{ fontSize: 10.5, color: '#991B1B', background: '#FEE2E2', padding: '2px 8px', borderRadius: 12, fontWeight: 600 }}>Missing</span>
+                <span className="kpmg-pill-missing">Missing</span>
               )}
             </div>
           ))}
         </div>
 
-        <div style={{ fontSize: 10.5, color: '#64748B', marginTop: 12, lineHeight: 1.4 }}>
+        <div className="kpmg-vuln-ctrl-footer-note">
           0 of 6 required controls evidenced — the unmet ones keep SL-A below SL-T and raise the score. Evidence these in the IEC 62443 tab, not here.
         </div>
       </div>
 
-      {err && <div style={{ color: C.critical, fontSize: 12, marginTop: 8 }}>{err}</div>}
+      {err && <div className="kpmg-err-text-12 kpmg-mt-8">{err}</div>}
     </Modal>
   );
 }
 
 // ── Segmented Risk Bar (Progress Meter) ──────────────────────────────────────
 function SegmentedRiskBar({ score = 6.9 }) {
-  return <DynamicSegmentedBar score={score} style={{ margin: '10px 0 6px' }} />;
+  return <DynamicSegmentedBar score={score} className="kpmg-segmented-bar-wrap" />;
 }
 
 // ── Multi-select chip component for Edit form ─────────────────────────────────
 function TagChipSelect({ label, placeholder, options, selected, onAdd, onRemove }) {
   return (
-    <FormField label={<span style={{ fontWeight: 600, color: '#344054', fontSize: 12.5 }}>{label}</span>}>
+    <FormField label={<span className="kpmg-form-label-semibold">{label}</span>}>
       <Select
         value=""
         onChange={e => {
@@ -448,39 +408,19 @@ function TagChipSelect({ label, placeholder, options, selected, onAdd, onRemove 
           }
         }}
         options={[{ value: '', label: placeholder }, ...options.filter(o => !selected.includes(typeof o === 'string' ? o : o.value))]}
-        style={{ borderRadius: 6, fontSize: 12.5, height: 38 }}
+        className="kpmg-select-chip"
       />
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+      <div className="kpmg-chip-select-list">
         {selected.map(item => (
           <span
             key={item}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 11.5,
-              fontWeight: 500,
-              color: '#1D4ED8',
-              background: '#EFF6FF',
-              border: '1px solid #DBEAFE',
-              borderRadius: 14,
-              padding: '3px 10px',
-            }}
+            className="kpmg-chip-tag"
           >
             {item}
             <button
               type="button"
               onClick={() => onRemove(item)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#1D4ED8',
-                cursor: 'pointer',
-                fontSize: 13,
-                lineHeight: 1,
-                padding: 0,
-                fontWeight: 600,
-              }}
+              className="kpmg-chip-remove-btn"
             >
               ×
             </button>
@@ -574,18 +514,18 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
       maxWidth={680}
       footer={
         editing ? (
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
-            <Btn variant="outline" onClick={() => setEditing(false)} style={{ borderRadius: 8, padding: '8px 18px', fontSize: 12.5 }}>Cancel</Btn>
-            <Btn onClick={save} disabled={saving} style={{ borderRadius: 8, padding: '8px 18px', fontSize: 12.5, background: '#1D4ED8' }}>
+          <div className="kpmg-modal-footer-end">
+            <Btn variant="outline" onClick={() => setEditing(false)} className="kpmg-btn-modal-action">Cancel</Btn>
+            <Btn onClick={save} disabled={saving} className="kpmg-btn-modal-save">
               {saving ? 'Saving…' : 'Save'}
             </Btn>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <Btn variant="outline" onClick={onExplain} style={{ borderRadius: 8, padding: '8px 16px', fontSize: 12.5 }}>Explain risk score</Btn>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 18px', fontSize: 12.5 }}>Close</Btn>
-              <Btn onClick={() => setEditing(true)} style={{ borderRadius: 8, padding: '8px 18px', fontSize: 12.5, background: '#1D4ED8' }}>Edit</Btn>
+          <div className="kpmg-modal-footer-between">
+            <Btn variant="outline" onClick={onExplain} className="kpmg-btn-modal-explain">Explain risk score</Btn>
+            <div className="kpmg-d-flex kpmg-gap-10">
+              <Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-action">Close</Btn>
+              <Btn onClick={() => setEditing(true)} className="kpmg-btn-modal-save">Edit</Btn>
             </div>
           </div>
         )
@@ -593,16 +533,16 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
     >
       {editing ? (
         /* ── EDIT MODE (Image 1) ────────────────────────────────────────────── */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="kpmg-flex-col-gap-16">
           {/* Risk Input */}
-          <FormField label={<span style={{ fontWeight: 600, color: '#344054', fontSize: 12.5 }}>Risk</span>}>
+          <FormField label={<span className="kpmg-form-label-semibold">Risk</span>}>
             <Input
               type="number"
               step="0.1"
               value={form.riskScore}
               onChange={e => set('riskScore', e.target.value)}
               placeholder="6.9"
-              style={{ borderRadius: 6, fontSize: 13, height: 38 }}
+              className="kpmg-input-edit-sm"
             />
           </FormField>
 
@@ -647,40 +587,40 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
           />
 
           {/* Description */}
-          <FormField label={<span style={{ fontWeight: 600, color: '#344054', fontSize: 12.5 }}>Description</span>}>
+          <FormField label={<span className="kpmg-form-label-semibold">Description</span>}>
             <Textarea
               value={form.description}
               onChange={e => set('description', e.target.value)}
               rows={3}
               placeholder="Unauthenticated attacker can inject controller commands over the control protocol."
-              style={{ borderRadius: 6, fontSize: 12.5 }}
+              className="kpmg-textarea-edit"
             />
           </FormField>
 
           {/* Business Impact */}
-          <FormField label={<span style={{ fontWeight: 600, color: '#344054', fontSize: 12.5 }}>Business Impact</span>}>
+          <FormField label={<span className="kpmg-form-label-semibold">Business Impact</span>}>
             <Textarea
               value={form.impact}
               onChange={e => set('impact', e.target.value)}
               rows={3}
               placeholder="Allows an attacker to exploit the affected asset - code execution, privilege escalation, or disruption of the process it controls."
-              style={{ borderRadius: 6, fontSize: 12.5 }}
+              className="kpmg-textarea-edit"
             />
           </FormField>
-          {err && <div style={{ color: '#D9251B', fontSize: 12 }}>{err}</div>}
+          {err && <div className="kpmg-err-text-12">{err}</div>}
         </div>
       ) : (
         /* ── VIEW MODE (Image 2) ────────────────────────────────────────────── */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="kpmg-flex-col-gap-16">
           {/* Card 1: Risk */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '16px 20px', background: '#FFFFFF' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: '#475467' }}>Risk</span>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span style={{ background: '#FEF3F2', color: '#D9251B', border: '1px solid #FECDCA', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+          <div className="kpmg-detail-card">
+            <div className="kpmg-detail-card-header">
+              <span className="kpmg-detail-card-title-muted">Risk</span>
+              <div className="kpmg-d-flex kpmg-items-center kpmg-gap-6">
+                <span className="kpmg-pill-crit-light">
                   {vuln.effective_criticality || vuln.criticality || 'High'}
                 </span>
-                <span style={{ background: '#F4F3FF', color: '#6941C6', border: '1px solid #E9D7FE', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+                <span className="kpmg-pill-conf-purple">
                   {vuln.confidence ?? vuln.ai_confidence ?? 80}% AI confidence
                 </span>
               </div>
@@ -690,46 +630,46 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
               const scoreVal = displayScore;
               const scoreColor = scoreVal >= 7 ? '#ED2124' : (scoreVal >= 4 ? '#f97316' : '#098e7e');
               return (
-                <div style={{ fontSize: 32, fontWeight: 800, color: scoreColor, lineHeight: 1.2, marginTop: 8 }}>
-                  {displayScore.toFixed(1)} <span style={{ fontSize: 18, color: '#475467', fontWeight: 600 }}>/ 10</span>
+                <div className="kpmg-detail-score-num" style={{ color: scoreColor }}>
+                  {displayScore.toFixed(1)} <span className="kpmg-detail-score-max">/ 10</span>
                 </div>
               );
             })()}
 
             <SegmentedRiskBar score={displayScore} maxScore={10} totalTicks={45} />
 
-            <div style={{ fontSize: 11.5, color: '#667085', marginTop: 6 }}>
+            <div className="kpmg-detail-subtext">
               Inferred from technology/zone relevance - no confirmed asset mapping.
             </div>
           </div>
 
           {/* Card 2: Description */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '16px 20px', background: '#FFFFFF' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 6 }}>Description</div>
-            <div style={{ fontSize: 12.5, color: '#344054', lineHeight: 1.5 }}>
+          <div className="kpmg-detail-card">
+            <div className="kpmg-detail-heading">Description</div>
+            <div className="kpmg-detail-body-text">
               {form.description}
             </div>
           </div>
 
           {/* Card 3: Implicated in the architecture */}
-          <div style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '16px 20px', background: '#FFFFFF' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 12 }}>Implicated in the architecture</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="kpmg-detail-card">
+            <div className="kpmg-detail-heading">Implicated in the architecture</div>
+            <div className="kpmg-detail-gap-10">
               <div>
-                <div style={{ fontSize: 11, color: '#667085', marginBottom: 2 }}>Zones</div>
-                <div style={{ fontSize: 12.5, fontWeight: 500, color: '#344054' }}>
+                <div className="kpmg-detail-item-label">Zones</div>
+                <div className="kpmg-detail-item-val">
                   {displayZones.length ? displayZones.join(', ') : 'Enterprise, OT DMZ, Operations'}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: '#667085', marginBottom: 2 }}>Purdue level(s)</div>
-                <div style={{ fontSize: 12.5, fontWeight: 500, color: '#344054' }}>
+                <div className="kpmg-detail-item-label">Purdue level(s)</div>
+                <div className="kpmg-detail-item-val">
                   {displayLevels.length ? displayLevels.map(l => typeof l === 'number' ? `L${l}` : l).join(', ') : 'L1, L2, L3'}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: '#667085', marginBottom: 2 }}>Assets</div>
-                <div style={{ fontSize: 12.5, fontWeight: 500, color: '#344054' }}>
+                <div className="kpmg-detail-item-label">Assets</div>
+                <div className="kpmg-detail-item-val">
                   {displayAssets.length ? displayAssets.join(' , ') : 'PLC-CTRL-01 , ENG-WS-01 , OPS-DASH-01 , RELAY-MGR-01'}
                 </div>
               </div>
@@ -737,40 +677,40 @@ function DetailModal({ vuln, isMitigated, startEdit, onClose, onNavigate, onExpl
           </div>
 
           {/* Card 4: Business Impact */}
-          <div style={{ background: '#FFF5F5', border: '1px solid #FECDCA', borderRadius: 12, padding: '16px 20px' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#D9251B', marginBottom: 6 }}>Business Impact</div>
-            <div style={{ fontSize: 12.5, color: '#344054', lineHeight: 1.5 }}>
+          <div className="kpmg-detail-impact-card">
+            <div className="kpmg-detail-impact-title">Business Impact</div>
+            <div className="kpmg-detail-body-text">
               {impact}
             </div>
           </div>
 
           {/* Card 5: AI reasoning - affected zone & level */}
-          <div style={{ background: '#F0F5FF', border: '1px solid #D0E1FF', borderRadius: 12, padding: '16px 20px' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#1D4ED8', marginBottom: 6 }}>AI reasoning - affected zone & level</div>
-            <div style={{ fontSize: 12.5, color: '#344054', lineHeight: 1.5 }}>
+          <div className="kpmg-detail-ai-card">
+            <div className="kpmg-detail-ai-title">AI reasoning - affected zone & level</div>
+            <div className="kpmg-detail-body-text">
               Assigned to Control because the affected asset(s) {displayAssets[0] || 'PLC-CTRL-01'} sit there in the registry/Purdue mapping. Zone position drives the exposure weighting in the score - assets deeper in the process (lower Purdue level, higher consequence) raise the risk.
             </div>
           </div>
 
           {/* Card 6: Linked Mitigation */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>Linked Mitigation</div>
-            <div style={{ border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', background: '#FFFFFF' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#101828' }}>
+          <div className="kpmg-flex-col-gap-8">
+            <div className="kpmg-detail-heading">Linked Mitigation</div>
+            <div className="kpmg-detail-mit-card">
+              <div className="kpmg-detail-mit-header">
+                <span className="kpmg-detail-mit-title">
                   {linkedMitTitle}
                 </span>
-                <span style={{ background: '#FEF0DA', color: '#B54708', border: '1px solid #FECDCA', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+                <span className="kpmg-pill-outstanding">
                   Outstanding
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5, marginBottom: 8 }}>
+              <div className="kpmg-detail-mit-desc">
                 Confirm firmware versions for PLC-CTRL-01 and PLC-CTRL-02 against Siemens ProductCERT advisories. Determine whether CVE-2023-44317 is confirmed exploitable in the deployed version before scheduling a full update.
               </div>
               {onNavigate && (
                 <button
                   onClick={() => { onClose(); onNavigate('mitigations'); }}
-                  style={{ background: 'none', border: 'none', color: '#1D4ED8', fontSize: 12, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+                  className="kpmg-btn-view-link"
                 >
                   View
                 </button>
@@ -838,7 +778,7 @@ function VulnRow({ vuln, onRefresh, isMitigated, onNavigate, isLastRow }) {
         </div>
 
         {/* Name + Subtitle */}
-        <div style={{ minWidth:0, cursor:'pointer' }} onClick={()=>setShowExplain(true)}>
+        <div className="kpmg-vuln-title-cell" onClick={()=>setShowExplain(true)}>
           <div className="kpmg-vuln-title">
             {vuln.title}
           </div>
@@ -875,9 +815,9 @@ function VulnRow({ vuln, onRefresh, isMitigated, onNavigate, isLastRow }) {
           const badgeCls = rs >= 6 ? 'kpmg-risk-badge-high' : rs >= 4 ? 'kpmg-risk-badge-medium' : 'kpmg-risk-badge-low';
           const dotColor = rs >= 6 ? '#ED2124' : rs >= 4 ? '#f97316' : '#098e7e';
           return (
-            <div style={{ cursor:'pointer' }} onClick={()=>setShowExplain(true)}>
+            <div className="kpmg-cursor-pointer" onClick={()=>setShowExplain(true)}>
               <div className={`kpmg-risk-badge ${badgeCls}`}>
-                <span style={{ width:6, height:6, borderRadius:'50%', background:dotColor }}/>
+                <span className="kpmg-dot-6" style={{ background: dotColor }}/>
                 {rs.toFixed(1)}
               </div>
               <div className="kpmg-risk-conf-text">
@@ -894,7 +834,7 @@ function VulnRow({ vuln, onRefresh, isMitigated, onNavigate, isLastRow }) {
         </div>
 
         {/* Action 3-dots */}
-        <div style={{ textAlign:'right' }}>
+        <div className="kpmg-text-right">
           <DotsMenu vuln={vuln} onEdit={()=>setShowDetail(true)} onRemove={()=>setShowRemove(true)} isLastRow={isLastRow}/>
         </div>
       </div>
@@ -909,8 +849,7 @@ function VulnRow({ vuln, onRefresh, isMitigated, onNavigate, isLastRow }) {
 // ── Filter pill ───────────────────────────────────────────────────────────────
 function Pill({label,active,onClick}) {
   return (
-    <button onClick={onClick}
-      style={{padding:'4px 10px',borderRadius:5,fontSize:12,fontWeight:500,cursor:'pointer',background:active?C.navy:'#fff',color:active?'#fff':C.muted,border:active?'none':`1.5px solid ${C.border}`,fontFamily:'inherit'}}>
+    <button onClick={onClick} className={`kpmg-pill-btn ${active ? 'active' : ''}`}>
       {label}
     </button>
   );
@@ -1007,12 +946,12 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
   useEffect(() => {
     if (setHeaderActions) {
       setHeaderActions(
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div className="kpmg-d-flex kpmg-items-center kpmg-gap-10">
           <button className="kpmg-btn-outline" onClick={() => setShowComplementary(true)}>
             View Additional CVE&apos;s {complementary.length > 0 && `(${complementary.length})`}
           </button>
-          <button className="kpmg-btn-cobalt" onClick={() => setShowAdd(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <PageIcon name="Add.svg" size={14} style={{ filter: 'brightness(0) invert(1)' }} /> Add Finding
+          <button className="kpmg-btn-cobalt kpmg-d-flex kpmg-items-center kpmg-gap-6" onClick={() => setShowAdd(true)}>
+            <PageIcon name="Add.svg" size={14} className="kpmg-icon-white" /> Add Finding
           </button>
         </div>
       );
@@ -1026,7 +965,7 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
   if (error)   return <ErrorMsg message={error} onRetry={load}/>;
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:20}}>
+    <div className="kpmg-page-stack kpmg-gap-20">
       {/* 5 Summary Metric Cards */}
       <div className="kpmg-metrics-grid">
         {[
@@ -1036,23 +975,23 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
           {label:'flagged for review', value:withMitigation.filter(isFlaggedFn).length || 14, color:'#12B76A'},
           {label:'Risk accepted', value:counts.accepted || 0, color:'#1e49e2'},
         ].map(({label,value,color})=>(
-          <div key={label} className="kpmg-card" style={{padding:'16px 20px'}}>
-            <div style={{fontSize:13,color:'#475467',fontWeight:500,marginBottom:8}}>{label}</div>
-            <div style={{fontSize:28,fontWeight:700,color,lineHeight:1}}>{value}</div>
+          <div key={label} className="kpmg-card kpmg-vuln-metric-card">
+            <div className="kpmg-vuln-metric-label">{label}</div>
+            <div className="kpmg-vuln-metric-val" style={{ color }}>{value}</div>
           </div>
         ))}
       </div>
 
       {/* Unified Table Card */}
-      <Card style={{padding:0,overflow:'hidden'}}>
+      <Card className="kpmg-comp-card-clean">
         {/* Filters Bar */}
-        <div style={{padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap'}}>
-          <div className="kpmg-search-box" style={{width:320}}>
+        <div className="kpmg-vuln-table-toolbar">
+          <div className="kpmg-search-box kpmg-w-320">
             <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Search" className="kpmg-search-input"/>
           </div>
 
-          <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <div className="kpmg-d-flex kpmg-items-center kpmg-gap-10">
             <Select value={crit} onChange={e=>{setCrit(e.target.value);setPage(1);}} className="kpmg-select-filter"
               options={[{value:'All',label:'Severity'},'Critical','High','Medium','Low']}/>
             <Select value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}} className="kpmg-select-filter"
@@ -1064,12 +1003,12 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
 
         {/* Table Header */}
         <div className="kpmg-table-header kpmg-table-header-vuln">
-          <span>ID</span><span>Review</span><span>Name</span><span>Type</span><span>Exploitable</span><span>Risk</span><span>Status</span><span style={{textAlign:'right'}}>Action</span>
+          <span>ID</span><span>Review</span><span>Name</span><span>Type</span><span>Exploitable</span><span>Risk</span><span>Status</span><span className="kpmg-text-right">Action</span>
         </div>
 
         {/* Table Rows */}
         {paged.length===0
-          ?<div style={{padding:'40px 16px',textAlign:'center',color:C.muted,fontSize:13}}>No findings match the current filter.</div>
+          ?<div className="kpmg-vuln-empty-msg">No findings match the current filter.</div>
           :paged.map((v, idx) => (
             <VulnRow
               key={v.vuln_id}
@@ -1077,7 +1016,7 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
               isMitigated={v._mitigated}
               onRefresh={load}
               onNavigate={onNavigate}
-              isLastRow={paged.length > 1 && idx === paged.length - 1}
+              isLastRow={paged.length > 2 && idx >= paged.length - 2}
             />
           ))
         }
@@ -1107,37 +1046,37 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
       maxWidth={640}
     >
       {/* Top Blue Alert Banner */}
-      <div className="kpmg-modal-info-alert blue" style={{ marginBottom: 16 }}>
-        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <div className="kpmg-modal-info-alert blue kpmg-mb-16">
+        <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="kpmg-shrink-0">
           <circle cx="12" cy="12" r="10" />
           <line x1="12" y1="16" x2="12" y2="12" />
           <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
-        <span style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4 }}>
+        <span className="kpmg-cve-alert-text">
           Accepted findings are tagged as complementary (not from the client&apos;s own scan) so the report can list them separately.
         </span>
       </div>
 
       {/* List Container */}
-      <div className="kpmg-vis-list-scroll" style={{ maxHeight: 380 }}>
+      <div className="kpmg-vis-list-scroll kpmg-cve-list-scroll">
         {candidates.length === 0 ? (
-          <div style={{ fontSize: 12.5, color: C.muted, padding: '12px 0' }}>Nothing left to review.</div>
+          <div className="kpmg-cve-empty-text">Nothing left to review.</div>
         ) : (
           candidates.map(c => (
             <div key={c.id} className="cve-item-card">
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="kpmg-flex-1-min0">
                 {/* CVE Pink Badge */}
-                <div style={{ marginBottom: 4 }}>
+                <div className="kpmg-mb-4">
                   <span className="cve-badge-red">
                     {c.cve_id}
                   </span>
                 </div>
                 {/* Title */}
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#101828', marginBottom: 3 }}>
+                <div className="kpmg-cve-item-title">
                   {c.title}
                 </div>
                 {/* Details Subtext */}
-                <div style={{ fontSize: 11.5, color: '#475467' }}>
+                <div className="kpmg-cve-item-sub">
                   {c.asset_label} · CVSS {c.cvss} · matched on &quot;{c.matchedOn}&quot;
                 </div>
               </div>
@@ -1145,16 +1084,14 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
               {/* Action Buttons: Red Decline & Green Accept */}
               <div className="cve-actions-group">
                 <button
-                  className="btn-destructive-primary"
+                  className="btn-destructive-primary kpmg-btn-cve-decline"
                   onClick={() => onDismiss(c.id)}
-                  style={{ padding: '7px 16px', fontSize: 12, borderRadius: 6 }}
                 >
                   Decline
                 </button>
                 <button
-                  className="btn-success"
+                  className="btn-success kpmg-btn-cve-accept"
                   onClick={() => onAccept(c)}
-                  style={{ padding: '7px 16px', fontSize: 12, borderRadius: 6 }}
                 >
                   Accept
                 </button>
@@ -1169,16 +1106,52 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
 
 function AddVulnModal({onClose,onAdded}) {
   const [form,setForm]=useState({title:'',asset_label:'',domain:'Network Security',cvss:'',criticality:'Medium',status:'Open',cve:'',justification:''});
-  const [saving,setSaving]=useState(false);const [err,setErr]=useState('');
-  const set=(k,v)=>{setErr('');setForm(f=>({...f,[k]:v}));};
+  const [saving,setSaving]=useState(false);
+  const [err,setErr]=useState('');
+  const [touched,setTouched]=useState({});
 
-  const cvssNum = parseFloat(form.cvss);
-  const isCvssValid = form.cvss.trim() !== '' && !isNaN(cvssNum) && cvssNum >= 0 && cvssNum <= 10;
+  const set=(k,v)=>{
+    setErr('');
+    setForm(f=>({...f,[k]:v}));
+  };
+
+  // Live Risk Score Validation (0 to 10)
+  const cvssRaw = String(form.cvss).trim();
+  const cvssNum = parseFloat(cvssRaw);
+  const isCvssEmpty = cvssRaw === '';
+  const isCvssNaN = isNaN(cvssNum) || !/^-?\d*\.?\d*$/.test(cvssRaw) || isNaN(Number(cvssRaw));
+  const isCvssOutOfRange = !isCvssNaN && !isCvssEmpty && (cvssNum < 0 || cvssNum > 10);
+  const isCvssValid = !isCvssEmpty && !isCvssNaN && !isCvssOutOfRange;
+
+  let cvssErrorMsg = '';
+  if (touched.cvss || !isCvssEmpty) {
+    if (isCvssEmpty && touched.cvss) {
+      cvssErrorMsg = 'Risk score is required (0–10).';
+    } else if (isCvssNaN) {
+      cvssErrorMsg = 'Please enter a valid number (e.g. 7.5).';
+    } else if (isCvssOutOfRange) {
+      cvssErrorMsg = 'Risk score must be between 0 and 10.';
+    }
+  }
+
   const isAddDisabled = saving || !form.title.trim() || !isCvssValid;
 
   const save=()=>{
-    if(!form.title.trim()){setErr('Title is required.');return;}
-    if(!isCvssValid){setErr('Risk score must be a number between 0 and 10.');return;}
+    setTouched({ title: true, cvss: true });
+    if(!form.title.trim()){
+      setErr('Title is required.');
+      return;
+    }
+    if(!isCvssValid){
+      if(isCvssEmpty){
+        setErr('Risk score is required (0–10).');
+      } else if(isCvssNaN){
+        setErr('Risk score must be a valid number (e.g. 7.5).');
+      } else {
+        setErr('Risk score must be between 0 and 10.');
+      }
+      return;
+    }
     setSaving(true);
     addManualVuln({...form,cvss:cvssNum});
     addLog(LOG_TYPES.VULN_ADDED,`Manual finding added: ${form.title}`);
@@ -1186,18 +1159,33 @@ function AddVulnModal({onClose,onAdded}) {
   };
   return(
     <Modal title="Add Finding" subtitle="Manually document a vulnerability" onClose={onClose}
-      footer={<><Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>Cancel</Btn><Btn onClick={save} disabled={isAddDisabled} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8, opacity: isAddDisabled ? 0.5 : 1, cursor: isAddDisabled ? 'not-allowed' : 'pointer' }}>{saving?'Saving…':'Add'}</Btn></>}>
+      footer={<><Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-cancel">Cancel</Btn><Btn onClick={save} disabled={isAddDisabled} className="kpmg-btn-modal-add" style={{ opacity: isAddDisabled ? 0.5 : 1, cursor: isAddDisabled ? 'not-allowed' : 'pointer' }}>{saving?'Saving…':'Add'}</Btn></>}>
       <FormField label="Title" required><Input value={form.title} onChange={e=>set('title',e.target.value)} placeholder="E.g. Unpatched firmware on PLC-LINE2-01"/></FormField>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+      <div className="kpmg-grid-2col-gap14">
         <FormField label="Asset"><Input value={form.asset_label} onChange={e=>set('asset_label',e.target.value)} placeholder="E.g. HMI-OPS-01"/></FormField>
         <FormField label="CVE (if applicable)"><Input value={form.cve} onChange={e=>set('cve',e.target.value)} placeholder="E.g. CVE-2022-38765"/></FormField>
         <FormField label="Foundational Requirement"><Select value={form.domain} onChange={e=>set('domain',e.target.value)} options={DOMAINS}/></FormField>
         <FormField label="Severity"><Select value={form.criticality} onChange={e=>set('criticality',e.target.value)} options={['Critical','High','Medium','Low']}/></FormField>
-        <FormField label="Risk score (0–10)" required><Input value={form.cvss} onChange={e=>set('cvss',e.target.value)} placeholder="E.g. 7.5"/></FormField>
+        <FormField label="Risk score (0–10)" required>
+          <Input
+            type="text"
+            inputMode="decimal"
+            value={form.cvss}
+            onChange={e=>set('cvss',e.target.value)}
+            onBlur={()=>setTouched(t=>({...t,cvss:true}))}
+            placeholder="E.g. 7.5"
+            style={cvssErrorMsg ? { borderColor: '#F04438', backgroundColor: '#FEF3F2' } : {}}
+          />
+          {cvssErrorMsg && (
+            <div style={{ color: '#D92D20', fontSize: 11.5, marginTop: 4, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span>⚠ {cvssErrorMsg}</span>
+            </div>
+          )}
+        </FormField>
         <FormField label="Status"><Select value={form.status} onChange={e=>set('status',e.target.value)} options={['Open','In Progress','Resolved','Accepted Risk']}/></FormField>
       </div>
       <FormField label="Notes / Evidence"><Textarea value={form.justification} onChange={e=>set('justification',e.target.value)} rows={3} placeholder="How was this identified? E.g. identified during passive network scan on 2026-08-14"/></FormField>
-      {err&&<div style={{color:C.critical,fontSize:12,marginTop:4}}>⚠ {err}</div>}
+      {err&&<div className="kpmg-err-text-12 kpmg-mt-4">⚠ {err}</div>}
     </Modal>
   );
 }

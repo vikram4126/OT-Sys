@@ -157,9 +157,10 @@ export const FormField = ({label,required,children,hint}) => (
   </div>
 );
 
-export const Input = ({value,onChange,placeholder,type='text',style={},className=''}) => (
+export const Input = ({value,onChange,placeholder,type='text',style={},className='', ...rest}) => (
   <input type={type} value={value} onChange={onChange} placeholder={placeholder}
     className={`kpmg-input ${className}`.trim()} style={style}
+    {...rest}
   />
 );
 
@@ -184,19 +185,19 @@ export const DeleteConfirmModal = ({ title, itemName, message, warningMessage = 
     onClose={onClose}
     maxWidth={440}
     footer={
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
-        <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '7px 18px', fontWeight: 600, borderColor: '#D0D5DD', color: '#344054', fontSize: 13 }}>
+      <div className="kpmg-modal-footer-end">
+        <Btn variant="outline" onClick={onClose} className="kpmg-modal-btn-cancel-custom">
           Cancel
         </Btn>
-        <Btn variant="danger" onClick={onConfirm} style={{ background: '#ED2124', color: '#fff', borderRadius: 8, padding: '7px 20px', fontWeight: 600, fontSize: 13, border: 'none' }}>
+        <Btn variant="danger" onClick={onConfirm} className="kpmg-modal-btn-danger-custom">
           {confirmText}
         </Btn>
       </div>
     }
   >
-    <div style={{ fontSize: 13.5, color: '#344054', lineHeight: 1.5, padding: '4px 0' }}>
-      <div style={{ marginBottom: 4 }}>{message || `Are you sure you want to delete ${itemName ? `"${itemName}"` : 'this item'}?`}</div>
-      <div style={{ color: '#667085' }}>{warningMessage}</div>
+    <div className="kpmg-delete-modal-content">
+      <div className="kpmg-delete-modal-msg">{message || `Are you sure you want to delete ${itemName ? `"${itemName}"` : 'this item'}?`}</div>
+      <div className="kpmg-delete-modal-warn">{warningMessage}</div>
     </div>
   </Modal>
 );

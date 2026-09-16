@@ -91,40 +91,21 @@ function BaselineBar({ a }) {
   };
 
   return (
-    <Card
-      style={{
-        padding: '14px 20px',
-        border: `1px solid ${baseline ? '#EAECF0' : '#FEDF89'}`,
-        background: baseline ? '#ffffff' : '#FFFAEB',
-        borderRadius: 14,
-        boxShadow: '0 1px 2px rgba(16, 24, 40, 0.03)'
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 260 }}>
+    <Card className={`kpmg-model-baseline-card ${baseline ? 'captured' : ''}`}>
+      <div className="kpmg-model-baseline-row">
+        <div className="kpmg-model-baseline-info">
           {baseline && (
-            <div
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: '50%',
-                background: '#039855',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}
-            >
-              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+            <div className="kpmg-model-baseline-check-icon">
+              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
           )}
           <div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#101828' }}>
+            <div className="kpmg-model-baseline-title">
               {baseline ? 'Baseline captured - initial analysis saved' : 'Run the initial analysis'}
             </div>
-            <div style={{ fontSize: 12, color: '#475467', marginTop: 2, lineHeight: 1.45 }}>
+            <div className="kpmg-model-baseline-desc">
               {baseline
                 ? `${new Date(baseline.at).toLocaleDateString()} · ${baseline.metrics?.assets_total ?? '24'} assets, ${baseline.metrics?.zones_total ?? '6'} zones, ${baseline.metrics?.vulns_total ?? '17'} findings. Risk ${baseline.metrics?.overall_risk ?? '5.5'}/10`
                 : 'Analyses assets, zones, findings and compliance, and saves the result as the baseline. This unlocks the analysis tabs.'}
@@ -133,30 +114,19 @@ function BaselineBar({ a }) {
         </div>
 
         {/* Right side element: Green compliance pill tag when captured, or Primary action button when initial */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="kpmg-d-flex kpmg-items-center kpmg-gap-10">
           {baseline ? (
             <span
               onClick={captureBaseline}
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#027A48',
-                background: '#ECFDF3',
-                border: '1px solid #ABEFC6',
-                borderRadius: 14,
-                padding: '4px 12px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                cursor: analysing ? 'wait' : 'pointer'
-              }}
+              className="kpmg-model-baseline-badge"
+              style={{ cursor: analysing ? 'wait' : 'pointer' }}
               title="Click to recapture baseline"
             >
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#12B76A' }} />
+              <span className="kpmg-model-baseline-dot" />
               {analysing ? 'Analysing…' : `${baseline.metrics?.coverage ?? 30}% compliance`}
             </span>
           ) : (
-            <Btn size="sm" variant="primary" onClick={captureBaseline} disabled={analysing} style={{ padding: '8px 16px', borderRadius: 8 }}>
+            <Btn size="sm" variant="primary" onClick={captureBaseline} disabled={analysing} className="kpmg-model-baseline-btn">
               {analysing ? 'Analysing…' : 'Run analysis & capture baseline'}
             </Btn>
           )}
@@ -204,23 +174,23 @@ function SectionScope({ company, setCompany, onSaved }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="kpmg-model-scope-stack">
       {/* 2-column Grid Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, alignItems: 'start' }}>
+      <div className="kpmg-model-scope-grid">
         {/* Left Column: Scope & Context Card */}
-        <Card style={{ padding: 24, borderRadius: 12 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Scope &amp; context</div>
-          <div style={{ fontSize: 12.5, color: '#475467', marginBottom: 20, lineHeight: 1.5 }}>
+        <Card className="kpmg-model-card-p24">
+          <div className="kpmg-model-section-title">Scope &amp; context</div>
+          <div className="kpmg-model-section-desc">
             From the uploaded registers. Click an asset to view/edit it, or the brain icon to see how it was classified.
           </div>
 
-          <div style={{ marginBottom: 16 }}>
+          <div className="kpmg-mb-16">
             <FormField label="Company name" required>
               <Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="Acme Industrial Ltd" />
             </FormField>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 18 }}>
+          <div className="kpmg-model-form-row-2col">
             <FormField label="Site name">
               <Input value={f.site} onChange={e => set('site', e.target.value)} placeholder="North Plant" />
             </FormField>
@@ -234,7 +204,7 @@ function SectionScope({ company, setCompany, onSaved }) {
           </div>
 
             <FormField label="Site size" hint="This assessment covers one site, so size is the scale of the estate here – not a number of sites." required>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 8 }}>
+              <div className="kpmg-model-scale-grid">
               {SITE_SCALES.map(sc => {
                 const on = f.scale === sc.id;
                 const letter = sc.id === 'small' ? 'S' : sc.id === 'medium' ? 'M' : 'L';
@@ -242,40 +212,14 @@ function SectionScope({ company, setCompany, onSaved }) {
                   <button
                     key={sc.id}
                     onClick={() => set('scale', sc.id)}
-                    style={{
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      border: `1px solid ${on ? '#1E49E2' : '#EAECF0'}`,
-                      background: on ? '#F5F8FF' : '#ffffff',
-                      borderRadius: 10,
-                      padding: '12px',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 10
-                    }}
+                    className={`kpmg-model-scale-btn ${on ? 'active' : ''}`}
                   >
-                    <div
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        background: on ? '#E8EDFF' : '#F2F4F7',
-                        color: on ? '#1E49E2' : '#475467',
-                        fontSize: 12,
-                        fontWeight: 700,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        lineHeight: 1,
-                        flexShrink: 0
-                      }}
-                    >
+                    <div className={`kpmg-model-scale-icon ${on ? 'active' : ''}`}>
                       {letter}
                     </div>
                     <div>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: on ? '#1E49E2' : '#101828' }}>{sc.label}</div>
-                      <div style={{ fontSize: 10.5, color: '#475467', marginTop: 2, lineHeight: 1.35 }}>{sc.hint}</div>
+                      <div className={`kpmg-model-scale-label ${on ? 'active' : ''}`}>{sc.label}</div>
+                      <div className="kpmg-model-scale-hint">{sc.hint}</div>
                     </div>
                   </button>
                 );
@@ -284,51 +228,26 @@ function SectionScope({ company, setCompany, onSaved }) {
           </FormField>
 
           <div>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 2 }}>Existing monitoring or inventory tooling</div>
-            <div style={{ fontSize: 11.5, color: '#475467', marginBottom: 10, lineHeight: 1.45 }}>
+            <div className="kpmg-model-subheading">Existing monitoring or inventory tooling</div>
+            <div className="kpmg-model-subhint">
               Select any that apply — a site can run both IT and OT tooling.
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="kpmg-flex-col kpmg-gap-8">
               {TOOLING_OPTIONS.map(t => {
                 const on = tools.includes(t.id);
                 return (
                   <div
                     key={t.id}
                     onClick={() => toggleTool(t.id)}
-                    style={{
-                      display: 'flex',
-                      gap: 12,
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      border: `1px solid ${on ? '#1E49E2' : '#EAECF0'}`,
-                      background: on ? '#F5F8FF' : '#ffffff',
-                      borderRadius: 10,
-                      padding: '12px 14px'
-                    }}
+                    className={`kpmg-model-tooling-item ${on ? 'active' : ''}`}
                   >
-                    <div
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 5,
-                        flexShrink: 0,
-                        border: `1.5px solid ${on ? '#1E49E2' : '#D0D5DD'}`,
-                        background: on ? '#1E49E2' : '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#ffffff',
-                        fontSize: 11.5,
-                        fontWeight: 700,
-                        lineHeight: 1
-                      }}
-                    >
+                    <div className={`kpmg-model-tooling-checkbox ${on ? 'active' : ''}`}>
                       {on ? '✓' : ''}
                     </div>
                     <div>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828' }}>{t.label}</div>
-                      <div style={{ fontSize: 11, color: '#475467', marginTop: 2, lineHeight: 1.4 }}>{t.note}</div>
+                      <div className="kpmg-model-tooling-label">{t.label}</div>
+                      <div className="kpmg-model-tooling-note">{t.note}</div>
                     </div>
                   </div>
                 );
@@ -338,40 +257,20 @@ function SectionScope({ company, setCompany, onSaved }) {
         </Card>
 
         {/* Right Column: Evidence Drop Card */}
-        <Card style={{ padding: 24, borderRadius: 12 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Evidence drop</div>
-          <div style={{ fontSize: 12.5, color: '#475467', marginBottom: 16, lineHeight: 1.5 }}>
+        <Card className="kpmg-model-card-p24">
+          <div className="kpmg-model-section-title">Evidence drop</div>
+          <div className="kpmg-model-section-desc">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Give the client a folder structure organised <strong>by source</strong>, and a link to upload into. They send what exists in its native format - nothing needs to be re-keyed, and empty folders are fine.
           </div>
 
-          <div
-            style={{
-              background: '#FAFAFC',
-              border: '1px solid #EAECF0',
-              borderRadius: 10,
-              padding: 16,
-              marginBottom: 20
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#101828', marginBottom: 4 }}>Copy Evidence Plan</div>
-            <div style={{ fontSize: 11.5, color: '#475467', marginBottom: 12, lineHeight: 1.45 }}>
+          <div className="kpmg-model-plan-box">
+            <div className="kpmg-subheading-13-bold">Copy Evidence Plan</div>
+            <div className="kpmg-subhint-11-muted">
               Copies a ready-to-send folder list (one folder per evidence item, with who owns it) to paste into the drop or an email.
             </div>
             <button
               onClick={copyPlan}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #D0D5DD',
-                borderRadius: 8,
-                padding: '7px 14px',
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#344054',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6
-              }}
+              className="kpmg-model-plan-btn"
             >
               <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
               {copied ? 'Copied' : 'Copy'}
@@ -380,13 +279,13 @@ function SectionScope({ company, setCompany, onSaved }) {
 
           <div>
             <FormField label="Drop location (SharePoint, secure transfer, or your intake portal)">
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontSize: 12.5, color: '#667085', background: '#F2F4F7', border: '1px solid #D0D5DD', borderRight: 'none', borderRadius: '8px 0 0 8px', padding: '8px 10px', height: 38, boxSizing: 'border-box', display: 'flex', alignItems: 'center' }}>https://</span>
+              <div className="kpmg-d-flex kpmg-items-center">
+                <span className="kpmg-model-url-prefix">https://</span>
                 <Input
                   value={link.replace(/^https?:\/\//, '')}
                   onChange={e => setLink(`https://${e.target.value.replace(/^https?:\/\//, '')}`)}
                   placeholder="www.example.com"
-                  style={{ borderRadius: '0 8px 8px 0' }}
+                  className="kpmg-model-url-input"
                 />
               </div>
             </FormField>
@@ -395,18 +294,8 @@ function SectionScope({ company, setCompany, onSaved }) {
       </div>
 
       {/* Sticky Bottom Save Bar */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '1px solid #EAECF0',
-          borderRadius: 12,
-          padding: '12px 20px',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center'
-        }}
-      >
-        <Btn onClick={save} disabled={!ok} style={{ background: '#1E49E2', color: '#ffffff', padding: '8px 24px', borderRadius: 8 }}>
+      <div className="kpmg-model-save-bar">
+        <Btn onClick={save} disabled={!ok} className="kpmg-model-btn-save-primary">
           Save
         </Btn>
       </div>
@@ -433,24 +322,24 @@ const MISSING_MARK = [
 function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 10, padding: '14px 16px', marginBottom: 12 }}>
+    <div className="kpmg-model-evidence-card">
       {/* Top row: Tags */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-        <span style={{ fontSize: 11, color: '#667085', fontWeight: 500 }}>Controls</span>
+      <div className="kpmg-model-evidence-tags">
+        <span className="kpmg-subhint-11-muted">Controls</span>
         {item.core && (
-          <span style={{ fontSize: 10.5, fontWeight: 700, color: '#B54708', background: '#FFFAEB', border: '1px solid #FEDF89', borderRadius: 12, padding: '1px 8px' }}>
+          <span className="kpmg-model-evidence-core-badge">
             Core
           </span>
         )}
       </div>
 
       {/* Item title */}
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#101828', lineHeight: 1.4, marginBottom: 12 }}>
+      <div className="kpmg-model-evidence-title">
         {item.name}
       </div>
 
       {/* Status Buttons Row */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: open ? 12 : 0 }}>
+      <div className="kpmg-d-flex kpmg-items-center kpmg-gap-8" style={{ marginBottom: open ? 12 : 0 }}>
         {marks.map(m => {
           const on = current === m.k;
           return (
@@ -478,19 +367,10 @@ function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
         {/* Chevron expand accordion button */}
         <button
           onClick={() => setOpen(o => !o)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#667085',
-            cursor: 'pointer',
-            padding: 4,
-            marginLeft: 'auto',
-            display: 'flex',
-            alignItems: 'center'
-          }}
+          className="kpmg-model-chevron-btn"
           title={open ? 'Collapse details' : 'Expand details'}
         >
-          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: open ? 'rotate(180deg)' : 'none' }}>
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
@@ -498,25 +378,25 @@ function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
 
       {/* Expanded Accordion Details */}
       {open && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid #F2F4F7', paddingTop: 12, marginTop: 12 }}>
+        <div className="kpmg-model-accordion-details">
           {item.why && (
-            <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Why it matters</div>
-              <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5 }}>{item.why}</div>
+            <div className="kpmg-model-evidence-box-white">
+              <div className="kpmg-model-evidence-title">Why it matters</div>
+              <div className="kpmg-model-evidence-text">{item.why}</div>
             </div>
           )}
 
           {showFallback && item.fallback && (
-            <div style={{ background: '#FFFAEB', border: '1px solid #FEDF89', borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#B54708', marginBottom: 4 }}>Fallback</div>
-              <div style={{ fontSize: 12, color: '#B54708', lineHeight: 1.5 }}>{item.fallback}</div>
+            <div className="kpmg-model-evidence-box-amber">
+              <div className="kpmg-model-evidence-fb-title">Fallback</div>
+              <div className="kpmg-model-evidence-fb-text">{item.fallback}</div>
             </div>
           )}
 
           {showFallback && item.finding && (
-            <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', borderRadius: 8, padding: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#B42318', marginBottom: 4 }}>Raises a finding</div>
-              <div style={{ fontSize: 12, color: '#B42318', lineHeight: 1.5 }}>{item.finding}</div>
+            <div className="kpmg-model-evidence-box-red">
+              <div className="kpmg-model-evidence-find-title">Raises a finding</div>
+              <div className="kpmg-model-evidence-find-text">{item.finding}</div>
             </div>
           )}
         </div>
@@ -534,21 +414,21 @@ function EvidenceSlideDrawer({ g, onClose, bump }) {
     <div className="kpmg-slide-overlay" onClick={onClose}>
       <div className="kpmg-slide-drawer" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #EAECF0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div className="kpmg-model-drawer-header">
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0, lineHeight: 1.3 }}>{g.name}</h3>
-            <div style={{ fontSize: 12, color: '#475467', marginTop: 4, fontWeight: 500 }}>{g.owner}</div>
+            <h3 className="kpmg-model-drawer-title">{g.name}</h3>
+            <div className="kpmg-model-drawer-owner">{g.owner}</div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#667085', fontSize: 18, cursor: 'pointer', padding: 4, lineHeight: 1, borderRadius: 4 }}
+            className="kpmg-model-drawer-close"
           >
             ✕
           </button>
         </div>
 
         {/* Scrollable Items Container */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', background: '#F8FAFC' }}>
+        <div className="kpmg-model-drawer-body">
           {groupReceived.map(it => (
             <EvidenceSlideItem
               key={it.id}
@@ -582,29 +462,19 @@ function EvidenceTile({ g, bump }) {
 
   return (
     <>
-      <Card style={{ padding: 18, borderRadius: 12, border: `1px solid ${g.changed ? '#FCD9A6' : '#EAECF0'}`, background: g.changed ? '#FFFBF2' : '#ffffff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <Card className="kpmg-model-tile-card" style={{ border: `1px solid ${g.changed ? '#FCD9A6' : '#EAECF0'}`, background: g.changed ? '#FFFBF2' : '#ffffff' }}>
+        <div className="kpmg-d-flex kpmg-items-center kpmg-justify-between kpmg-mb-12">
           <div>
-            <span style={{ fontSize: 13.5, fontWeight: 700, color: '#101828' }}>{g.name}</span>
-            <span style={{ fontSize: 11, color: '#475467', marginLeft: 8 }}>{g.owner}</span>
+            <span className="kpmg-model-tile-name">{g.name}</span>
+            <span className="kpmg-model-tile-owner">{g.owner}</span>
           </div>
-          <span
-            style={{
-              fontSize: 10.5,
-              fontWeight: 600,
-              color: '#1E49E2',
-              background: '#F0F5FF',
-              border: '1px solid #D0E1FF',
-              borderRadius: 10,
-              padding: '2px 8px'
-            }}
-          >
+          <span className="kpmg-model-priority-tag">
             Priority
           </span>
         </div>
 
         {/* Big Score Fraction */}
-        <div style={{ fontSize: 24, fontWeight: 800, color: activeColor, marginBottom: 12, lineHeight: 1 }}>
+        <div className="kpmg-model-tile-score" style={{ color: activeColor }}>
           {g.received}/{g.total}
         </div>
 
@@ -612,23 +482,13 @@ function EvidenceTile({ g, bump }) {
         <DynamicSegmentedBar
           matchedRatio={ratio}
           color={activeColor}
-          style={{ margin: '12px 0 14px' }}
+          className="kpmg-my-12-14"
         />
 
         {/* Toggle items side drawer */}
         <button
           onClick={() => setOpenDrawer(true)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#1E49E2',
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: 'pointer',
-            padding: 0,
-            fontFamily: 'inherit',
-            textDecoration: 'underline'
-          }}
+          className="kpmg-model-show-items-btn"
         >
           Show {g.total} item{g.total === 1 ? '' : 's'}
         </button>
@@ -667,46 +527,46 @@ function SectionInputs() {
   const demo = () => { simulateClientUpload(); bump(); };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="kpmg-model-scope-stack">
       {/* Top Intro text */}
-      <div style={{ fontSize: 12.5, color: '#475467', lineHeight: 1.5, marginTop: -4 }}>
+      <div className="kpmg-model-section-desc">
         What came back from the drop, and what didn&apos;t. Nothing here blocks the assessment – a gap either has a fallback or becomes a finding. Scan a group as its evidence arrives, or scan everything at once.
       </div>
 
       {/* 3 Metric Cards: Received, Not received, Resolved */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 16 }}>Received</div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#1E49E2', lineHeight: 1 }}>
+      <div className="kpmg-model-metrics-grid">
+        <Card className="kpmg-model-metric-card">
+          <div className="kpmg-model-metric-title">Received</div>
+          <div className="kpmg-model-metric-val blue">
             {received.length < 10 ? `0${received.length}` : received.length}
           </div>
         </Card>
 
-        <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 16 }}>Not received</div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#D9251B', lineHeight: 1 }}>
+        <Card className="kpmg-model-metric-card">
+          <div className="kpmg-model-metric-title">Not received</div>
+          <div className="kpmg-model-metric-val red">
             {missing.length < 10 ? `0${missing.length}` : missing.length}
           </div>
         </Card>
 
-        <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 16 }}>Resolved</div>
-          <div style={{ fontSize: 32, fontWeight: 800, color: '#039855', lineHeight: 1 }}>
+        <Card className="kpmg-model-metric-card">
+          <div className="kpmg-model-metric-title">Resolved</div>
+          <div className="kpmg-model-metric-val green">
             {prog.pct}%
           </div>
         </Card>
       </div>
 
       {/* Grid of Evidence Group Tiles */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <div className="kpmg-model-metrics-grid">
         {groups.map(g => <EvidenceTile key={g.id} g={g} onScan={scanEvidenceGroup} bump={bump} />)}
       </div>
 
       {findings.length > 0 && (
-        <Card style={{ padding: 20, borderRadius: 12 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 10 }}>Findings raised from gaps ({findings.length})</div>
+        <Card className="kpmg-card-p20">
+          <div className="kpmg-model-findings-header">Findings raised from gaps ({findings.length})</div>
           {findings.map(f => (
-            <div key={f.id} style={{ fontSize: 12, color: '#344054', lineHeight: 1.6, padding: '6px 0', borderTop: `1px solid ${C.border}` }}>
+            <div key={f.id} className="kpmg-model-findings-item">
               <AlertCircle /> {f.finding}
             </div>
           ))}
@@ -744,25 +604,22 @@ function SubnetChips({ rules, zoneId, onAdd, onRemove }) {
   const [cidr, setCidr] = useState('');
   const cidrs = rules.filter(r => r.zone === zoneId).map(r => r.cidr).filter(Boolean);
   return (
-    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+    <div className="kpmg-model-subnets-wrapper">
       {cidrs.map(c => (
-        <span key={c} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, background: '#EAF1FB', color: C.navy,
-          borderRadius: 7, padding: '3px 9px', fontSize: 11.5, fontFamily: 'inherit'
-        }}>
+        <span key={c} className="kpmg-model-subnet-chip">
           {c}
-          <button onClick={() => onRemove(c)} style={{ background: 'none', border: 'none', color: C.navy, cursor: 'pointer', fontSize: 13, padding: 0, fontFamily: 'inherit' }}>×</button>
+          <button onClick={() => onRemove(c)} className="kpmg-model-subnet-chip-del">×</button>
         </span>
       ))}
-      {cidrs.length === 0 && !adding && <span style={{ fontSize: 11.5, color: C.muted }}>No subnets mapped yet</span>}
+      {cidrs.length === 0 && !adding && <span className="kpmg-model-subnets-empty">No subnets mapped yet</span>}
       {adding ? (
-        <span style={{ display: 'inline-flex', gap: 5, alignItems: 'center' }}>
-          <Input value={cidr} onChange={e => setCidr(e.target.value)} placeholder="10.10.20.0/24" style={{ width: 150, padding: '3px 8px', fontSize: 11.5 }} />
+        <span className="kpmg-model-subnets-input-row">
+          <Input value={cidr} onChange={e => setCidr(e.target.value)} placeholder="10.10.20.0/24" className="kpmg-model-subnets-input" />
           <Btn size="sm" onClick={() => { if (cidr.trim()) { onAdd(cidr.trim()); setCidr(''); setAdding(false); } }}>Add</Btn>
-          <button onClick={() => { setAdding(false); setCidr(''); }} style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontFamily: 'inherit' }}>cancel</button>
+          <Btn variant="outline" size="sm" onClick={() => { setAdding(false); setCidr(''); }} className="kpmg-model-sub-cancel-btn">Cancel</Btn>
         </span>
       ) : (
-        <button onClick={() => setAdding(true)} style={{ background: 'none', border: `1px dashed ${C.border}`, borderRadius: 7, padding: '3px 10px', fontSize: 11.5, color: C.navy, cursor: 'pointer', fontFamily: 'inherit' }}>+ subnet</button>
+        <button onClick={() => setAdding(true)} className="kpmg-model-add-subnet-dashed">+ subnet</button>
       )}
     </div>
   );
@@ -872,30 +729,30 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
       onClose={onClose}
       maxWidth={620}
       footer={
-        <div style={{ display: 'flex', gap: 10, width: '100%', alignItems: 'center' }}>
+        <div className="kpmg-d-flex kpmg-items-center kpmg-gap-10 kpmg-w-100p">
           <Btn
             variant="outline"
             onClick={deleteZone}
-            style={{ marginRight: 'auto', color: '#ED2124', borderColor: '#ED2124', background: '#FFFFFF', borderRadius: 6, padding: '7px 18px', fontSize: 12.5, fontWeight: 600 }}
+            className="kpmg-model-btn-delete-zone"
           >
             Delete zone
           </Btn>
-          <Btn variant="outline" onClick={onClose} style={{ borderRadius: 6, padding: '7px 18px', fontSize: 12.5, fontWeight: 600 }}>
+          <Btn variant="outline" onClick={onClose} className="kpmg-btn-sm-cancel">
             Cancel
           </Btn>
-          <Btn onClick={saveZone} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '7px 22px', fontSize: 12.5, fontWeight: 600 }}>
+          <Btn onClick={saveZone} className="kpmg-model-btn-save-blue">
             Save
           </Btn>
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="kpmg-flex-col kpmg-gap-14">
         <FormField label="Zone name" required>
           <Input
             value={zname}
             onChange={e => setZname(e.target.value)}
             placeholder="e.g. Line 1 Control"
-            style={{ borderRadius: 6, fontSize: 13 }}
+            className="kpmg-input-r6"
           />
         </FormField>
 
@@ -904,17 +761,17 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
             value={tsl}
             onChange={e => setTsl(e.target.value)}
             options={SL_OPTS}
-            style={{ borderRadius: 6, fontSize: 12.5 }}
+            className="kpmg-select-r6"
           />
         </FormField>
 
         <FormField label="Subnets">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '4px 0' }}>
+          <div className="kpmg-flex-col kpmg-gap-10 kpmg-py-4">
             {/* Row 1: Add CTA / Input Controls */}
             <div>
               {addingSub ? (
                 <div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div className="kpmg-d-flex kpmg-items-center kpmg-gap-8">
                     <Input
                       value={subInput}
                       onChange={e => {
@@ -928,55 +785,30 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
                         }
                       }}
                       placeholder="10.10.20.0/24"
+                      className="kpmg-model-sub-input"
                       style={{
-                        width: 160,
-                        height: 32,
-                        boxSizing: 'border-box',
-                        padding: '2px 8px',
-                        fontSize: 12,
-                        borderRadius: 6,
                         borderColor: subError ? '#D9251B' : undefined
                       }}
                     />
                     <Btn
                       size="sm"
                       onClick={() => addSubnetToEditModal(subInput)}
-                      style={{
-                        height: 32,
-                        boxSizing: 'border-box',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: '#1D4ED8',
-                        color: '#fff',
-                        borderRadius: 6,
-                        padding: '0 14px',
-                        fontSize: 12,
-                        fontWeight: 600
-                      }}
+                      className="kpmg-model-sub-add-btn"
                     >
                       Add
                     </Btn>
-                    <button
+                    <Btn
+                      variant="outline"
+                      size="sm"
                       type="button"
                       onClick={() => { setAddingSub(false); setSubInput(''); setSubError(''); }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#475467',
-                        cursor: 'pointer',
-                        fontSize: 12,
-                        fontWeight: 500,
-                        height: 32,
-                        display: 'inline-flex',
-                        alignItems: 'center'
-                      }}
+                      className="kpmg-model-sub-cancel-btn"
                     >
                       Cancel
-                    </button>
+                    </Btn>
                   </div>
                   {subError && (
-                    <div style={{ fontSize: 11.5, color: '#D9251B', marginTop: 4, fontWeight: 500 }}>
+                    <div className="kpmg-model-sub-error">
                       {subError}
                     </div>
                   )}
@@ -985,17 +817,7 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
                 <button
                   type="button"
                   onClick={() => setAddingSub(true)}
-                  style={{
-                    background: 'none',
-                    border: '1px dashed #D0D5DD',
-                    borderRadius: 16,
-                    padding: '4px 12px',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: '#1D4ED8',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit'
-                  }}
+                  className="kpmg-model-add-subnet-dashed"
                 >
                   + Add subnet
                 </button>
@@ -1004,37 +826,17 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
 
             {/* Row 2: Added subnets badges */}
             {currentZoneRules.length > 0 && (
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+              <div className="kpmg-d-flex kpmg-items-center kpmg-gap-6 kpmg-flex-wrap">
                 {currentZoneRules.map(s => (
                   <span
                     key={s}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      background: '#EFF6FF',
-                      color: '#1D4ED8',
-                      border: '1px solid #BFDBFE',
-                      borderRadius: 16,
-                      padding: '3px 10px',
-                      fontSize: 12,
-                      fontWeight: 600
-                    }}
+                    className="kpmg-model-sub-pill-blue"
                   >
                     {s}
                     <button
                       type="button"
                       onClick={() => removeSubnetFromEditModal(s)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#1D4ED8',
-                        cursor: 'pointer',
-                        fontSize: 13,
-                        fontWeight: 700,
-                        padding: 0,
-                        lineHeight: 1
-                      }}
+                      className="kpmg-model-sub-pill-del"
                     >
                       ×
                     </button>
@@ -1051,71 +853,64 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
             onChange={e => setDesc(e.target.value)}
             rows={2}
             placeholder="Corporate IT, ERP, domain"
-            style={{ borderRadius: 6, fontSize: 13, resize: 'vertical' }}
+            className="kpmg-textarea-r6"
           />
         </FormField>
 
         {/* Air-gapped Toggle Row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 2, padding: '4px 0' }}>
-          <label style={{ position: 'relative', display: 'inline-block', width: 38, height: 20, cursor: 'pointer', flexShrink: 0 }}>
+        <div className="kpmg-d-flex kpmg-items-center kpmg-gap-12 kpmg-mt-2 kpmg-py-4">
+          <label className="kpmg-switch-label">
             <input
               type="checkbox"
               checked={!!zone.airGapped}
               onChange={toggleAirGapped}
-              style={{ opacity: 0, width: 0, height: 0 }}
+              className="kpmg-switch-input"
             />
-            <span style={{
-              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: zone.airGapped ? '#1D4ED8' : '#EAECF0',
-              borderRadius: 20, transition: '0.2s'
-            }}>
-              <span style={{
-                position: 'absolute', content: '""', height: 16, width: 16, left: zone.airGapped ? 19 : 2, bottom: 2,
-                backgroundColor: 'white', borderRadius: '50%', transition: '0.2s'
-              }} />
+            <span className="kpmg-switch-track" style={{ backgroundColor: zone.airGapped ? '#1D4ED8' : '#EAECF0' }}>
+              <span className="kpmg-switch-thumb" style={{ left: zone.airGapped ? 19 : 2 }} />
             </span>
           </label>
           <div>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Air-gapped</div>
-            <div style={{ fontSize: 11.5, color: '#475467' }}>
+            <div className="kpmg-subheading-13-bold">Air-gapped</div>
+            <div className="kpmg-subhint-11-muted">
               The client asserts no external connectivity - checked live against conduits/connections below
             </div>
           </div>
         </div>
 
         {/* Conduits (zone-to-zone) Section */}
-        <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 10 }}>Conduits (zone-to-zone)</div>
+        <div className="kpmg-mt-8">
+          <div className="kpmg-subheading-13-bold kpmg-mb-10">Conduits (zone-to-zone)</div>
 
           {/* Add Conduit Inputs Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1.5fr 2fr auto', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+          <div className="kpmg-model-conduit-add-grid">
             <Select
               value={conDir}
               onChange={e => setConDir(e.target.value)}
               options={[{ value: 'out', label: '→ To' }, { value: 'in', label: '← From' }]}
-              style={{ borderRadius: 6, fontSize: 12 }}
+              className="kpmg-select-r6"
             />
             <Select
               value={conOther}
               onChange={e => setConOther(e.target.value)}
               options={[{ value: '', label: 'Other zone' }, ...a.zones.filter(z => z.id !== zone.id).map(z => ({ value: z.id, label: z.name }))]}
-              style={{ borderRadius: 6, fontSize: 12 }}
+              className="kpmg-select-r6"
             />
             <Input
               value={conName}
               onChange={e => setConName(e.target.value)}
               placeholder="Conduit name"
-              style={{ borderRadius: 6, fontSize: 12 }}
+              className="kpmg-input-r6"
             />
-            <Btn variant="outline" onClick={addCon} disabled={!conOther} style={{ borderRadius: 6, fontSize: 12, padding: '6px 14px', borderColor: '#1D4ED8', color: '#1D4ED8', fontWeight: 600 }}>
+            <Btn variant="outline" onClick={addCon} disabled={!conOther} className="kpmg-model-btn-add-conduit">
               Add Conduit
             </Btn>
           </div>
 
           {/* Conduits List Cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="kpmg-flex-col kpmg-gap-8">
             {zoneConduits.length === 0 ? (
-              <div style={{ fontSize: 12, color: '#667085', fontStyle: 'italic', padding: '8px 0' }}>None captured yet.</div>
+              <div className="kpmg-model-conduit-empty">None captured yet.</div>
             ) : (
               zoneConduits.map(c => {
                 const other = a.zones.find(z => z.id === (c.from === zone.id ? c.to : c.from));
@@ -1124,25 +919,16 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
                 return (
                   <div
                     key={c.id}
-                    style={{
-                      border: '1px solid #EAECF0',
-                      borderRadius: 8,
-                      padding: '10px 14px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      background: '#FFFFFF'
-                    }}
+                    className="kpmg-model-conduit-row"
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, flex: 1 }}>
-                      <span style={{
-                        background: '#EFF6FF', color: '#1D4ED8', borderRadius: 4, padding: '3px 8px', fontSize: 11, fontWeight: 600
-                      }}>
+                    <div className="kpmg-model-conduit-info">
+                      <span className="kpmg-model-conduit-dir-tag">
                         {isOut ? '→ To' : '← From'}
                       </span>
-                      <span style={{ fontWeight: 500, color: '#101828' }}>{zone.name}</span>
-                      <span style={{ color: '#344054', margin: '0 8px', fontSize: 13 }}>↔</span>
-                      <span style={{ fontWeight: 500, color: '#101828' }}>{otherName}</span>
-                      <span style={{ background: '#F4F3FF', color: '#5925DC', borderRadius: 4, padding: '2px 8px', fontSize: 11.5, fontWeight: 600, marginLeft: 8 }}>
+                      <span className="kpmg-model-conduit-zone-name">{zone.name}</span>
+                      <span className="kpmg-model-conduit-arrow">↔</span>
+                      <span className="kpmg-model-conduit-zone-name">{otherName}</span>
+                      <span className="kpmg-model-conduit-type-pill">
                         {(c.name || 'OT DMZ').replace(/↔/g, ' ').trim()}
                       </span>
                     </div>
@@ -1150,11 +936,7 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
                     <button
                       onClick={() => { if (onDeleteConduit) onDeleteConduit(c); else { a.removeConduit(c.id); bump(); } }}
                       title="Delete conduit"
-                      style={{
-                        background: '#FFFFFF', border: '1px solid #FECDCA', borderRadius: 6, color: '#D9251B',
-                        cursor: 'pointer', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        marginLeft: 'auto', flexShrink: 0
-                      }}
+                      className="kpmg-model-conduit-del-btn"
                     >
                       <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
                     </button>
@@ -1181,34 +963,34 @@ function AddUnassignedAssetModal({ isOpen, onClose, onAdd }) {
       onClose={onClose}
       title={
         <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#101828' }}>Add asset</div>
-          <div style={{ fontSize: 12, color: '#667085', marginTop: 2, fontWeight: 400 }}>
+          <div className="kpmg-model-modal-title">Add asset</div>
+          <div className="kpmg-model-modal-sub">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit.
           </div>
         </div>
       }
       maxWidth={580}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>Name <span style={{ color: '#D9251B' }}>*</span></span>}>
+      <div className="kpmg-flex-col kpmg-gap-16">
+        <FormField label={<span className="kpmg-form-label-bold">Name <span className="kpmg-text-danger">*</span></span>}>
           <Input
             value={f.name}
             onChange={e => set('name', e.target.value)}
             placeholder="E.g. PLC-LINE2-01"
-            style={{ borderRadius: 6, fontSize: 12.5 }}
+            className="kpmg-input-r6"
           />
         </FormField>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>Type</span>}>
+        <div className="kpmg-model-form-row-2col">
+          <FormField label={<span className="kpmg-form-label-bold">Type</span>}>
             <Input
               value={f.deviceType}
               onChange={e => set('deviceType', e.target.value)}
               placeholder="E.g. PLC, SCADA server"
-              style={{ borderRadius: 6, fontSize: 12.5 }}
+              className="kpmg-input-r6"
             />
           </FormField>
-          <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>Kind</span>}>
+          <FormField label={<span className="kpmg-form-label-bold">Kind</span>}>
             <Select
               value={f.kind}
               onChange={e => set('kind', e.target.value)}
@@ -1216,73 +998,56 @@ function AddUnassignedAssetModal({ isOpen, onClose, onAdd }) {
                 { value: 'Hardware', label: 'Hardware' },
                 { value: 'Software', label: 'Software' }
               ]}
-              style={{ borderRadius: 6, fontSize: 12.5 }}
+              className="kpmg-select-r6"
             />
           </FormField>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>IP Address</span>}>
+        <div className="kpmg-model-form-row-2col">
+          <FormField label={<span className="kpmg-form-label-bold">IP Address</span>}>
             <Input
               value={f.ip}
               onChange={e => set('ip', e.target.value)}
               placeholder="optional"
-              style={{ borderRadius: 6, fontSize: 12.5 }}
+              className="kpmg-input-r6"
             />
           </FormField>
-          <FormField label={<span style={{ fontWeight: 600, color: '#344054' }}>OS / firmware</span>}>
+          <FormField label={<span className="kpmg-form-label-bold">OS / firmware</span>}>
             <Input
               value={f.os}
               onChange={e => set('os', e.target.value)}
               placeholder="e.g. Windows Server 2019"
-              style={{ borderRadius: 6, fontSize: 12.5 }}
+              className="kpmg-input-r6"
             />
           </FormField>
         </div>
 
         {/* Internet-facing custom toggle switch */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+        <div className="kpmg-d-flex kpmg-items-center kpmg-gap-12 kpmg-mt-4">
           <div
             onClick={() => set('internetFacing', !f.internetFacing)}
-            style={{
-              width: 36,
-              height: 20,
-              borderRadius: 12,
-              background: f.internetFacing ? '#1D4ED8' : '#EAECF0',
-              cursor: 'pointer',
-              position: 'relative',
-              transition: 'background 0.2s',
-              flexShrink: 0
-            }}
+            className="kpmg-custom-switch-track"
+            style={{ background: f.internetFacing ? '#1D4ED8' : '#EAECF0' }}
           >
             <div
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: '50%',
-                background: '#FFFFFF',
-                position: 'absolute',
-                top: 2,
-                left: f.internetFacing ? 18 : 2,
-                transition: 'left 0.2s',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
-              }}
+              className="kpmg-custom-switch-thumb"
+              style={{ left: f.internetFacing ? 18 : 2 }}
             />
           </div>
           <div>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Internet-facing</div>
-            <div style={{ fontSize: 11.5, color: '#667085', marginTop: 1 }}>
+            <div className="kpmg-subheading-13-bold">Internet-facing</div>
+            <div className="kpmg-subhint-11-muted">
               reachable from outside the OT environment - save above to apply
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12 }}>
+        <div className="kpmg-d-flex kpmg-justify-end kpmg-gap-10 kpmg-mt-12">
           <Btn
             variant="outline"
             onClick={onClose}
-            style={{ borderRadius: 6, padding: '8px 16px', fontSize: 12, fontWeight: 600, borderColor: '#D0D5DD', color: '#344054' }}
+            className="kpmg-btn-sm-cancel"
           >
             Cancel
           </Btn>
@@ -1293,14 +1058,7 @@ function AddUnassignedAssetModal({ isOpen, onClose, onAdd }) {
               }
             }}
             disabled={!f.name.trim()}
-            style={{
-              background: f.name.trim() ? '#1D4ED8' : '#93C5FD',
-              color: '#fff',
-              borderRadius: 6,
-              padding: '8px 20px',
-              fontSize: 12,
-              fontWeight: 600
-            }}
+            className="kpmg-model-btn-save-blue"
           >
             Add
           </Btn>
@@ -1326,23 +1084,23 @@ function UnassignedAssetsCard({ assets, rules, a, bump }) {
 
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-        <span style={{ color: C.critical, display: 'flex' }}><AlertCircle /></span>
-        <span style={{ fontSize: 13.5, fontWeight: 700, color: C.text }}>Unassigned assets ({unassigned.length})</span>
-        <Btn size="sm" variant="outline" style={{ marginLeft: 'auto' }} onClick={() => setAdding(v => !v)}>{adding ? 'Cancel' : '+ Add asset'}</Btn>
+      <div className="kpmg-d-flex kpmg-items-center kpmg-gap-8 kpmg-mb-4 kpmg-flex-wrap">
+        <span className="kpmg-text-danger kpmg-d-flex"><AlertCircle /></span>
+        <span className="kpmg-subheading-13-bold">Unassigned assets ({unassigned.length})</span>
+        <Btn size="sm" variant="outline" className="kpmg-ml-auto" onClick={() => setAdding(v => !v)}>{adding ? 'Cancel' : '+ Add asset'}</Btn>
       </div>
-      <div style={{ fontSize: 11.5, color: C.muted, marginBottom: 10 }}>No zone yet — map a matching subnet to place one automatically, or assign it here.</div>
+      <div className="kpmg-subhint-11-muted kpmg-mb-10">No zone yet — map a matching subnet to place one automatically, or assign it here.</div>
       {adding && <AddUnassignedAssetForm onAdd={addAsset} onCancel={() => setAdding(false)} />}
       {unassigned.length === 0 ? (
-        <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic' }}>Every asset has a zone.</div>
+        <div className="kpmg-empty-muted-italic">Every asset has a zone.</div>
       ) : unassigned.map(u => (
-        <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{u.name}</span>
+        <div key={u.id} className="kpmg-unassigned-row">
+          <span className="kpmg-unassigned-name">{u.name}</span>
           <Tag label={u.kind === 'software' ? 'Software' : 'Hardware'} color={C.muted} bg="#F1F1EF" />
-          <span style={{ fontSize: 11, color: C.muted }}>{u.kind === 'software' ? (u.version || 'no version') : (u.ip || 'no IP')}</span>
-          <span style={{ fontSize: 11.5, color: C.muted, flex: 1, minWidth: 160 }}>{reasonFor(assets, rules, u.id)}</span>
+          <span className="kpmg-unassigned-meta">{u.kind === 'software' ? (u.version || 'no version') : (u.ip || 'no IP')}</span>
+          <span className="kpmg-unassigned-reason">{reasonFor(assets, rules, u.id)}</span>
           <Select value="" onChange={e => { if (e.target.value) assignTo(u.id, e.target.value); }}
-            options={[{ value: '', label: 'Assign to zone…' }, ...a.zones.map(z => ({ value: z.id, label: z.name }))]} style={{ width: 170 }} />
+            options={[{ value: '', label: 'Assign to zone…' }, ...a.zones.map(z => ({ value: z.id, label: z.name }))]} className="kpmg-unassigned-select" />
         </div>
       ))}
     </Card>
@@ -1366,23 +1124,23 @@ function CoveragePanel({ assets, rules, zones }) {
 
   return (
     <>
-      <Card style={{ padding: '16px 20px', borderRadius: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 280 }}>
+      <Card className="kpmg-card-p20">
+        <div className="kpmg-model-baseline-row">
+          <div className="kpmg-model-baseline-info">
             <div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: countColor, lineHeight: 1 }}>
+              <div className="kpmg-model-cov-stat" style={{ color: countColor }}>
                 {cov.bounded}/{cov.total}
               </div>
-              <div style={{ fontSize: 11, color: '#667085', marginTop: 3 }}>checks bounded</div>
+              <div className="kpmg-model-cov-stat-sub">checks bounded</div>
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#101828' }}>Did we get the whole network?</div>
-              <div style={{ fontSize: 12, color: '#475467', marginTop: 2, lineHeight: 1.4 }}>{cov.verdict}</div>
+              <div className="kpmg-model-cov-stat-title">Did we get the whole network?</div>
+              <div className="kpmg-model-cov-stat-verdict">{cov.verdict}</div>
             </div>
           </div>
           <Btn
             onClick={() => setOpen(true)}
-            style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '8px 16px', fontSize: 12, fontWeight: 600, flexShrink: 0 }}
+            className="kpmg-model-cov-btn"
           >
             Review coverage
           </Btn>
@@ -1394,14 +1152,14 @@ function CoveragePanel({ assets, rules, zones }) {
           isOpen={open}
           onClose={() => setOpen(false)}
           title={
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-              <div style={{ fontSize: 32, fontWeight: 800, color: countColor, lineHeight: 1 }}>
+            <div className="kpmg-d-flex kpmg-items-start kpmg-gap-16">
+              <div className="kpmg-model-cov-modal-score" style={{ color: countColor }}>
                 {cov.bounded}/{cov.total}
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#101828' }}>Did we get the whole network?</div>
-                <div style={{ fontSize: 12, color: '#667085', marginTop: 3, fontWeight: 400 }}>
-                  <span style={{ fontWeight: 600, color: '#344054' }}>checks bounded</span> {cov.verdict}
+                <div className="kpmg-model-cov-modal-title">Did we get the whole network?</div>
+                <div className="kpmg-model-cov-modal-sub">
+                  <span className="kpmg-model-cov-modal-sub-bold">checks bounded</span> {cov.verdict}
                 </div>
               </div>
             </div>
@@ -1409,69 +1167,48 @@ function CoveragePanel({ assets, rules, zones }) {
           width={780}
           maxWidth="60vw"
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="kpmg-flex-col kpmg-gap-20">
             {/* Info notice bar */}
-            <div style={{
-              background: '#EFF6FF',
-              border: '1px solid #BFE0FF',
-              borderRadius: 8,
-              padding: '12px 16px',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 12
-            }}>
-              <div style={{ color: '#1D4ED8', marginTop: 1, flexShrink: 0 }}>
+            <div className="kpmg-model-cov-banner">
+              <div className="kpmg-model-cov-icon-wrap">
                 <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="16" x2="12" y2="12" />
                   <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
               </div>
-              <div style={{ fontSize: 12, color: '#1D4ED8', lineHeight: 1.5 }}>
+              <div className="kpmg-model-cov-banner-text">
                 <strong>Completeness can never be proven</strong> — nothing the client sends can demonstrate the absence of a segment nobody mentioned. These four checks <strong>bound</strong> the unknown instead, using evidence already collected.
               </div>
             </div>
 
             {/* 2x2 Grid for the 4 checks (responsive) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+            <div className="kpmg-model-cov-grid">
               {cov.checks.map(c => {
                 const t = COV_TONE[c.status] || COV_TONE.unknown;
                 return (
                   <div
                     key={c.id}
-                    style={{
-                      border: '1px solid #EAECF0',
-                      borderRadius: 10,
-                      padding: 16,
-                      background: '#FFFFFF',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justify: 'space-between',
-                      gap: 10
-                    }}
+                    className="kpmg-model-cov-check-card"
                   >
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                        <span style={{
+                      <div className="kpmg-d-flex kpmg-items-center kpmg-justify-between kpmg-gap-8 kpmg-mb-8">
+                        <span className="kpmg-model-cov-check-tag" style={{
                           background: t.bg,
-                          color: t.c,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          padding: '3px 8px',
-                          borderRadius: 12
+                          color: t.c
                         }}>
                           {t.label} {c.value ? `- ${c.value}` : ''}
                         </span>
                       </div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 4 }}>
+                      <div className="kpmg-model-cov-check-title">
                         {c.name}
                       </div>
-                      <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.5 }}>
+                      <div className="kpmg-model-cov-check-what">
                         {c.what}
                       </div>
                     </div>
                     {c.detail && (
-                      <div style={{ fontSize: 11.5, color: '#344054', fontWeight: 500, lineHeight: 1.4, wordBreak: 'break-word' }}>
+                      <div className="kpmg-model-cov-check-detail">
                         {c.detail}
                       </div>
                     )}
@@ -1483,22 +1220,14 @@ function CoveragePanel({ assets, rules, zones }) {
             {/* Coverage findings section */}
             {cov.findings.length > 0 && (
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 12 }}>
+                <div className="kpmg-model-cov-findings-title">
                   Coverage findings
                 </div>
-                <div className="kpmg-scrollable-list" style={{ maxHeight: 200, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="kpmg-scrollable-list kpmg-max-h-200 kpmg-flex-col kpmg-gap-10">
                   {cov.findings.map((f, i) => (
                     <div
                       key={i}
-                      style={{
-                        border: '1px solid #EAECF0',
-                        borderRadius: 8,
-                        padding: '12px 16px',
-                        background: '#FFFFFF',
-                        fontSize: 12,
-                        color: '#344054',
-                        lineHeight: 1.5
-                      }}
+                      className="kpmg-model-cov-finding-item"
                     >
                       {f}
                     </div>
@@ -1546,76 +1275,76 @@ function Sr62443DirectoryCard({ a, onNavigate }) {
   const fmt = n => (n < 10 ? `0${n}` : `${n}`);
 
   return (
-    <Card className="kpmg-model-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
+    <Card className="kpmg-model-zone-card kpmg-model-zone-card-lg">
       <div className="kpmg-zone-card-body">
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div className="kpmg-d-flex kpmg-items-start kpmg-justify-between kpmg-mb-12">
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 2 }}>62443 evidence directory</div>
-            <div style={{ fontSize: 11.5, color: '#475467' }}>
+            <div className="kpmg-subheading-14-bold kpmg-mb-2">62443 evidence directory</div>
+            <div className="kpmg-text-12-muted">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             </div>
           </div>
           <Btn
             variant="outline"
             onClick={() => onNavigate('compliance')}
-            style={{ borderRadius: 6, fontSize: 11.5, color: '#344054', borderColor: '#D0D5DD', padding: '5px 12px', flexShrink: 0 }}
+            className="kpmg-model-sr-btn-review"
           >
             Review in IEC 62443
           </Btn>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4, maxHeight: 250 }}>
-          <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.4, marginBottom: 14 }}>
+        <div className="kpmg-model-sr-scroll-body">
+          <div className="kpmg-model-sr-scroll-desc">
             The full IEC 62443-3-3 requirement set for each zone&apos;s saved SL-T, as one directory to send the client - not split into separate &quot;what we have&quot; / &quot;what you owe us&quot; hand-offs. Folders already evidenced from data you&apos;ve collected are marked as such in the plan; the client is welcome to add to or confirm any of them, same as the rest.
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-            <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 8, padding: '8px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Pre-fillable now</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#1D4ED8', lineHeight: 1 }}>
+          <div className="kpmg-model-sr-stats-grid">
+            <div className="kpmg-model-sr-stat-box">
+              <div className="kpmg-model-sr-stat-label">Pre-fillable now</div>
+              <div className="kpmg-model-sr-stat-val blue">
                 {fmt(prefillable.length || 2)}
               </div>
             </div>
 
-            <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 8, padding: '8px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Need a policy answer</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#B42318', lineHeight: 1 }}>
+            <div className="kpmg-model-sr-stat-box">
+              <div className="kpmg-model-sr-stat-label">Need a policy answer</div>
+              <div className="kpmg-model-sr-stat-val red">
                 {fmt(needsPolicy || 8)}
               </div>
             </div>
 
-            <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 8, padding: '8px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Need a walkthrough sample</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#B42318', lineHeight: 1 }}>
+            <div className="kpmg-model-sr-stat-box">
+              <div className="kpmg-model-sr-stat-label">Need a walkthrough sample</div>
+              <div className="kpmg-model-sr-stat-val red">
                 {fmt(needsWalkthrough || 99)}
               </div>
             </div>
 
-            <div style={{ background: '#FFFFFF', border: '1px solid #EAECF0', borderRadius: 8, padding: '8px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Need conduits reviewed</div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#027A48', lineHeight: 1 }}>
+            <div className="kpmg-model-sr-stat-box">
+              <div className="kpmg-model-sr-stat-label">Need conduits reviewed</div>
+              <div className="kpmg-model-sr-stat-val green">
                 {fmt(needsConduitReview || 12)}
               </div>
             </div>
           </div>
 
-          <div style={{ fontSize: 11, color: '#667085', marginBottom: 14 }}>
+          <div className="kpmg-model-sr-note">
             Pre-fill never overwrites a requirement you&apos;ve already assessed - it only fills in ones still marked missing.
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', marginTop: 8 }}>
-        <Btn variant="outline" onClick={applyPrefill} disabled={prefillable.length === 0} style={{ borderRadius: 6, fontSize: 11.5, padding: '6px 12px' }}>
+      <div className="kpmg-d-flex kpmg-gap-8 kpmg-justify-end kpmg-flex-wrap kpmg-mt-8">
+        <Btn variant="outline" onClick={applyPrefill} disabled={prefillable.length === 0} className="kpmg-model-sr-btn-prefill">
           Apply pre-fill from collected evidence
         </Btn>
-        <Btn onClick={copyPlan} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 11.5, fontWeight: 600, padding: '6px 14px' }}>
+        <Btn onClick={copyPlan} className="kpmg-model-btn-save-blue">
           {copied ? '✓ Folder plan copied' : 'Copy 62443 evidence folder plan'}
         </Btn>
       </div>
 
       {applied != null && (
-        <div style={{ fontSize: 11.5, color: '#027A48', marginTop: 8, textAlign: 'right' }}>
+        <div className="kpmg-model-sr-applied-msg">
           {applied} requirement{applied === 1 ? '' : 's'} marked met from existing evidence - review in IEC 62443.
         </div>
       )}
@@ -1628,15 +1357,15 @@ function ZoneRow({ zone, rules, a, onOpen, onDelete, pendingSlT, setPendingSlT }
   const unsaved = pendingSlT[zone.id] !== undefined && pendingSlT[zone.id] !== zone.slT;
   return (
     <div style={{ border: `1px solid ${unsaved ? '#FCD9A6' : C.border}`, borderRadius: 10, padding: '11px 13px', marginBottom: 9 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+      <div className="kpmg-d-flex kpmg-items-center kpmg-gap-9 kpmg-flex-wrap">
         <Network />
-        <span style={{ fontSize: 13.5, fontWeight: 700, color: C.text, flex: 1, minWidth: 120 }}>{zone.name}</span>
+        <span className="kpmg-model-zonerow-name">{zone.name}</span>
         {unsaved && <Tag label="Unsaved" color="#B54708" bg="#FEF0C7" />}
-        <Select value={displayedSlT} onChange={e => setPendingSlT(p => ({ ...p, [zone.id]: Number(e.target.value) }))} options={SL_OPTS} style={{ width: 180 }} />
+        <Select value={displayedSlT} onChange={e => setPendingSlT(p => ({ ...p, [zone.id]: Number(e.target.value) }))} options={SL_OPTS} className="kpmg-model-zonerow-select" />
         <Btn size="sm" variant="outline" onClick={() => onOpen(zone)}>View / edit</Btn>
-        <button onClick={() => onDelete(zone)} title="Delete zone" style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 17, fontFamily: 'inherit' }}>×</button>
+        <button onClick={() => onDelete(zone)} title="Delete zone" className="kpmg-model-zonerow-del">×</button>
       </div>
-      {zone.desc && <div style={{ fontSize: 11.5, color: C.muted, marginTop: 6, lineHeight: 1.5 }}>{zone.desc}</div>}
+      {zone.desc && <div className="kpmg-model-zonerow-desc">{zone.desc}</div>}
       <SubnetChips rules={rules} zoneId={zone.id}
         onAdd={cidr => { addZoneRule({ cidr, zone: zone.id, targetSl: zone.slT }); syncAssetZones(a.assets, getZoneRules(), a.updateAsset); a.rescan(); }}
         onRemove={cidr => { const r = rules.find(x => x.zone === zone.id && x.cidr === cidr); if (r) removeZoneRule(r.id); syncAssetZones(a.assets, getZoneRules(), a.updateAsset); a.rescan(); }} />
@@ -1671,36 +1400,36 @@ function ConnectionsFromLogsCard({ a, rules, onNavigate }) {
 
   return (
     <Card>
-      <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 4 }}>Connections from logs</div>
-      <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>
+      <div className="kpmg-subheading-15-bold kpmg-mb-4">Connections from logs</div>
+      <div className="kpmg-text-12-muted kpmg-mb-12 kpmg-line-height-16">
         Derives asset-to-asset connections from the network evidence already collected (traffic capture,
         neighbour tables, switch/firewall configs) — still fully editable per-asset, same as a manual
         connection. Also surfaces endpoints the evidence implies but the register doesn't have, as shadow
         assets (see Assets → visibility score). Cross-zone connections become conduit suggestions below.
       </div>
       {!available && (
-        <div style={{ fontSize: 12, color: C.muted, background: '#FAFBFD', borderRadius: 8, padding: '10px 13px', marginBottom: 12 }}>
+        <div className="kpmg-model-logs-banner">
           Mark capture, neighbour tables or switch/firewall configs as received in Model inputs to enable parsing.
         </div>
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+      <div className="kpmg-d-flex kpmg-items-center kpmg-gap-10 kpmg-mb-14 kpmg-flex-wrap">
         <Btn size="sm" onClick={parse} disabled={!available}>Parse logs</Btn>
-        {last && <span style={{ fontSize: 11.5, color: C.muted }}>Last parsed {new Date(last.at).toLocaleString()}</span>}
-        {result && <span style={{ fontSize: 11.5, color: '#067647' }}>
+        {last && <span className="kpmg-text-11-muted">Last parsed {new Date(last.at).toLocaleString()}</span>}
+        {result && <span className="kpmg-text-11-success">
           {result.connectionsAdded} new connection{result.connectionsAdded === 1 ? '' : 's'}, {result.shadowAssetsAdded} new shadow asset{result.shadowAssetsAdded === 1 ? '' : 's'} found
         </span>}
-        <Btn size="sm" variant="outline" style={{ marginLeft: 'auto' }} onClick={() => onNavigate('assets')}>Review connections in Assets →</Btn>
+        <Btn size="sm" variant="outline" className="kpmg-ml-auto" onClick={() => onNavigate('assets')}>Review connections in Assets →</Btn>
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: .5, marginBottom: 6 }}>
+      <div className="kpmg-model-logs-sub-header">
         Suggested conduits ({suggestions.length})
       </div>
       {suggestions.length === 0 ? (
-        <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic' }}>None outstanding — parse logs after collecting network evidence, or all suggestions have been reviewed.</div>
+        <div className="kpmg-empty-muted-italic">None outstanding — parse logs after collecting network evidence, or all suggestions have been reviewed.</div>
       ) : suggestions.map(s => (
-        <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{zName(s.from)} ↔ {zName(s.to)}</span>
-          <span style={{ fontSize: 11.5, color: C.muted, flex: 1, minWidth: 160 }}>{s.count} connection{s.count === 1 ? '' : 's'} observed ({s.protos.join(', ')})</span>
+        <div key={s.key} className="kpmg-unassigned-row">
+          <span className="kpmg-text-12-bold">{zName(s.from)} ↔ {zName(s.to)}</span>
+          <span className="kpmg-text-11-muted kpmg-flex-1-min160">{s.count} connection{s.count === 1 ? '' : 's'} observed ({s.protos.join(', ')})</span>
           <Btn size="sm" onClick={() => accept(s)}>Accept</Btn>
           <Btn size="sm" variant="outline" onClick={() => dismiss(s)}>Dismiss</Btn>
         </div>
@@ -1722,14 +1451,14 @@ function InternetFacingSuggestionsCard({ a, bump }) {
   if (suggestions.length === 0) return null;
   return (
     <Card>
-      <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 4 }}>Suggested internet-facing assets ({suggestions.length})</div>
-      <div style={{ fontSize: 12.5, color: C.muted, marginBottom: 12, lineHeight: 1.6 }}>
+      <div className="kpmg-subheading-15-bold kpmg-mb-4">Suggested internet-facing assets ({suggestions.length})</div>
+      <div className="kpmg-text-12-muted kpmg-mb-12 kpmg-line-height-16">
         Flagged by device role or Purdue position — confirm or dismiss each one rather than tagging every asset by hand.
       </div>
       {suggestions.map(s => (
-        <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderTop: `1px solid ${C.border}`, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 600, color: C.text }}>{s.name}</span>
-          <span style={{ fontSize: 11.5, color: C.muted, flex: 1, minWidth: 160 }}>{s.deviceType} · {zName(s.zone)} · L{s.level}</span>
+        <div key={s.id} className="kpmg-unassigned-row">
+          <span className="kpmg-text-12-bold">{s.name}</span>
+          <span className="kpmg-text-11-muted kpmg-flex-1-min160">{s.deviceType} · {zName(s.zone)} · L{s.level}</span>
           <Btn size="sm" onClick={() => confirm(s)}>Confirm</Btn>
           <Btn size="sm" variant="outline" onClick={() => dismiss(s)}>Dismiss</Btn>
         </div>
@@ -1779,25 +1508,25 @@ function WorkshopExportCard({ a, rules }) {
   };
 
   return (
-    <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+    <Card className="kpmg-model-workshop-card">
+      <div className="kpmg-d-flex kpmg-items-center kpmg-justify-between kpmg-gap-16">
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Workshop confirmation</div>
-          <div style={{ fontSize: 12, color: '#475467' }}>
+          <div className="kpmg-subheading-14-bold kpmg-mb-4">Workshop confirmation</div>
+          <div className="kpmg-text-12-muted">
             A short, shareable document of the proposed zones, subnets, assets and conduits - not the risk report - for the client to confirm or correct in a workshop before analysis runs.
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
-          <Btn onClick={() => download('pdf')} disabled={busy !== null} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 12, padding: '8px 16px', fontWeight: 600 }}>
+        <div className="kpmg-d-flex kpmg-gap-10 kpmg-flex-shrink-0">
+          <Btn onClick={() => download('pdf')} disabled={busy !== null} className="kpmg-model-btn-download">
             {busy === 'pdf' ? 'Generating…' : 'Download PDF'}
           </Btn>
-          <Btn onClick={() => download('docx')} disabled={busy !== null} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 12, padding: '8px 16px', fontWeight: 600 }}>
+          <Btn onClick={() => download('docx')} disabled={busy !== null} className="kpmg-model-btn-download">
             {busy === 'docx' ? 'Generating…' : 'Download DOCX'}
           </Btn>
         </div>
       </div>
-      {err && <div style={{ fontSize: 11.5, color: '#D9251B', marginTop: 8 }}>{err}</div>}
+      {err && <div className="kpmg-model-err-msg">{err}</div>}
     </Card>
   );
 }
@@ -1894,35 +1623,35 @@ function SectionZones({ a, onNavigate }) {
   const dismissInternet = asset => { dismissInternetFacingSuggestion(asset.id); bump(); };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="kpmg-model-scope-stack">
       {/* 1. Zones Table Card */}
-      <Card style={{ padding: '20px 24px', borderRadius: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+      <Card className="kpmg-card-p20">
+        <div className="kpmg-model-baseline-row kpmg-mb-16">
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Zones</div>
-            <div style={{ fontSize: 12, color: '#475467' }}>
+            <div className="kpmg-subheading-15-bold kpmg-mb-4">Zones</div>
+            <div className="kpmg-text-12-muted">
               From the uploaded registers. Click an asset to view/edit it, or the brain icon to see how it was classified.
             </div>
           </div>
           <Btn
             onClick={() => setShowCreateModal(true)}
-            style={{ background: '#1D4ED8', color: '#fff', borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}
+            className="kpmg-model-btn-create-zone"
           >
             Create zone
           </Btn>
         </div>
 
         {/* HTML Table of Zones */}
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, textAlign: 'left' }}>
+        <div className="kpmg-overflow-x-auto">
+          <table className="kpmg-model-table">
             <thead>
-              <tr style={{ borderBottom: '1px solid #EAECF0', color: '#667085', fontSize: 11, fontWeight: 600 }}>
-                <th style={{ padding: '10px 12px 10px 0' }}>Name</th>
-                <th style={{ padding: '10px 12px', maxWidth: 220 }}>Description</th>
-                <th style={{ padding: '10px 12px' }}>Target SL</th>
-                <th style={{ padding: '10px 12px' }}>Conduits (zone-to-zone)</th>
-                <th style={{ padding: '10px 12px' }}>Subnet</th>
-                <th style={{ padding: '10px 0 10px 12px', textAlign: 'right' }}>Action</th>
+              <tr>
+                <th className="kpmg-model-th-name">Name</th>
+                <th className="kpmg-model-th-desc">Description</th>
+                <th>Target SL</th>
+                <th>Conduits (zone-to-zone)</th>
+                <th>Subnet</th>
+                <th className="kpmg-model-th-action">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -1933,42 +1662,22 @@ function SectionZones({ a, onNavigate }) {
                 const slText = slMeta ? `SL-T ${z.slT} - ${slMeta.label}` : `SL-T ${z.slT}`;
 
                 return (
-                  <tr key={z.id} style={{ borderBottom: '1px solid #F2F4F7' }}>
-                    <td style={{ padding: '14px 12px 14px 0', fontWeight: 700, color: '#101828' }}>{z.name}</td>
-                    <td style={{ padding: '14px 12px', color: '#475467', maxWidth: 260 }} title={z.desc || '—'}>
-                      <div
-                        style={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          lineHeight: 1.45,
-                          maxHeight: '2.9em'
-                        }}
-                      >
+                  <tr key={z.id}>
+                    <td className="kpmg-model-td-name">{z.name}</td>
+                    <td className="kpmg-model-td-desc" title={z.desc || '—'}>
+                      <div className="kpmg-model-ellipsis-2lines">
                         {z.desc || '—'}
                       </div>
                     </td>
-                    <td style={{ padding: '14px 12px', color: '#344054', fontWeight: 500 }}>{slText}</td>
-                    <td style={{ padding: '14px 12px', color: '#344054' }}>{zoneConduitsCount}</td>
-                    <td style={{ padding: '14px 12px', color: '#344054' }}>
+                    <td className="kpmg-model-td-sl">{slText}</td>
+                    <td className="kpmg-model-td-cell">{zoneConduitsCount}</td>
+                    <td className="kpmg-model-td-cell">
                       {subnets.length > 0 ? (
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <div className="kpmg-d-flex kpmg-gap-6 kpmg-flex-wrap kpmg-items-center">
                           {subnets.slice(0, 2).map(s => (
                             <span
                               key={s}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                background: '#EFF6FF',
-                                color: '#1D4ED8',
-                                border: '1px solid #BFDBFE',
-                                borderRadius: 16,
-                                padding: '3px 10px',
-                                fontSize: 12,
-                                fontWeight: 600
-                              }}
+                              className="kpmg-model-sub-pill-blue"
                             >
                               {s}
                             </span>
@@ -1976,18 +1685,7 @@ function SectionZones({ a, onNavigate }) {
                           {subnets.length > 2 && (
                             <span
                               title={subnets.slice(2).join(', ')}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                background: '#F1F5F9',
-                                color: '#475467',
-                                border: '1px solid #CBD5E1',
-                                borderRadius: 16,
-                                padding: '3px 9px',
-                                fontSize: 11.5,
-                                fontWeight: 600,
-                                cursor: 'default'
-                              }}
+                              className="kpmg-model-subnet-more"
                             >
                               +{subnets.length - 2} more
                             </span>
@@ -1997,11 +1695,11 @@ function SectionZones({ a, onNavigate }) {
                         '—'
                       )}
                     </td>
-                    <td style={{ padding: '14px 0 14px 12px', textAlign: 'right' }}>
+                    <td className="kpmg-model-td-action">
                       <button
                         onClick={() => setOpenZone(z)}
                         title="Edit zone"
-                        style={{ background: 'none', border: 'none', color: '#475467', cursor: 'pointer', padding: 4 }}
+                        className="kpmg-model-edit-btn"
                       >
                         <PageIcon name="Edit.svg" size={16} />
                       </button>
@@ -2018,37 +1716,37 @@ function SectionZones({ a, onNavigate }) {
       {a.zones.length > 0 && <CoveragePanel assets={a.assets} rules={rules} zones={a.zones} />}
 
       {/* 3. 2-Column Grid Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="kpmg-form-grid-2col">
         {/* LEFT COLUMN: Connections from logs & Suggested internet-facing assets */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="kpmg-flex-col kpmg-gap-20">
           {/* Connections from logs Card */}
-          <Card className="kpmg-model-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Connections from logs</div>
-            <div style={{ fontSize: 12, color: '#475467', marginBottom: 16 }}>
+          <Card className="kpmg-model-zone-card kpmg-model-zone-card-lg">
+            <div className="kpmg-subheading-14-bold kpmg-mb-4">Connections from logs</div>
+            <div className="kpmg-text-12-muted kpmg-mb-16">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             </div>
 
             {suggestions.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 20px' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D4ED8', marginBottom: 12 }}>
+              <div className="kpmg-model-empty-state">
+                <div className="kpmg-model-empty-icon">
                   <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 4 }}>No Connections from logs</div>
-                <div style={{ fontSize: 11.5, color: '#667085', maxWidth: 300, lineHeight: 1.4 }}>
+                <div className="kpmg-subheading-13-bold kpmg-mb-4">No Connections from logs</div>
+                <div className="kpmg-subhint-11-muted kpmg-max-w-300 kpmg-line-height-14">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in tortor non lacus porta aliquam vel in nisi.
                 </div>
               </div>
             ) : (
-              <div className="kpmg-scrollable-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="kpmg-scrollable-list kpmg-flex-col kpmg-gap-10">
                 {suggestions.map(s => (
-                  <div key={s.key} style={{ border: '1px solid #EAECF0', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div key={s.key} className="kpmg-model-suggestion-card">
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#101828' }}>{zName(s.from)} ↔ {zName(s.to)}</div>
-                      <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>{s.count} connection observed (Modbus)</div>
+                      <div className="kpmg-subheading-12-bold">{zName(s.from)} ↔ {zName(s.to)}</div>
+                      <div className="kpmg-subhint-11-muted kpmg-mt-2">{s.count} connection observed (Modbus)</div>
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <Btn size="sm" variant="outline" onClick={() => dismissConduit(s)} style={{ borderRadius: 6, fontSize: 11.5 }}>Dismiss</Btn>
-                      <Btn size="sm" onClick={() => acceptConduit(s)} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 11.5 }}>Accept</Btn>
+                    <div className="kpmg-d-flex kpmg-gap-8">
+                      <Btn size="sm" variant="outline" onClick={() => dismissConduit(s)} className="kpmg-btn-sm-cancel">Dismiss</Btn>
+                      <Btn size="sm" onClick={() => acceptConduit(s)} className="kpmg-btn-sm-blue">Accept</Btn>
                     </div>
                   </div>
                 ))}
@@ -2057,33 +1755,33 @@ function SectionZones({ a, onNavigate }) {
           </Card>
 
           {/* Suggested internet-facing assets Card */}
-          <Card className="kpmg-model-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Suggested internet-facing assets</div>
-            <div style={{ fontSize: 12, color: '#475467', marginBottom: 16 }}>
+          <Card className="kpmg-model-zone-card kpmg-model-zone-card-lg">
+            <div className="kpmg-subheading-14-bold kpmg-mb-4">Suggested internet-facing assets</div>
+            <div className="kpmg-text-12-muted kpmg-mb-16">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
             </div>
 
             {internetSuggestions.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 20px' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D4ED8', marginBottom: 12 }}>
+              <div className="kpmg-model-empty-state">
+                <div className="kpmg-model-empty-icon">
                   <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 4 }}>No suggested internet-facing assets</div>
-                <div style={{ fontSize: 11.5, color: '#667085', maxWidth: 300, lineHeight: 1.4 }}>
+                <div className="kpmg-subheading-13-bold kpmg-mb-4">No suggested internet-facing assets</div>
+                <div className="kpmg-subhint-11-muted kpmg-max-w-300 kpmg-line-height-14">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in tortor non lacus porta aliquam vel in nisi.
                 </div>
               </div>
             ) : (
-              <div className="kpmg-scrollable-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="kpmg-scrollable-list kpmg-flex-col kpmg-gap-10">
                 {internetSuggestions.map(s => (
-                  <div key={s.id} style={{ border: '1px solid #EAECF0', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div key={s.id} className="kpmg-model-suggestion-card">
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#101828' }}>{s.name}</div>
-                      <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>{s.deviceType} · PLC . {s.ip || '10.20.20.01'} . L4</div>
+                      <div className="kpmg-subheading-12-bold">{s.name}</div>
+                      <div className="kpmg-subhint-11-muted kpmg-mt-2">{s.deviceType} · PLC . {s.ip || '10.20.20.01'} . L4</div>
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <Btn size="sm" variant="outline" onClick={() => dismissInternet(s)} style={{ borderRadius: 6, fontSize: 11.5 }}>Decline</Btn>
-                      <Btn size="sm" onClick={() => confirmInternet(s)} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, fontSize: 11.5 }}>Confirm</Btn>
+                    <div className="kpmg-d-flex kpmg-gap-8">
+                      <Btn size="sm" variant="outline" onClick={() => dismissInternet(s)} className="kpmg-btn-sm-cancel">Decline</Btn>
+                      <Btn size="sm" onClick={() => confirmInternet(s)} className="kpmg-btn-sm-blue">Confirm</Btn>
                     </div>
                   </div>
                 ))}
@@ -2093,19 +1791,19 @@ function SectionZones({ a, onNavigate }) {
         </div>
 
         {/* RIGHT COLUMN: Unassigned assets & 62443 evidence directory */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="kpmg-flex-col kpmg-gap-20">
           {/* Unassigned assets Card */}
-          <Card className="kpmg-model-zone-card" style={{ padding: '20px 24px', borderRadius: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ flex: 1, marginRight: 12 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Unassigned assets</div>
-                <div style={{ fontSize: 12, color: '#475467' }}>
+          <Card className="kpmg-model-zone-card kpmg-model-zone-card-lg">
+            <div className="kpmg-d-flex kpmg-items-start kpmg-justify-between kpmg-mb-16">
+              <div className="kpmg-flex-1 kpmg-mr-12">
+                <div className="kpmg-subheading-14-bold kpmg-mb-4">Unassigned assets</div>
+                <div className="kpmg-text-12-muted">
                   No zone yet - map a matching subnet to place one automatically, or assign it here.
                 </div>
               </div>
               <Btn
                 onClick={() => setAddingAsset(true)}
-                style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '6px 14px', fontSize: 12, fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}
+                className="kpmg-model-btn-add-asset"
               >
                 Add asset
               </Btn>
@@ -2129,28 +1827,28 @@ function SectionZones({ a, onNavigate }) {
             />
 
             {unassigned.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 20px' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D4ED8', marginBottom: 12 }}>
+              <div className="kpmg-model-empty-state">
+                <div className="kpmg-model-empty-icon">
                   <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 4 }}>No unassigned assets</div>
-                <div style={{ fontSize: 11.5, color: '#667085', maxWidth: 300, lineHeight: 1.4 }}>
+                <div className="kpmg-subheading-13-bold kpmg-mb-4">No unassigned assets</div>
+                <div className="kpmg-subhint-11-muted kpmg-max-w-300 kpmg-line-height-14">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam in tortor non lacus porta aliquam vel in nisi.
                 </div>
               </div>
             ) : (
-              <div className="kpmg-scrollable-list" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="kpmg-scrollable-list kpmg-flex-col kpmg-gap-10">
                 {unassigned.map(u => (
-                  <div key={u.id} style={{ border: '1px solid #EAECF0', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div key={u.id} className="kpmg-model-suggestion-card">
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#101828' }}>{u.name}</div>
-                      <div style={{ fontSize: 11, color: '#667085', marginTop: 2 }}>{u.deviceType || 'Hardware . PLC'} . {u.ip || '10.20.20.01'} . L4</div>
+                      <div className="kpmg-subheading-12-bold">{u.name}</div>
+                      <div className="kpmg-subhint-11-muted kpmg-mt-2">{u.deviceType || 'Hardware . PLC'} . {u.ip || '10.20.20.01'} . L4</div>
                     </div>
                     <Select
                       value=""
                       onChange={e => { if (e.target.value) assignTo(u.id, e.target.value); }}
                       options={[{ value: '', label: 'Assign to zone' }, ...a.zones.map(z => ({ value: z.id, label: z.name }))]}
-                      style={{ width: 140, borderRadius: 6, fontSize: 11.5 }}
+                      className="kpmg-model-assign-select"
                     />
                   </div>
                 ))}
@@ -2174,23 +1872,23 @@ function SectionZones({ a, onNavigate }) {
           onClose={() => setShowCreateModal(false)}
           maxWidth={580}
           footer={
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
-              <Btn variant="outline" onClick={() => setShowCreateModal(false)} style={{ borderRadius: 6, padding: '7px 18px', fontSize: 12.5, fontWeight: 600 }}>
+            <div className="kpmg-d-flex kpmg-gap-10 kpmg-justify-end kpmg-w-100p">
+              <Btn variant="outline" onClick={() => setShowCreateModal(false)} className="kpmg-btn-sm-cancel">
                 Cancel
               </Btn>
-              <Btn onClick={createZone} disabled={!zname.trim()} style={{ background: '#1D4ED8', color: '#fff', borderRadius: 6, padding: '7px 22px', fontSize: 12.5, fontWeight: 600 }}>
+              <Btn onClick={createZone} disabled={!zname.trim()} className="kpmg-model-btn-save-blue">
                 Save
               </Btn>
             </div>
           }
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="kpmg-flex-col kpmg-gap-12">
             <FormField label="Zone name" required>
               <Input
                 value={zname}
                 onChange={e => setZname(e.target.value)}
                 placeholder="e.g. Line 1 Control"
-                style={{ borderRadius: 6, fontSize: 13 }}
+                className="kpmg-input-r6"
               />
             </FormField>
 
@@ -2199,17 +1897,17 @@ function SectionZones({ a, onNavigate }) {
                 value={tsl}
                 onChange={e => setTsl(e.target.value)}
                 options={SL_OPTS}
-                style={{ borderRadius: 6, fontSize: 12.5 }}
+                className="kpmg-select-r6"
               />
             </FormField>
 
             <FormField label="Subnets">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '4px 0' }}>
+              <div className="kpmg-flex-col kpmg-gap-10 kpmg-py-4">
                 {/* Row 1: Add CTA / Input Controls */}
                 <div>
                   {addingSub ? (
                     <div>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div className="kpmg-d-flex kpmg-gap-8 kpmg-items-center">
                         <Input
                           value={subInput}
                           onChange={e => {
@@ -2223,55 +1921,30 @@ function SectionZones({ a, onNavigate }) {
                             }
                           }}
                           placeholder="10.10.20.0/24"
+                          className="kpmg-model-sub-input"
                           style={{
-                            width: 160,
-                            height: 32,
-                            boxSizing: 'border-box',
-                            padding: '2px 8px',
-                            fontSize: 12,
-                            borderRadius: 6,
                             borderColor: subError ? '#D9251B' : undefined
                           }}
                         />
                         <Btn
                           size="sm"
                           onClick={() => addSubnetToModal(subInput)}
-                          style={{
-                            height: 32,
-                            boxSizing: 'border-box',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: '#1D4ED8',
-                            color: '#fff',
-                            borderRadius: 6,
-                            padding: '0 14px',
-                            fontSize: 12,
-                            fontWeight: 600
-                          }}
+                          className="kpmg-model-sub-add-btn"
                         >
                           Add
                         </Btn>
-                        <button
+                        <Btn
+                          variant="outline"
+                          size="sm"
                           type="button"
                           onClick={() => { setAddingSub(false); setSubInput(''); setSubError(''); }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#475467',
-                            cursor: 'pointer',
-                            fontSize: 12,
-                            fontWeight: 500,
-                            height: 32,
-                            display: 'inline-flex',
-                            alignItems: 'center'
-                          }}
+                          className="kpmg-model-sub-cancel-btn"
                         >
                           Cancel
-                        </button>
+                        </Btn>
                       </div>
                       {subError && (
-                        <div style={{ fontSize: 11.5, color: '#D9251B', marginTop: 4, fontWeight: 500 }}>
+                        <div className="kpmg-model-sub-error">
                           {subError}
                         </div>
                       )}
@@ -2280,17 +1953,7 @@ function SectionZones({ a, onNavigate }) {
                     <button
                       type="button"
                       onClick={() => setAddingSub(true)}
-                      style={{
-                        background: 'none',
-                        border: '1px dashed #D0D5DD',
-                        borderRadius: 16,
-                        padding: '4px 12px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: '#1D4ED8',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit'
-                      }}
+                      className="kpmg-model-add-subnet-dashed"
                     >
                       + Add subnet
                     </button>
@@ -2299,37 +1962,17 @@ function SectionZones({ a, onNavigate }) {
 
                 {/* Row 2: Added subnets badges */}
                 {zsubnets.length > 0 && (
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <div className="kpmg-d-flex kpmg-gap-6 kpmg-flex-wrap kpmg-items-center">
                     {zsubnets.map(s => (
                       <span
                         key={s}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          background: '#EFF6FF',
-                          color: '#1D4ED8',
-                          border: '1px solid #BFDBFE',
-                          borderRadius: 16,
-                          padding: '3px 10px',
-                          fontSize: 12,
-                          fontWeight: 600
-                        }}
+                        className="kpmg-model-sub-pill-blue"
                       >
                         {s}
                         <button
                           type="button"
                           onClick={() => removeSubnetFromModal(s)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#1D4ED8',
-                            cursor: 'pointer',
-                            fontSize: 13,
-                            fontWeight: 700,
-                            padding: 0,
-                            lineHeight: 1
-                          }}
+                          className="kpmg-model-sub-pill-del"
                         >
                           ×
                         </button>
@@ -2346,33 +1989,26 @@ function SectionZones({ a, onNavigate }) {
                 onChange={e => setZdesc(e.target.value)}
                 rows={2}
                 placeholder="Corporate IT, ERP, domain"
-                style={{ borderRadius: 6, fontSize: 13, resize: 'vertical' }}
+                className="kpmg-textarea-r6"
               />
             </FormField>
 
             {/* Air-gapped Toggle Row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 0, marginBottom: 16, padding: '2px 0' }}>
-              <label style={{ position: 'relative', display: 'inline-block', width: 38, height: 20, cursor: 'pointer', flexShrink: 0 }}>
+            <div className="kpmg-d-flex kpmg-items-center kpmg-gap-12 kpmg-mb-16 kpmg-py-2">
+              <label className="kpmg-switch-label">
                 <input
                   type="checkbox"
                   checked={airGapped}
                   onChange={e => setAirGapped(e.target.checked)}
-                  style={{ opacity: 0, width: 0, height: 0 }}
+                  className="kpmg-switch-input"
                 />
-                <span style={{
-                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                  backgroundColor: airGapped ? '#1D4ED8' : '#EAECF0',
-                  borderRadius: 20, transition: '0.2s'
-                }}>
-                  <span style={{
-                    position: 'absolute', content: '""', height: 16, width: 16, left: airGapped ? 19 : 2, bottom: 2,
-                    backgroundColor: 'white', borderRadius: '50%', transition: '0.2s'
-                  }} />
+                <span className="kpmg-switch-track" style={{ backgroundColor: airGapped ? '#1D4ED8' : '#EAECF0' }}>
+                  <span className="kpmg-switch-thumb" style={{ left: airGapped ? 19 : 2 }} />
                 </span>
               </label>
               <div>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828' }}>Air-gapped</div>
-                <div style={{ fontSize: 11.5, color: '#475467', marginTop: 6 }}>
+                <div className="kpmg-subheading-13-bold">Air-gapped</div>
+                <div className="kpmg-subhint-11-muted kpmg-mt-6">
                   The client asserts no external connectivity - checked live against conduits/connections below
                 </div>
               </div>
@@ -2448,7 +2084,7 @@ export default function ModelTab({ onNavigate = () => { } }) {
   const prog = collectionProgress();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-16">
       <BaselineBar a={a} />
       <SectionNav section={section} setSection={setSection} company={a.company} prog={prog} zonesCount={a.zones.length} />
       {section === 'scope' && <SectionScope company={a.company} setCompany={a.setCompany} onSaved={() => setSection('inputs')} />}

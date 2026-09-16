@@ -394,14 +394,12 @@ const sortSteps = (steps) =>
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const ScaleBar = ({ value, color }) => (
-  <div style={{ display: 'flex', gap: 2 }}>
+  <div className="kpmg-mitig-scale-bar">
     {[1, 2, 3].map((i) => (
       <div
         key={i}
+        className="kpmg-mitig-scale-dot"
         style={{
-          width: 11,
-          height: 4,
-          borderRadius: 2,
           background: i <= value ? color : '#EEF2FA',
         }}
       />
@@ -463,7 +461,7 @@ function StepModal({ plan, step, onClose, onSave }) {
       onClose={onClose}
       maxWidth={580}
       footer={
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
+        <div className="kpmg-mitig-modal-footer">
           <button
             onClick={onClose}
             className="kpmg-btn-cancel-modal"
@@ -484,13 +482,13 @@ function StepModal({ plan, step, onClose, onSave }) {
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0 10px' }}>
+      <div className="kpmg-mitig-modal-body">
         <FormField label="Title" required>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="E.g. Acme Industrial Ltd"
-            style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
+            className="kpmg-mitig-modal-input"
           />
         </FormField>
 
@@ -499,7 +497,7 @@ function StepModal({ plan, step, onClose, onSave }) {
             value={cat}
             onChange={(e) => setCat(e.target.value)}
             options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))}
-            style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
+            className="kpmg-mitig-modal-input"
           />
         </FormField>
 
@@ -512,7 +510,7 @@ function StepModal({ plan, step, onClose, onSave }) {
               { value: 'Option 1', label: 'Option 1' },
               { value: 'Option 2', label: 'Option 2' },
             ]}
-            style={{ width: '100%', height: 42, borderRadius: 8, borderColor: '#D0D5DD', padding: '0 14px', fontSize: 13 }}
+            className="kpmg-mitig-modal-input"
           />
         </FormField>
 
@@ -522,7 +520,7 @@ function StepModal({ plan, step, onClose, onSave }) {
             onChange={(e) => setDesc(e.target.value)}
             rows={4}
             placeholder="Enter a description..."
-            style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
+            className="kpmg-mitig-modal-textarea"
           />
         </FormField>
 
@@ -533,13 +531,13 @@ function StepModal({ plan, step, onClose, onSave }) {
               onChange={(e) => setReason(e.target.value)}
               rows={3.5}
               placeholder="Why is this step being modified?"
-              style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
+              className="kpmg-mitig-modal-textarea"
             />
           </FormField>
         )}
 
         {err && (
-          <div style={{ color: '#D9251B', fontSize: 12, fontWeight: 500 }}>
+          <div className="kpmg-mitig-modal-error">
             {err}
           </div>
         )}
@@ -558,20 +556,10 @@ function RemoveModal({ step, onClose, onConfirm }) {
       onClose={onClose}
       maxWidth={580}
       footer={
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', width: '100%' }}>
+        <div className="kpmg-mitig-modal-footer">
           <button
             onClick={onClose}
-            style={{
-              background: '#ffffff',
-              border: '1px solid #D0D5DD',
-              borderRadius: 8,
-              padding: '9px 18px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#344054',
-              cursor: 'pointer',
-              fontFamily: 'inherit'
-            }}
+            className="kpmg-btn-modal-cancel"
           >
             Cancel
           </button>
@@ -583,27 +571,17 @@ function RemoveModal({ step, onClose, onConfirm }) {
               }
               onConfirm(reason);
             }}
-            style={{
-              background: '#D9251B',
-              border: 'none',
-              borderRadius: 8,
-              padding: '9px 22px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: '#ffffff',
-              cursor: 'pointer',
-              fontFamily: 'inherit'
-            }}
+            className="kpmg-btn-modal-remove"
           >
             Remove
           </button>
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0 10px' }}>
+      <div className="kpmg-mitig-modal-body">
         <div>
-          <div style={{ fontSize: 12, color: '#475467', marginBottom: 4 }}>Removing</div>
-          <div style={{ fontSize: 13.5, fontWeight: 400, color: '#101828' }}>{step?.title}</div>
+          <div className="kpmg-mitig-remove-label">Removing</div>
+          <div className="kpmg-mitig-remove-val">{step?.title}</div>
         </div>
 
         <FormField label="Reason" required>
@@ -612,12 +590,12 @@ function RemoveModal({ step, onClose, onConfirm }) {
             onChange={(e) => setReason(e.target.value)}
             rows={4}
             placeholder="Why is this step being removed?"
-            style={{ width: '100%', borderRadius: 8, borderColor: '#D0D5DD', padding: '10px 14px', fontSize: 13 }}
+            className="kpmg-mitig-modal-textarea"
           />
         </FormField>
 
         {err && (
-          <div style={{ color: '#D9251B', fontSize: 12, fontWeight: 500 }}>
+          <div className="kpmg-mitig-modal-error">
             {err}
           </div>
         )}
@@ -628,28 +606,12 @@ function RemoveModal({ step, onClose, onConfirm }) {
 
 // ── Section divider between force multipliers and the remaining mitigations ──
 const SectionDivider = ({ label }) => (
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      margin: '4px 0 2px',
-    }}
-  >
-    <div style={{ flex: 1, height: 1, background: C.border }} />
-    <span
-      style={{
-        fontSize: 10,
-        fontWeight: 600,
-        color: C.muted,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-        whiteSpace: 'nowrap',
-      }}
-    >
+  <div className="kpmg-mitig-divider">
+    <div className="kpmg-mitig-divider-line" />
+    <span className="kpmg-mitig-divider-text">
       {label}
     </span>
-    <div style={{ flex: 1, height: 1, background: C.border }} />
+    <div className="kpmg-mitig-divider-line" />
   </div>
 );
 
@@ -672,88 +634,44 @@ function RoadmapStep({
 
   return (
     <div
+      className="kpmg-mitig-step-card"
       style={{
         border: `1px solid ${checked ? '#BBE9D2' : '#EAECF0'}`,
-        borderRadius: 12,
         background: checked ? '#F4FBF7' : '#ffffff',
-        overflow: 'visible',
-        position: 'relative',
         opacity: step.removed ? 0.5 : 1,
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          padding: '16px 20px',
-          alignItems: 'flex-start',
-        }}
-      >
+      <div className="kpmg-mitig-step-inner">
         {/* Checkbox */}
-        <div style={{ paddingTop: 2 }}>
+        <div className="kpmg-mitig-step-chk-wrap">
           <input
             type="checkbox"
             checked={checked}
             onChange={onToggle}
             title="Mark implemented"
-            style={{ width: 18, height: 18, cursor: 'pointer', borderRadius: 4 }}
+            className="kpmg-mitig-step-checkbox"
           />
         </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="kpmg-mitig-step-content">
           {/* Header Row: Title & Action Controls */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-              marginBottom: 6,
-              width: '100%'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', flex: 1 }}>
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: '#101828',
-                  textDecoration: checked ? 'line-through' : 'none',
-                }}
-              >
+          <div className="kpmg-mitig-step-head">
+            <div className="kpmg-mitig-step-title-wrap">
+              <span className={`kpmg-mitig-step-title ${checked ? 'kpmg-mitig-step-title-done' : ''}`}>
                 {rank}. {step.title}
               </span>
               {ranking.kev && (
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: '#B42318',
-                    background: '#FEE4E2',
-                    padding: '2px 6px',
-                    borderRadius: 4,
-                  }}
-                >
+                <span className="kpmg-mitig-kev-badge">
                   KEV
                 </span>
               )}
             </div>
 
             {/* Right side: Chevron toggle and 3-dots Menu strictly aligned to far right */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto', flexShrink: 0 }}>
+            <div className="kpmg-mitig-actions-wrap">
               <button
                 onClick={() => setOpen((o) => !o)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: 4,
-                  cursor: 'pointer',
-                  color: '#667085',
-                  display: 'flex',
-                  alignItems: 'center',
-                  transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
+                className={`kpmg-mitig-chevron-btn ${open ? 'kpmg-mitig-chevron-btn-open' : ''}`}
                 title={open ? 'Collapse' : 'Expand'}
               >
                 <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -761,19 +679,10 @@ function RoadmapStep({
                 </svg>
               </button>
 
-              <div style={{ position: 'relative' }}>
+              <div className="kpmg-pos-relative">
                 <button
                   onClick={() => setMenuOpen((o) => !o)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 4,
-                    cursor: 'pointer',
-                    color: '#667085',
-                    display: 'flex',
-                    alignItems: 'center',
-                    borderRadius: 4,
-                  }}
+                  className="kpmg-mitig-menu-btn"
                   title="Options"
                 >
                   <PageIcon name="Menu.svg" size={18} />
@@ -781,38 +690,11 @@ function RoadmapStep({
 
                 {menuOpen && (
                   <>
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={() => setMenuOpen(false)} />
-                    <div
-                      style={{
-                        position: 'absolute',
-                        right: 0,
-                        ...(isLastRow ? { bottom: '100%', marginBottom: 4 } : { top: '100%', marginTop: 4 }),
-                        background: '#ffffff',
-                        border: '1px solid #EAECF0',
-                        borderRadius: 8,
-                        boxShadow: '0 4px 16px rgba(16,24,40,0.12)',
-                        zIndex: 100,
-                        minWidth: 130,
-                        padding: '4px 0',
-                        overflow: 'hidden',
-                      }}
-                    >
+                    <div className="kpmg-mitig-menu-backdrop" onClick={() => setMenuOpen(false)} />
+                    <div className={`kpmg-mitig-menu-dropdown ${isLastRow ? 'kpmg-mitig-menu-dropdown-top' : 'kpmg-mitig-menu-dropdown-bottom'}`}>
                       <button
                         onClick={() => { setMenuOpen(false); onEdit(step); }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          width: '100%',
-                          padding: '8px 14px',
-                          background: 'none',
-                          border: 'none',
-                          fontSize: 13,
-                          color: '#344054',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          fontFamily: 'inherit',
-                        }}
+                        className="kpmg-mitig-menu-item"
                       >
                         <PageIcon name="Edit.svg" size={14} />
                         Edit
@@ -820,20 +702,7 @@ function RoadmapStep({
                       {!step.removed && (
                         <button
                           onClick={() => { setMenuOpen(false); onRemove(step); }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            width: '100%',
-                            padding: '8px 14px',
-                            background: 'none',
-                            border: 'none',
-                            fontSize: 13,
-                            color: '#ED2124',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            fontFamily: 'inherit',
-                          }}
+                          className="kpmg-mitig-menu-item kpmg-mitig-menu-item-remove"
                         >
                           <PageIcon name="Delete.svg" size={14} />
                           Remove
@@ -847,8 +716,8 @@ function RoadmapStep({
           </div>
 
           {/* Meta Sub-row */}
-          <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#475467', marginBottom: 10 }}>
-            <span>Supports <strong style={{ color: '#101828', fontWeight: 600 }}>{step.sr || step.category}</strong></span>
+          <div className="kpmg-mitig-meta-row">
+            <span>Supports <strong className="kpmg-mitig-meta-bold">{step.sr || step.category}</strong></span>
             <span>|</span>
             <span>{step.asset}</span>
             {ranking.maxCvss > 0 && (
@@ -860,20 +729,8 @@ function RoadmapStep({
           </div>
 
           {/* Rationale Pill Container with inner red accent line */}
-          <div
-            style={{
-              background: '#FEF3F2',
-              borderRadius: 6,
-              padding: '6px 12px',
-              color: '#B42318',
-              fontSize: 12,
-              width: 'fit-content',
-              maxWidth: '100%',
-              boxSizing: 'border-box',
-              marginBottom: open ? 12 : 0,
-            }}
-          >
-            <div style={{ borderLeft: '2px solid #F04438', paddingLeft: 8, lineHeight: 1.4 }}>
+          <div className={`kpmg-mitig-rationale-box ${open ? 'kpmg-mitig-rationale-box-mb' : ''}`}>
+            <div className="kpmg-mitig-rationale-inner">
               <strong>Why #{rank}:</strong>{' '}
               {ranking.reasons.length
                 ? ranking.reasons.join('; ') + '.'
@@ -883,64 +740,46 @@ function RoadmapStep({
 
           {/* Smooth Collapsible Content Detail */}
           <div
+            className="kpmg-mitig-collapse-content"
             style={{
               maxHeight: open ? 500 : 0,
               opacity: open ? 1 : 0,
-              overflow: 'hidden',
-              transition: 'max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-in-out, margin-top 0.25s ease'
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12, paddingTop: 4 }}>
-              <div style={{ fontSize: 13, color: '#344054', lineHeight: 1.6 }}>
+            <div className="kpmg-mitig-collapse-inner">
+              <div className="kpmg-mitig-desc">
                 {step.description}
               </div>
 
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#344054', marginBottom: 8 }}>
+                <div className="kpmg-mitig-vulns-title">
                   Associated vulnerabilities
                 </div>
                 {cves.length === 0 && linked.length === 0 ? (
-                  <div style={{ fontSize: 12, color: '#667085', fontStyle: 'italic' }}>
+                  <div className="kpmg-mitig-vulns-empty">
                     No specific CVE — this is a 62443 control improvement supporting {step.sr || step.category}.
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div className="kpmg-mitig-vulns-list">
                     {cves.map((cve) => {
                       const v = linked.find((x) => (x.cve_id || x.cve) === cve);
                       return (
                         <div
                           key={cve}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 12,
-                            padding: '10px 14px',
-                            border: '1px solid #EAECF0',
-                            borderRadius: 8,
-                            background: '#F8FAFC',
-                          }}
+                          className="kpmg-mitig-vuln-row"
                         >
-                          <span
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 700,
-                              color: '#1E49E2',
-                              background: '#EBF1FF',
-                              padding: '2px 8px',
-                              borderRadius: 4,
-                            }}
-                          >
+                          <span className="kpmg-mitig-vuln-id">
                             {v?.id || 'V-1001'}
                           </span>
-                          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 500, color: '#101828' }}>
+                          <span className="kpmg-mitig-vuln-title">
                             {v?.title || 'Default vendor credentials on HMI'}
                           </span>
-                          <span style={{ fontSize: 12.5, fontWeight: 700, color: '#B42318' }}>
+                          <span className="kpmg-mitig-vuln-cvss">
                             {v?.cvss ? v.cvss.toFixed(1) : '9.4'}
                           </span>
                           {/* Segmented Risk Ticks Bar matching Dashboard styling */}
-                          <div style={{ flex: 1, maxWidth: 280 }}>
-                            <div className="kpmg-segmented-bar" style={{ margin: 0 }}>
+                          <div className="kpmg-mitig-vuln-bar-wrap">
+                            <div className="kpmg-segmented-bar kpmg-m-0">
                               {Array.from({ length: 40 }).map((_, idx) => {
                                 const score = v?.cvss ?? 9.4;
                                 const activeCount = Math.round((score / 10) * 40);
@@ -956,15 +795,7 @@ function RoadmapStep({
                           {v ? (
                             <button
                               onClick={() => onOpenVuln(v)}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                fontSize: 12,
-                                color: '#1E49E2',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                fontFamily: 'inherit',
-                              }}
+                              className="kpmg-mitig-vuln-view-btn"
                             >
                               View
                             </button>
@@ -973,7 +804,7 @@ function RoadmapStep({
                               href={`https://nvd.nist.gov/vuln/detail/${encodeURIComponent(cve)}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              style={{ fontSize: 12, color: '#1E49E2', textDecoration: 'underline' }}
+                              className="kpmg-mitig-vuln-fact-link"
                             >
                               Fact-check ↗
                             </a>
@@ -983,7 +814,7 @@ function RoadmapStep({
                     })}
                   </div>
                 )}
-                <div style={{ fontSize: 11, color: '#667085', marginTop: 8 }}>
+                <div className="kpmg-mitig-evidence-note">
                   Evidence is linked so you can verify the AI's reasoning — open the finding, or check the CVE against the public database.
                 </div>
               </div>
@@ -1034,23 +865,9 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
       setHeaderActions(
         <button
           onClick={() => setEditStep('new')}
-          style={{
-            background: '#1E49E2',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            padding: '7px 16px',
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            boxShadow: '0 1px 3px rgba(30,73,226,0.2)',
-            fontFamily: 'inherit'
-          }}
+          className="kpmg-btn-add-step"
         >
-          <PageIcon name="Add.svg" size={14} style={{ filter: 'brightness(0) invert(1)' }} /> Add Step
+          <PageIcon name="Add.svg" size={14} className="kpmg-btn-add-step-icon" /> Add Step
         </button>
       );
     }
@@ -1146,39 +963,17 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
   const doneInGroup = groupSteps.filter((x) => completedIds.has(x.s.id)).length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="kpmg-mitig-container">
 
       {/* Underline Tab Navigation */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 32,
-          borderBottom: '1px solid #EAECF0',
-          marginBottom: 16,
-          paddingBottom: 0
-        }}
-      >
+      <div className="kpmg-mitig-tabs">
         {GROUPS.map((g) => {
           const active = activeGroup === g.id;
           return (
             <button
               key={g.id}
               onClick={() => setActiveGroup(g.id)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                borderBottom: active ? '2.5px solid #1E49E2' : '2.5px solid transparent',
-                paddingBottom: 12,
-                fontSize: 13.5,
-                fontWeight: active ? 600 : 500,
-                color: active ? '#1E49E2' : '#667085',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                marginBottom: -1,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8
-              }}
+              className={`kpmg-mitig-tab-btn ${active ? 'active' : ''}`}
             >
               {g.title}
             </button>
@@ -1187,43 +982,22 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
       </div>
 
       {/* group header + progress */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div
-          style={{
-            fontSize: 12.5,
-            color: C.muted,
-            maxWidth: 560,
-            lineHeight: 1.5,
-          }}
-        >
+      <div className="kpmg-mitig-header">
+        <div className="kpmg-mitig-header-blurb">
           {group.blurb}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="kpmg-mitig-header-right">
           {groupSteps.length > 0 && (
-            <span
-              style={{
-                fontSize: 12.5,
-                fontWeight: 500,
-                color: '#475467',
-              }}
-            >
+            <span className="kpmg-mitig-done-count">
               {doneInGroup}/{groupSteps.length} done
             </span>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11.5, color: C.muted }}>Zone</span>
+          <div className="kpmg-mitig-zone-wrap">
+            <span className="kpmg-mitig-zone-label">Zone</span>
             <Select
               value={zoneF}
               onChange={(e) => setZoneF(e.target.value)}
-              style={{ width: 150 }}
+              className="kpmg-w-150"
               options={[
                 { value: 'all', label: 'All zones' },
                 ...zones.map((z) => ({ value: z.id, label: z.name })),
@@ -1233,7 +1007,7 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
         </div>
       </div>
       {zoneF !== 'all' && (
-        <div style={{ fontSize: 11, color: C.muted, marginTop: -6 }}>
+        <div className="kpmg-mitig-zone-sub">
           Showing mitigations for{' '}
           {zones.find((z) => z.id === zoneF)?.name || zoneF}, plus cross-cutting
           actions that apply to every zone. Priority order is preserved.
@@ -1241,17 +1015,9 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
       )}
 
       {/* ordered roadmap */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div className="kpmg-mitig-steps-list">
         {groupSteps.length === 0 && (
-          <div
-            style={{
-              fontSize: 13,
-              color: C.muted,
-              fontStyle: 'italic',
-              padding: '20px 0',
-              textAlign: 'center',
-            }}
-          >
+          <div className="kpmg-mitig-empty">
             {zoneF !== 'all'
               ? 'No mitigations in this track for the selected zone.'
               : 'No mitigations in this track.'}

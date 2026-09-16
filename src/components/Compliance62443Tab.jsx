@@ -28,34 +28,23 @@ import 'reactflow/dist/style.css';
 const ReactFlowNode = ({ data }) => {
   const { sla, rangeLabel, name, active, slColor } = data;
   return (
-    <div style={{
-      textAlign: 'center',
-      cursor: 'pointer',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      userSelect: 'none'
-    }}>
-      <Handle type="target" position={Position.Left} style={{ background: '#555', opacity: 0 }} />
-      <div style={{
-        width: 50,
-        height: 50,
-        borderRadius: '50%',
-        background: active ? '#fff' : '#FBFCFE',
-        border: `3px solid ${active ? '#00338D' : slColor}`,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justify: 'center',
-        boxShadow: active ? '0 0 10px rgba(0,51,141,0.3)' : '0 2px 4px rgba(0,0,0,0.06)'
-      }}>
-        <span style={{ fontSize: 11, fontWeight: '700', color: slColor, marginTop: 7 }}>SL{sla}</span>
-        <span style={{ fontSize: 8, color: '#5F5E5A', marginTop: -2 }}>{rangeLabel}</span>
+    <div className="kpmg-flow-node">
+      <Handle type="target" position={Position.Left} className="kpmg-flow-handle-invisible" />
+      <div
+        className="kpmg-flow-circle"
+        style={{
+          background: active ? '#fff' : '#FBFCFE',
+          border: `3px solid ${active ? '#00338D' : slColor}`,
+          boxShadow: active ? '0 0 10px rgba(0,51,141,0.3)' : '0 2px 4px rgba(0,0,0,0.06)'
+        }}
+      >
+        <span className="kpmg-flow-sla" style={{ color: slColor }}>SL{sla}</span>
+        <span className="kpmg-flow-range">{rangeLabel}</span>
       </div>
-      <div style={{ fontSize: 11, fontWeight: '600', color: '#1A1A1A', marginTop: 6, whiteSpace: 'nowrap' }}>
+      <div className="kpmg-flow-name">
         {name}
       </div>
-      <Handle type="source" position={Position.Right} style={{ background: '#555', opacity: 0 }} />
+      <Handle type="source" position={Position.Right} className="kpmg-flow-handle-invisible" />
     </div>
   );
 };
@@ -113,12 +102,12 @@ function ReactFlowZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone,
   });
 
   return (
-    <Card style={{ padding: '12px', marginTop: 12 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#00338D', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ background: '#E0E7FF', padding: '2px 8px', borderRadius: 4 }}>ReactFlow Test Implementation</span>
-        <span style={{ fontSize: 11, color: '#5F5E5A', fontWeight: 400 }}>(Interactive Test Diagram)</span>
+    <Card className="kpmg-card-compact-mt">
+      <div className="kpmg-flow-test-header">
+        <span className="kpmg-flow-test-tag">ReactFlow Test Implementation</span>
+        <span className="kpmg-flow-test-sub">(Interactive Test Diagram)</span>
       </div>
-      <div style={{ width: '100%', height: 210 }}>
+      <div className="kpmg-flow-canvas-h210">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -132,7 +121,7 @@ function ReactFlowZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone,
           <Controls showInteractive={false} />
         </ReactFlow>
       </div>
-      <div style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 6 }}>
+      <div className="kpmg-flow-caption">
         Click any node (Zone) or edge (Conduit) in this ReactFlow graph to trigger interactive state updates below
       </div>
     </Card>
@@ -158,9 +147,9 @@ function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelCon
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <div className="kpmg-dotted-pattern" style={{ border: '1px solid #EAECF0', borderRadius: 12, padding: '10px 16px 8px 16px', overflow: 'hidden' }}>
-        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" style={{ display: 'block' }}>
+    <div className="kpmg-w-100p">
+      <div className="kpmg-dotted-pattern kpmg-comp-svg-box">
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" className="kpmg-comp-svg-element">
           {/* Conduit Edges */}
           {conduits.map(c => {
             const a = pos[c.from], b = pos[c.to];
@@ -168,7 +157,7 @@ function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelCon
             const active = sel?.type === 'conduit' && sel.id === c.id;
             const open = ['missing', 'partial'].includes(itemStatus(srSeed, c.to, 'SR5.2')) || ['missing', 'partial'].includes(itemStatus(srSeed, c.from, 'SR5.2'));
             return (
-              <g key={c.id} style={{ cursor: 'pointer' }} onClick={() => onSelConduit(c)}>
+              <g key={c.id} className="kpmg-comp-cursor-pointer" onClick={() => onSelConduit(c)}>
                 <path d={edgePath(a, b)} fill="none" stroke="transparent" strokeWidth={16} />
                 <path
                   d={edgePath(a, b)}
@@ -189,7 +178,7 @@ function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelCon
             const p = pos[z.id], sla = slaForZone(srSeed, z), active = sel?.type === 'zone' && sel.id === z.id;
             const range = zoneLevelRange(assets, z.id);
             return (
-              <g key={z.id} style={{ cursor: 'pointer' }} onClick={() => onSelZone(z)}>
+              <g key={z.id} className="kpmg-comp-cursor-pointer" onClick={() => onSelZone(z)}>
                 {/* Node Ring */}
                 <circle
                   cx={p.x}
@@ -211,7 +200,7 @@ function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelCon
         </svg>
 
         {/* Subtext caption inside the diagram box container */}
-        <div style={{ fontSize: 10.5, color: C.muted, textAlign: 'center', marginTop: 4, paddingBottom: 2 }}>
+        <div className="kpmg-comp-svg-caption">
           Click a zone (node) or conduit (edge) to inspect its requirements below
         </div>
       </div>
@@ -284,8 +273,8 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
       footer={(() => {
           const isSaveDisabled = Object.entries(actions).some(([, v]) => !v.note || !v.note.trim());
           return (
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', width: '100%' }}>
-              <Btn variant="outline" onClick={onClose} style={{ borderRadius: 8, padding: '8px 20px', fontWeight: 600 }}>
+            <div className="kpmg-modal-footer-right">
+              <Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-cancel-btn">
                 Cancel
               </Btn>
               <Btn
@@ -304,25 +293,25 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
         })()
       }
     >
-      <div style={{ display: 'grid', gridTemplateColumns: '460px 1fr', gap: 24, alignItems: 'start' }}>
+      <div className="kpmg-comp-req-grid">
         {/* LEFT COLUMN — PDF Document Viewer & Evidence Info */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-12">
           {/* Header Card for Document */}
-          <div style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="kpmg-comp-doc-card">
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#101828' }}>{doc.filename || 'Text here.pdf'}</div>
-              <div style={{ fontSize: 11.5, color: '#667085', marginTop: 2 }}>
+              <div className="kpmg-comp-doc-title">{doc.filename || 'Text here.pdf'}</div>
+              <div className="kpmg-comp-doc-sub">
                 Uploaded {new Date(doc.uploaded_at || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} - {doc.uploaded_by || 'Consultant'}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="kpmg-comp-doc-actions">
               <a
                 href={doc.url || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={e => { if (!doc.url) e.preventDefault(); }}
                 title="Open PDF"
-                style={{ color: '#475467', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                className="kpmg-comp-doc-link"
               >
                 <PageIcon name="Open.svg" size={16} />
               </a>
@@ -330,7 +319,7 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
                 <button
                   onClick={() => { onRemoveEvidence(doc.id); setDocIdx(0); }}
                   title="Remove evidence"
-                  style={{ background: 'none', border: 'none', color: '#475467', cursor: 'pointer', display: 'flex', padding: 0 }}
+                  className="kpmg-comp-doc-del-btn"
                 >
                   <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
                 </button>
@@ -339,13 +328,13 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
           </div>
 
           {/* PDF Viewer Mock Container */}
-          <div style={{ background: '#374151', borderRadius: 10, padding: '16px 20px', height: 480, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.2)' }}>
-            <div style={{ background: '#FFFFFF', width: '100%', minHeight: 640, borderRadius: 4, padding: '24px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', color: '#334155', fontSize: 9.5, lineHeight: 1.5, fontFamily: 'serif' }}>
-              <p style={{ marginBottom: 10, fontWeight: 'bold' }}>DOCUMENT EVIDENCE REF: {item.id} - COMPLIANCE DEMONSTRATION</p>
-              <p style={{ marginBottom: 10 }}>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas porttitor congue massa. Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna. Nunc viverra imperdiet enim. Fusce est. Vivamus a tellus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin pharetra nonummy pede. Mauris et orci.</p>
-              <p style={{ marginBottom: 10 }}>Aenean nec lorem. In porttitor. Donec laoreet nonummy augue. Suspendisse dui purus, scelerisque at, vulputate vitae, pretium mattis, nunc. Mauris eget neque at sem venenatis eleifend. Ut nonummy. Fusce aliquet pede non pede. Suspendisse dapibus lorem pellentesque magna. Integer nulla. Donec blandit feugiat ligula. Donec hendrerit, felis et imperdiet euismod, purus ipsum pretium metus, in lacinia nulla nisl eget sapien.</p>
-              <p style={{ marginBottom: 10 }}>Donec ut est in lectus consequat consequat. Etiam eget dui. Aliquam erat volutpat. Sed at lorem in nunc porta tristique. Proin nec augue. Quisque aliquam tempor magna. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc ac magna. Maecenas odio dolor, vulputate vel, auctor ac, accumsan id, felis. Pellentesque cursus sagittis felis. Pellentesque porttitor, velit lacinia egestas auctor, diam eros tempus arcu, nec vulputate augue magna vel risus.</p>
-              <p style={{ marginBottom: 10 }}>Cras non magna vel ante adipiscing rhoncus. Vivamus a mi. Morbi neque. Aliquam erat volutpat. Integer ultrices lobortis eros. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin semper, ante vitae sollicitudin posuere, metus quam iaculis nibh, vitae scelerisque nunc massa eget pede. Sed velit urna, interdum vel, ultricies vel, faucibus at, quam. Donec elit est, consectetuer eget, consequat quis, tempus quis, wisi.</p>
+          <div className="kpmg-comp-pdf-viewer">
+            <div className="kpmg-comp-pdf-page">
+              <p className="kpmg-mb-10 kpmg-fw-600">DOCUMENT EVIDENCE REF: {item.id} - COMPLIANCE DEMONSTRATION</p>
+              <p className="kpmg-mb-10">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas porttitor congue massa. Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna. Nunc viverra imperdiet enim. Fusce est. Vivamus a tellus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin pharetra nonummy pede. Mauris et orci.</p>
+              <p className="kpmg-mb-10">Aenean nec lorem. In porttitor. Donec laoreet nonummy augue. Suspendisse dui purus, scelerisque at, vulputate vitae, pretium mattis, nunc. Mauris eget neque at sem venenatis eleifend. Ut nonummy. Fusce aliquet pede non pede. Suspendisse dapibus lorem pellentesque magna. Integer nulla. Donec blandit feugiat ligula. Donec hendrerit, felis et imperdiet euismod, purus ipsum pretium metus, in lacinia nulla nisl eget sapien.</p>
+              <p className="kpmg-mb-10">Donec ut est in lectus consequat consequat. Etiam eget dui. Aliquam erat volutpat. Sed at lorem in nunc porta tristique. Proin nec augue. Quisque aliquam tempor magna. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc ac magna. Maecenas odio dolor, vulputate vel, auctor ac, accumsan id, felis. Pellentesque cursus sagittis felis. Pellentesque porttitor, velit lacinia egestas auctor, diam eros tempus arcu, nec vulputate augue magna vel risus.</p>
+              <p className="kpmg-mb-10">Cras non magna vel ante adipiscing rhoncus. Vivamus a mi. Morbi neque. Aliquam erat volutpat. Integer ultrices lobortis eros. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin semper, ante vitae sollicitudin posuere, metus quam iaculis nibh, vitae scelerisque nunc massa eget pede. Sed velit urna, interdum vel, ultricies vel, faucibus at, quam. Donec elit est, consectetuer eget, consequat quis, tempus quis, wisi.</p>
             </div>
           </div>
 
@@ -354,21 +343,23 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
             const totalPages = docs.length > 0 ? (doc.page_count || 10) : 1;
             const currentP = Math.min(pageNo, totalPages);
             return (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
+              <div className="kpmg-comp-pdf-controls">
                 <button
                   onClick={() => setPageNo(p => Math.max(1, p - 1))}
                   disabled={currentP <= 1}
-                  style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentP <= 1 ? 'default' : 'pointer', opacity: currentP <= 1 ? 0.4 : 1 }}
+                  className="kpmg-comp-pdf-nav-btn"
+                  style={{ cursor: currentP <= 1 ? 'default' : 'pointer', opacity: currentP <= 1 ? 0.4 : 1 }}
                 >
                   <PageIcon name="arrow-left.svg" size={16} />
                 </button>
-                <span style={{ fontSize: 12, color: '#475467', fontWeight: 600 }}>
+                <span className="kpmg-comp-pdf-page-num">
                   {currentP}/{totalPages}
                 </span>
                 <button
                   onClick={() => setPageNo(p => Math.min(totalPages, p + 1))}
                   disabled={currentP >= totalPages}
-                  style={{ background: '#FFFFFF', border: `1px solid ${C.border}`, borderRadius: 6, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentP >= totalPages ? 'default' : 'pointer', opacity: currentP >= totalPages ? 0.4 : 1 }}
+                  className="kpmg-comp-pdf-nav-btn"
+                  style={{ cursor: currentP >= totalPages ? 'default' : 'pointer', opacity: currentP >= totalPages ? 0.4 : 1 }}
                 >
                   <PageIcon name="arrow-right.svg" size={16} />
                 </button>
@@ -378,31 +369,31 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
         </div>
 
         {/* RIGHT COLUMN — Details, AI confidence, Rubric checklist, Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-16">
           {/* Requirement Title & Description */}
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#101828', marginBottom: 4 }}>{item.name}</div>
-            <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5 }}>{desc}</div>
+            <div className="kpmg-comp-item-name">{item.name}</div>
+            <div className="kpmg-comp-item-desc">{desc}</div>
           </div>
 
           {/* 2-Column Summary Cards: Consultant determination & AI Confidence */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', borderRadius: 10, padding: '12px 14px' }}>
-              <div style={{ fontSize: 12, fontWeight: 500, color: '#344054', marginBottom: 4 }}>Consultant determination</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: derived === 'met' ? '#027A48' : derived === 'missing' ? '#B42318' : '#B42318', marginBottom: 4 }}>
+          <div className="kpmg-comp-det-grid">
+            <div className="kpmg-comp-det-box">
+              <div className="kpmg-comp-det-label">Consultant determination</div>
+              <div className="kpmg-comp-det-title" style={{ color: derived === 'met' ? '#027A48' : '#B42318' }}>
                 {derived === 'met' ? 'Met' : derived === 'missing' ? 'Missing' : 'Partial'}
               </div>
-              <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.3 }}>
+              <div className="kpmg-comp-det-sub">
                 derived from {ticked}/{ai.length} rubric points checked ({derived === 'met' ? 'all checked' : derived === 'missing' ? 'none checked' : 'some checked'})
               </div>
             </div>
 
-            <div style={{ background: '#FEF3F2', border: '1px solid #FECDCA', borderRadius: 10, padding: '12px 14px' }}>
-              <div style={{ fontSize: 12, fontWeight: 500, color: '#344054', marginBottom: 4 }}>AI confidence the SR is satisfied</div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: lowConf ? '#B42318' : '#027A48', marginBottom: 4 }}>
+            <div className="kpmg-comp-det-box">
+              <div className="kpmg-comp-det-label">AI confidence the SR is satisfied</div>
+              <div className="kpmg-comp-det-title" style={{ color: lowConf ? '#B42318' : '#027A48' }}>
                 {conf.score}%
               </div>
-              <div style={{ fontSize: 11.5, color: '#475467', lineHeight: 1.3 }}>
+              <div className="kpmg-comp-det-sub">
                 {ticked} of {ai.length} rubric points are demonstrated; coverage of the remaining points is implied rather than evidenced, so confidence is moderate.
               </div>
             </div>
@@ -410,7 +401,7 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
 
           {/* Upload Additional Evidence Box */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#344054', marginBottom: 6 }}>Upload additional evidence</div>
+            <div className="kpmg-comp-field-label">Upload additional evidence</div>
             <div
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
               onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
@@ -426,23 +417,13 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
                   force(x => x + 1);
                 }
               }}
-              style={{
-                border: isDragging ? '1.5px dashed #1D4ED8' : '1px dashed #D0D5DD',
-                borderRadius: 8,
-                padding: '16px 20px',
-                textAlign: 'center',
-                background: isDragging ? '#EFF6FF' : '#FAFCFF',
-                cursor: 'pointer',
-                fontSize: 12.5,
-                color: '#475467',
-                transition: 'all 0.15s ease'
-              }}
+              className={`kpmg-comp-upload-zone ${isDragging ? 'dragging' : ''}`}
             >
-              <span style={{ color: '#1D4ED8', fontWeight: 600, textDecoration: 'underline' }}>Click to upload</span> or drag and drop
+              <span className="kpmg-comp-upload-link">Click to upload</span> or drag and drop
               <input
                 ref={fileInputRef}
                 type="file"
-                style={{ display: 'none' }}
+                className="kpmg-d-none"
                 accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.xlsx"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -459,18 +440,18 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
 
           {/* AI Banner for New Evidence Filed */}
           {reanalysed && (
-            <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#1E40AF', lineHeight: 1.45 }}>
-              <div style={{ fontWeight: 600, marginBottom: 2 }}>New evidence filed - the AI has re-analysed this SR</div>
+            <div className="kpmg-comp-reanalysed-banner">
+              <div className="kpmg-comp-banner-title">New evidence filed - the AI has re-analysed this SR</div>
               Its updated read is reflected in the confidence score and checklist below. Review and confirm the rubric - nothing is ticked automatically; your determination stays manual.
             </div>
           )}
 
           {/* Compliance Rubric Checklist */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#344054', marginBottom: 4 }}>Compliance rubric</div>
-            <div style={{ fontSize: 11.5, color: '#667085', marginBottom: 8 }}>Select any that apply - a site can run both IT and OT tooling.</div>
+            <div className="kpmg-comp-field-label">Compliance rubric</div>
+            <div className="kpmg-comp-field-sub">Select any that apply - a site can run both IT and OT tooling.</div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 220, overflowY: 'auto' }}>
+            <div className="kpmg-comp-rubric-scroll">
               {ai.map((r, i) => {
                 const on = tickOf(i);
                 return (
@@ -487,25 +468,15 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
                     className="kpmg-rubric-card"
                   >
                     <div
+                      className="kpmg-comp-rubric-chk"
                       style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 4,
                         border: `1.5px solid ${on ? '#1D4ED8' : '#D0D5DD'}`,
                         background: on ? '#1D4ED8' : '#FFFFFF',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#FFFFFF',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        flexShrink: 0,
-                        marginTop: 1
                       }}
                     >
                       {on && '✓'}
                     </div>
-                    <div style={{ fontSize: 12, color: '#344054', lineHeight: 1.45 }}>{r.point}</div>
+                    <div className="kpmg-comp-rubric-point">{r.point}</div>
                   </div>
                 );
               })}
@@ -514,21 +485,16 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
 
           {/* Consultant Actions */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: '#344054', marginBottom: 6 }}>Consultant actions</div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+            <div className="kpmg-comp-field-label">Consultant actions</div>
+            <div className="kpmg-comp-actions-tag-wrap">
               {ACTION_DEFS.map(([kind, label]) => {
                 const on = !!actions[kind];
                 return (
                   <button
                     key={kind}
                     onClick={() => toggleAction(kind)}
+                    className="kpmg-comp-action-tag-btn"
                     style={{
-                      fontSize: 11.5,
-                      fontWeight: 500,
-                      padding: '5px 12px',
-                      borderRadius: 16,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
                       border: `1px solid ${on ? '#1D4ED8' : '#D0D5DD'}`,
                       background: on ? '#EFF6FF' : '#FFFFFF',
                       color: on ? '#1D4ED8' : '#344054'
@@ -541,15 +507,15 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
             </div>
 
             {ACTION_DEFS.filter(([k]) => actions[k]).map(([kind, label]) => (
-              <div key={kind} style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 500, color: '#344054', marginBottom: 4 }}>
-                  {label} - note <span style={{ color: '#D9251B' }}>*</span>
+              <div key={kind} className="kpmg-comp-action-note-wrap">
+                <div className="kpmg-comp-field-sub">
+                  {label} - note <span className="kpmg-req-asterisk">*</span>
                 </div>
                 <Input
                   value={actions[kind].note || ''}
                   onChange={e => { setSrActionNote(zone.id, item.id, kind, e.target.value); force(x => x + 1); }}
                   placeholder="What specifically is needed?"
-                  style={{ fontSize: 12, borderRadius: 8 }}
+                  className="kpmg-comp-note-input"
                 />
               </div>
             ))}
@@ -567,21 +533,21 @@ function AssetPanel({ zone, assets, srSeed, onClose, onConfirm }) {
   const reasons = confidenceReasons(srSeed, assets, zone);
   return (
     <Modal title={`${zone.name} — asset inventory`} subtitle={`Asset/data confidence ${conf}%`} onClose={onClose} maxWidth={620}>
-      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
-        <div style={{ flex:1, height:7, background:'#EEF2FA', borderRadius:4, overflow:'hidden' }}><div style={{ height:'100%', width:`${conf}%`, background:confColor(conf), borderRadius:4 }}/></div>
-        <span style={{ fontSize:13, fontWeight:700, color:confColor(conf) }}>{conf}%</span>
+      <div className="kpmg-comp-asset-bar-wrap">
+        <div className="kpmg-comp-asset-bar-bg"><div className="kpmg-comp-asset-bar-fill" style={{ width:`${conf}%`, background:confColor(conf) }}/></div>
+        <span className="kpmg-comp-asset-bar-score" style={{ color:confColor(conf) }}>{conf}%</span>
       </div>
-      <div style={{ fontSize:11.5, color:C.muted, marginBottom:14, lineHeight:1.6 }}>{reasons.join(' · ')}</div>
+      <div className="kpmg-comp-asset-reasons">{reasons.join(' · ')}</div>
       {za.map(a=>{
         const flagged = a.source!=='confirmed' && a.confidence<CONF_THRESHOLD;
         return (
-          <div key={a.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderTop:`1px solid ${C.border}` }}>
-            <div style={{ flex:1 }}>
-              <div style={{ fontSize:13, fontWeight:500, color:C.text }}>{a.name}</div>
-              <div style={{ fontSize:11, color:flagged?'#B42318':C.muted }}>{a.deviceType}{flagged?' · low confidence':a.source==='confirmed'?' · confirmed':''}</div>
+          <div key={a.id} className="kpmg-comp-asset-row">
+            <div className="kpmg-flex-1">
+              <div className="kpmg-comp-asset-name">{a.name}</div>
+              <div className="kpmg-comp-asset-meta" style={{ color:flagged?'#B42318':C.muted }}>{a.deviceType}{flagged?' · low confidence':a.source==='confirmed'?' · confirmed':''}</div>
             </div>
             <Select value={a.level} onChange={e=>onConfirm(a.id, Number(e.target.value))} options={[0,1,2,3,4,5].map(l=>({value:l,label:`L${l}`}))}/>
-            <span style={{ fontSize:12, fontWeight:600, color:confColor(a.confidence), width:34, textAlign:'right' }}>{a.confidence}%</span>
+            <span className="kpmg-comp-asset-pct" style={{ color:confColor(a.confidence) }}>{a.confidence}%</span>
           </div>
         );
       })}
@@ -606,22 +572,22 @@ export default function Compliance62443Tab() {
   const conduitZones = selConduit ? [zones.find(z=>z.id===selConduit.from), zones.find(z=>z.id===selConduit.to)].filter(Boolean) : [];
 
   const renderZoneReqs = (zone, onlyFR) => (
-    <Card style={{ padding:0, overflow:'hidden' }}>
-      <div style={{ padding:'12px 16px', background: '#FAFCFF', borderBottom:`1px solid ${C.border}`, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
-        <span style={{ fontSize:14, fontWeight:700, color:C.text }}>{zone.name}</span>
-        <span style={{ fontSize:12, color:C.muted }}>target SL-T {zone.slT}</span>
-        <span style={{ fontSize:16, fontWeight:700, color:slColor(slaForZone(srSeed,zone)) }}>SL-A {slaForZone(srSeed,zone)}</span>
+    <Card className="kpmg-comp-req-card">
+      <div className="kpmg-comp-zone-head">
+        <span className="kpmg-comp-zone-title">{zone.name}</span>
+        <span className="kpmg-comp-zone-target">target SL-T {zone.slT}</span>
+        <span className="kpmg-comp-zone-sla-text" style={{ color:slColor(slaForZone(srSeed,zone)) }}>SL-A {slaForZone(srSeed,zone)}</span>
       </div>
 
-      <div style={{ padding:'9px 16px', background:'#FFFFFF', borderBottom:`1px solid ${C.border}`, fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5 }}>IEC 62443-3-3 requirements</div>
+      <div className="kpmg-comp-req-heading">IEC 62443-3-3 requirements</div>
       {FR_CATALOGUE.filter(c=>!onlyFR||c.fr===onlyFR).map((cat,ci,arr)=>{
         const items = requiredItems(cat.fr, zone.slT); if(!items.length) return null;
         return (
           <div key={cat.fr} style={{ borderBottom:ci<arr.length-1?`1px solid ${C.border}`:'none' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 16px', background:'#FAFBFF' }}>
-              <span className="kpmg-code-badge" style={{ fontSize:12, fontWeight:700, color:C.navy }}>{cat.fr}</span>
-              <span style={{ fontSize:12.5, fontWeight:600, color:C.text, flex:1 }}>{cat.name}</span>
-              <span style={{ fontSize:11, fontWeight:700, color:slColor(slaForFR(srSeed,zone,cat.fr)) }}>SL-A {slaForFR(srSeed,zone,cat.fr)}</span>
+            <div className="kpmg-comp-fr-header-row">
+              <span className="kpmg-code-badge kpmg-comp-fr-badge">{cat.fr}</span>
+              <span className="kpmg-comp-fr-name">{cat.name}</span>
+              <span className="kpmg-comp-fr-sla" style={{ color:slColor(slaForFR(srSeed,zone,cat.fr)) }}>SL-A {slaForFR(srSeed,zone,cat.fr)}</span>
             </div>
             {items.map((it, idx) => {
               const s = itemStatus(srSeed, zone.id, it.id);
@@ -651,146 +617,86 @@ export default function Compliance62443Tab() {
                 <div
                   key={it.id}
                   onClick={() => setReqOpen({ zone, item: it })}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '58px 95px 1fr 105px 190px 160px auto',
-                    alignItems: 'center',
-                    gap: 20,
-                    padding: '10px 24px',
-                    borderTop: `1px solid ${C.border}`,
-                    cursor: 'pointer',
-                    position: 'relative'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#F8FAFD'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                  className="kpmg-comp-req-row"
                 >
                   {/* Status Box Indicator & Tree Connector Line Hierarchy */}
-                  <div style={{ display: 'flex', alignItems: 'center', position: 'relative', height: 26, paddingLeft: it.isRE ? 38 : 0 }}>
+                  <div className={`kpmg-comp-tree-wrap ${it.isRE ? 'kpmg-comp-tree-wrap-re' : ''}`}>
                     {/* Vertical line from parent downwards through children */}
                     {(!it.isRE && hasNextRE) && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          left: 11,
-                          top: 13,
-                          bottom: -22,
-                          width: 1.5,
-                          background: '#D0D5DD',
-                          pointerEvents: 'none'
-                        }}
-                      />
+                      <div className="kpmg-comp-tree-line-v" style={{ top: 13, bottom: -22 }} />
                     )}
 
                     {/* Vertical line continuing down through child RE items */}
                     {it.isRE && (
                       <div
+                        className="kpmg-comp-tree-line-v"
                         style={{
-                          position: 'absolute',
-                          left: 11,
                           top: -22,
-                          bottom: hasNextRE ? -22 : 13,
-                          width: 1.5,
-                          background: '#D0D5DD',
-                          pointerEvents: 'none'
+                          bottom: hasNextRE ? -22 : 13
                         }}
                       />
                     )}
 
                     {/* Horizontal branch line connecting vertical tree line to child badge */}
                     {it.isRE && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          left: 11,
-                          top: 12,
-                          width: 27,
-                          borderTop: '1.5px solid #D0D5DD',
-                          pointerEvents: 'none'
-                        }}
-                      />
+                      <div className="kpmg-comp-tree-line-h" />
                     )}
 
                     {/* Rounded Rectangle Badge with Status Circle Dot */}
                     <div
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 5,
-                        background: st.bg,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        zIndex: 1
-                      }}
+                      className="kpmg-comp-status-dot-box"
+                      style={{ background: st.bg }}
                     >
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: st.dot, display: 'inline-block' }} />
+                      <span className="kpmg-comp-status-dot" style={{ background: st.dot }} />
                     </div>
                   </div>
 
                   {/* Code ID - Parent moved further to the left */}
-                  <div style={{ display: 'flex', alignItems: 'center', marginLeft: !it.isRE ? -32 : 0 }}>
-                    <span className="kpmg-code-badge" style={{ fontSize: 11, color: it.isRE ? '#667085' : '#00338D', fontWeight: 700 }}>
+                  <div className={`kpmg-comp-tree-code-wrap ${!it.isRE ? 'kpmg-comp-tree-code-parent' : ''}`}>
+                    <span className="kpmg-code-badge kpmg-comp-tree-code-text" style={{ color: it.isRE ? '#667085' : '#00338D' }}>
                       {it.id}
                     </span>
                   </div>
 
                   {/* Title (Second Column) */}
-                  <div style={{ display: 'flex', alignItems: 'center', minHeight: 24, paddingRight: 8 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#101828', lineHeight: 1.3, display: 'inline-block' }}>
+                  <div className="kpmg-comp-req-title-wrap">
+                    <span className="kpmg-comp-req-title-text">
                       {it.name}
                     </span>
                   </div>
 
                   {/* Status Pill */}
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div className="kpmg-d-flex kpmg-items-center">
                     <span
+                      className="kpmg-comp-status-pill"
                       style={{
                         background: st.bg,
                         color: st.fg,
-                        border: `1px solid ${st.border}`,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        padding: '2px 10px',
-                        borderRadius: 12,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        whiteSpace: 'nowrap'
+                        border: `1px solid ${st.border}`
                       }}
                     >
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: st.dot, display: 'inline-block', flexShrink: 0 }} />
+                      <span className="kpmg-comp-pill-dot" style={{ background: st.dot }} />
                       {st.label}
                     </span>
                   </div>
 
                   {/* Compliance Rubric */}
-                  <div style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: '#344054', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    {ticked}/{totalRubric} <span style={{ color: '#667085', fontWeight: 400, marginLeft: 4 }}>Compliance rubric</span>
+                  <div className="kpmg-comp-rubric-meta">
+                    {ticked}/{totalRubric} <span className="kpmg-subtext">Compliance rubric</span>
                   </div>
 
                   {/* % Score & Manual Review */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#101828' }}>{pct}%</span>
+                  <div className="kpmg-comp-score-meta">
+                    <span className="kpmg-comp-score-pct">{pct}%</span>
                     {needsManual && (
-                      <span
-                        style={{
-                          background: '#FEF3F2',
-                          color: '#B42318',
-                          border: '1px solid #FECDCA',
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          padding: '2px 8px',
-                          borderRadius: 10
-                        }}
-                      >
+                      <span className="kpmg-comp-review-badge">
                         Manual Review
                       </span>
                     )}
                   </div>
 
                   {/* Evidence Uploaded (Far Right) */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', fontSize: 12, fontWeight: 600, color: '#6941C6', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <div className="kpmg-comp-evidence-meta">
                     {evCount} Evidence uploaded
                   </div>
                 </div>
@@ -809,8 +715,8 @@ export default function Compliance62443Tab() {
 
       {selZone && renderZoneReqs(selZone)}
       {selConduit && (
-        <div className="kpmg-page-stack" style={{ gap: 12 }}>
-          <div className="kpmg-subtext">Conduit <strong style={{ color:'var(--heading-color)' }}>{selConduit.name}</strong> — restricted-data-flow (FR5) requirements across the connected zones:</div>
+        <div className="kpmg-page-stack kpmg-gap-12">
+          <div className="kpmg-subtext">Conduit <strong className="kpmg-text-heading">{selConduit.name}</strong> — restricted-data-flow (FR5) requirements across the connected zones:</div>
           {conduitZones.map(z => renderZoneReqs(z, 'FR5'))}
         </div>
       )}
@@ -825,16 +731,16 @@ export default function Compliance62443Tab() {
       {assetOpen && <AssetPanel zone={assetOpen} assets={assets} srSeed={srSeed} onClose={()=>setAssetOpen(null)} onConfirm={confirmAssetLevel}/>}
 
       {actionsOpen && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(10,22,40,.5)', zIndex:200, display:'flex', justifyContent:'flex-end', backdropFilter:'blur(2px)' }} onClick={()=>setActionsOpen(false)}>
-          <div style={{ width:'min(880px, 94vw)', height:'100%', background:'#F4F7FD', boxShadow:'-12px 0 40px rgba(10,22,40,.25)', display:'flex', flexDirection:'column' }} onClick={e=>e.stopPropagation()}>
-            <div style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 22px', background:'#fff', borderBottom:`1px solid var(--border-color)`, flexShrink:0 }}>
+        <div className="kpmg-comp-actions-drawer-backdrop" onClick={()=>setActionsOpen(false)}>
+          <div className="kpmg-comp-actions-drawer" onClick={e=>e.stopPropagation()}>
+            <div className="kpmg-comp-drawer-head">
               <div>
                 <div className="kpmg-modal-title">Actions</div>
                 <div className="kpmg-modal-subtitle">Everything outstanding from the 62443 review, across every zone</div>
               </div>
               <button onClick={()=>setActionsOpen(false)} className="kpmg-modal-close-btn">×</button>
             </div>
-            <div style={{ overflowY:'auto', padding:'18px 22px', flex:1 }}>
+            <div className="kpmg-comp-drawer-body">
               <WorkspaceTab embedded/>
             </div>
           </div>
@@ -843,3 +749,4 @@ export default function Compliance62443Tab() {
     </div>
   );
 }
+

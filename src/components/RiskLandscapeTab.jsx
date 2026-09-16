@@ -184,22 +184,22 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
     <Card>
       <div className="kpmg-card-header-flex">
         <div>
-          <div className="kpmg-text-title-sm" style={{ marginBottom: 2 }}>Assets across the Purdue model</div>
+          <div className="kpmg-text-title-sm kpmg-mb-2">Assets across the Purdue model</div>
           <div className="kpmg-subtext">
             Showing <strong>{enriched.length}</strong> of {allEnriched.length} assets{zoneF!=='all'?` in ${zones.find(z=>z.id===zoneF)?.name||zoneF}`:''} — banded by Purdue level, coloured by zone. Node size scales with exposure; severe assets glow red. Click a node for its CVEs.
           </div>
         </div>
-        <div className="kpmg-flex-row" style={{ flexShrink: 0 }}>
+        <div className="kpmg-flex-row kpmg-shrink-0">
           <Select value={zoneF} onChange={e=>{ setZoneF(e.target.value); setSelId(null); }} className="kpmg-w-150"
             options={[{value:'all',label:'All zones'}, ...zones.map(z=>({value:z.id,label:z.name}))]}/>
           <Select value={sevF} onChange={e=>{ setSevF(e.target.value); setSelId(null); }} className="kpmg-w-150"
             options={SEV_OPTS.map(([v,l])=>({value:v,label:l}))}/>
         </div>
       </div>
-      {enriched.length===0 && <div className="kpmg-subtext" style={{ fontStyle:'italic', padding:'8px 0' }}>No assets match this zone/severity filter{hiddenCount>0?` (${hiddenCount} filtered out)`:''}.</div>}
-      <div style={{ display:'flex', gap:14 }}>
+      {enriched.length===0 && <div className="kpmg-subtext kpmg-empty-muted-italic">No assets match this zone/severity filter{hiddenCount>0?` (${hiddenCount} filtered out)`:''}.</div>}
+      <div className="kpmg-d-flex kpmg-gap-14">
         <div className="kpmg-stage-wrapper">
-          <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" style={{ display:'block' }}>
+          <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" className="kpmg-d-block">
             <StageDefs/>
             <LevelBands/>
             {/* edges */}
@@ -231,17 +231,17 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
           {sel ? (
             <div className="kpmg-asset-detail-card">
               <div className="kpmg-modal-title">{sel.name}</div>
-              <div className="kpmg-subtext" style={{ marginBottom: 8 }}>{sel.deviceType} · L{sel.level} · {zones.find(z=>z.id===sel.zone)?.name}</div>
+              <div className="kpmg-subtext kpmg-mb-8">{sel.deviceType} · L{sel.level} · {zones.find(z=>z.id===sel.zone)?.name}</div>
               {selEx && (
-                <div style={{ fontSize:11.5, marginBottom:8, padding:'7px 9px', borderRadius:8, background:selEx.level==='High'?'#FEE4E2':selEx.level==='Medium'?'#FEF0C7':'#DCFAE6', color:selEx.level==='High'?'#B42318':selEx.level==='Medium'?'#B54708':'#067647', lineHeight:1.5 }}>
+                <div className="kpmg-exploitable-banner" style={{ background:selEx.level==='High'?'#FEE4E2':selEx.level==='Medium'?'#FEF0C7':'#DCFAE6', color:selEx.level==='High'?'#B42318':selEx.level==='Medium'?'#B54708':'#067647' }}>
                   <strong>Exploitable: {selEx.level}.</strong> {selEx.reason}
                 </div>
               )}
-              <div style={{ fontSize:11, fontWeight:700, color:C.muted, textTransform:'uppercase', letterSpacing:.5, margin:'8px 0 4px' }}>Associated CVEs ({sel.matches.length})</div>
+              <div className="kpmg-risk-sec-title">Associated CVEs ({sel.matches.length})</div>
               {sel.matches.slice(0,6).map(v=>(
-                <div key={v.vuln_id} style={{ fontSize:11.5, color:C.text, padding:'4px 0', borderTop:`1px solid ${C.border}` }}>
-                  <span className="kpmg-code-badge" style={{ fontSize:10.5, color:C.navy }}>{v.cve_id||v.cve||v.vuln_id}</span> · {v.cvss}
-                  <div style={{ fontSize:10.5, color:C.muted }}>{v.title}</div>
+                <div key={v.vuln_id} className="kpmg-asset-vuln-row">
+                  <span className="kpmg-code-badge kpmg-code-badge-navy">{v.cve_id||v.cve||v.vuln_id}</span> · {v.cvss}
+                  <div className="kpmg-text-10-muted">{v.title}</div>
                 </div>
               ))}
               {!sel.matches.length && <div className="kpmg-subtext">No findings linked to this asset.</div>}
@@ -250,8 +250,8 @@ function PurdueGraph({ zones, assets, vulns, highlightAssetId }) {
         </div>
       </div>
       <div className="kpmg-legend-footer">
-        {zones.map(z=>(<span key={z.id} style={{ display:'inline-flex', alignItems:'center', gap:6 }}><span style={{ width:10, height:10, borderRadius:'50%', background:nodeColor(z.id) }}/>{z.name}</span>))}
-        <span style={{ display:'inline-flex', alignItems:'center', gap:6 }}><span style={{ width:12, height:12, borderRadius:'50%', background:'#E8284B' }}/>red glow = severe vulnerability</span>
+        {zones.map(z=>(<span key={z.id} className="kpmg-legend-item"><span className="kpmg-dot-10" style={{ background:nodeColor(z.id) }}/>{z.name}</span>))}
+        <span className="kpmg-legend-item"><span className="kpmg-dot-severe"/>red glow = severe vulnerability</span>
       </div>
     </Card>
   );
@@ -263,95 +263,52 @@ const ReactFlowAssetNode = ({ data }) => {
   const size = Math.max(16, (r || 10) * 2);
 
   return (
-    <div style={{
-      textAlign: 'center',
-      cursor: 'pointer',
+    <div className="kpmg-rf-asset-node" style={{
       opacity: dim ? 0.3 : 1,
-      userSelect: 'none',
-      position: 'relative',
       width: size,
       height: size,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
     }}>
       {/* Centered Connection Handles pinned exactly to Circle Center */}
       <Handle
         type="target"
         position={Position.Top}
+        className="kpmg-rf-handle"
         style={{
-          position: 'absolute',
           top: size / 2,
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 1,
-          height: 1,
-          background: 'transparent',
-          border: 'none',
-          zIndex: 10
         }}
       />
       <Handle
         type="source"
         position={Position.Bottom}
+        className="kpmg-rf-handle"
         style={{
-          position: 'absolute',
           top: size / 2,
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 1,
-          height: 1,
-          background: 'transparent',
-          border: 'none',
-          zIndex: 10
         }}
       />
       
       {/* Outer pulsing & blinking ring for severe/risky nodes */}
       {isRisky && (
-        <div style={{
-          position: 'absolute',
-          top: -4,
-          left: -4,
+        <div className="kpmg-rf-pulse-ring" style={{
           width: size + 8,
           height: size + 8,
-          borderRadius: '50%',
-          border: '2px solid #E8284B',
-          boxSizing: 'border-box',
-          animation: 'kpmgPulseBlink 1.8s ease-in-out infinite',
-          pointerEvents: 'none'
         }} />
       )}
 
       {/* Main Orb Circle */}
-      <div style={{
+      <div className="kpmg-rf-orb" style={{
         width: size,
         height: size,
-        borderRadius: '50%',
         background: isRisky ? '#E8284B' : color,
         border: `1.5px solid ${active ? '#0A1628' : '#FFFFFF'}`,
         boxShadow: active ? '0 0 0 2.5px #0A1628' : 'none',
-        boxSizing: 'border-box'
       }} />
 
       {/* Asset Name Label positioned absolutely below circle */}
       {(active || size > 24) && (
-        <div style={{
-          fontSize: 8.5,
-          color: '#101828',
-          position: 'absolute',
+        <div className="kpmg-rf-node-label" style={{
           top: size + 2,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          whiteSpace: 'nowrap',
           opacity: dim ? 0.4 : 0.95,
           fontWeight: active ? 700 : 500,
-          background: 'rgba(255, 255, 255, 0.92)',
-          padding: '1px 5px',
-          borderRadius: 4,
-          border: '1px solid #EAECF0',
-          boxShadow: '0 1px 2px rgba(10, 22, 40, 0.05)',
-          zIndex: 12,
         }}>
           {name}
         </div>
@@ -458,7 +415,7 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
   const SEV_OPTS = [['all', 'All severities'], ['med', 'Medium +'], ['high', 'High +'], ['crit', 'Critical only']];
 
   return (
-    <Card style={{ marginTop: 16, padding: 24, borderRadius: 16 }}>
+    <Card className="kpmg-risk-purdue-card">
       {/* Top Header Row with standardized kpmg-card-header-bar class */}
       <div className="kpmg-card-header-bar">
         <div className="kpmg-header-title-group">
@@ -472,35 +429,27 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
           <Select
             value={zoneF}
             onChange={e => { setZoneF(e.target.value); setSelId(null); }}
-            style={{ width: 140 }}
+            className="kpmg-w-140"
             options={[{ value: 'all', label: 'All zones' }, ...zones.map(z => ({ value: z.id, label: z.name }))]}
           />
           <Select
             value={sevF}
             onChange={e => { setSevF(e.target.value); setSelId(null); }}
-            style={{ width: 140 }}
+            className="kpmg-w-140"
             options={SEV_OPTS.map(([v, l]) => ({ value: v, label: l }))}
           />
         </div>
       </div>
 
-      {enriched.length === 0 && <div className="kpmg-subtext" style={{ fontStyle: 'italic', padding: '8px 0' }}>No assets match this zone/severity filter{hiddenCount > 0 ? ` (${hiddenCount} filtered out)` : ''}.</div>}
+      {enriched.length === 0 && <div className="kpmg-subtext kpmg-empty-filter-subtext">No assets match this zone/severity filter{hiddenCount > 0 ? ` (${hiddenCount} filtered out)` : ''}.</div>}
 
-      <div style={{ display: 'flex', gap: 16, width: '100%', alignItems: 'stretch' }}>
+      <div className="kpmg-risk-stage-container">
         <div
-          className="kpmg-stage-wrapper kpmg-dotted-pattern"
-          style={{
-            position: 'relative',
-            flex: 1,
-            height: STAGE_H,
-            overflow: 'hidden',
-            borderRadius: 14,
-            border: '1px solid #EAECF0',
-            boxSizing: 'border-box',
-          }}
+          className="kpmg-stage-wrapper kpmg-dotted-pattern kpmg-risk-stage-box"
+          style={{ height: STAGE_H }}
         >
           {/* Pure SVG Purdue Model Graph with level rects & nodes rendered together */}
-          <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" height="100%" style={{ display: 'block' }}>
+          <svg viewBox={`0 0 ${STAGE.W} ${STAGE_H}`} width="100%" height="100%" className="kpmg-block-svg">
             <LevelBands />
 
             {/* Connection Edges */}
@@ -535,7 +484,7 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
               const dim = sel && connectedToSel && !connectedToSel.has(a.id) && a.id !== selId;
 
               return (
-                <g key={a.id} style={{ cursor: 'pointer' }} opacity={dim ? 0.3 : 1} onClick={() => setSelId(a.id === selId ? null : a.id)}>
+                <g key={a.id} className="kpmg-cursor-pointer" opacity={dim ? 0.3 : 1} onClick={() => setSelId(a.id === selId ? null : a.id)}>
                   {isRisky && (
                     <circle cx={p.x} cy={p.y} r={r + 4} fill="none" stroke="#E8284B" strokeWidth="1.5">
                       <animate attributeName="r" values={`${r + 3};${r + 8};${r + 3}`} dur="2.6s" repeatCount="indefinite" />
@@ -562,24 +511,13 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
         </div>
 
         {/* Right Details Sidebar matching reference design */}
-        <div style={{ width: 280, flexShrink: 0 }}>
+        <div className="kpmg-risk-sidebar-wrap">
           {sel ? (
-            <div
-              style={{
-                background: '#ffffff',
-                border: '1px solid #EAECF0',
-                borderRadius: 16,
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 16,
-                boxShadow: '0 1px 3px rgba(16,24,40,0.04)',
-              }}
-            >
+            <div className="kpmg-risk-sidebar-card">
               {/* Header section with full-width bottom divider */}
-              <div style={{ borderBottom: '1px solid #EAECF0', paddingBottom: 14 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#101828', lineHeight: 1.3 }}>{sel.name}</div>
-                <div style={{ fontSize: 12.5, color: '#475467', marginTop: 4 }}>
+              <div className="kpmg-risk-sidebar-header">
+                <div className="kpmg-risk-sidebar-title">{sel.name}</div>
+                <div className="kpmg-risk-sidebar-sub">
                   {sel.deviceType || 'Web / boundary'} · L{sel.level} · {zones.find((z) => z.id === sel.zone)?.name || 'Enterprise'}
                 </div>
               </div>
@@ -595,20 +533,16 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
 
                 return (
                   <div
+                    className="kpmg-risk-exploit-box"
                     style={{
                       background: bgColor,
                       border: `1px solid ${borderColor}`,
-                      borderRadius: 12,
-                      padding: '14px 16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
                     }}
                   >
-                    <div style={{ fontSize: 14, fontWeight: 700, color: textColor }}>
+                    <div className="kpmg-risk-exploit-title" style={{ color: textColor }}>
                       Exploitable: {lvl}
                     </div>
-                    <div style={{ fontSize: 12, color: '#344054', lineHeight: 1.5 }}>
+                    <div className="kpmg-risk-exploit-reason">
                       {selEx.reason}
                     </div>
                   </div>
@@ -617,11 +551,11 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
 
               {/* Associated CVEs Section */}
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 10 }}>
+                <div className="kpmg-risk-sec-title">
                   Associated CVEs ({sel.matches.length || 1})
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="kpmg-risk-cve-list">
                   {(sel.matches.length > 0 ? sel.matches.slice(0, 4) : [{ cve_id: 'CVE-2023-51467', title: 'SQL injection in corporate web portal', cvss: 9.2 }]).map((v, idx) => {
                     const cvssVal = v.cvss || v.risk_score || 9.2;
                     const isHighCvss = cvssVal >= 8.5;
@@ -633,39 +567,20 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
                     return (
                       <div
                         key={v.vuln_id || idx}
-                        style={{
-                          background: '#ffffff',
-                          border: '1px solid #EAECF0',
-                          borderRadius: 12,
-                          padding: '12px 14px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 10,
-                        }}
+                        className="kpmg-risk-cve-card"
                       >
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
-                          <span
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              color: '#344054',
-                              background: '#F2F4F7',
-                              padding: '2px 8px',
-                              borderRadius: 6,
-                              width: 'fit-content',
-                            }}
-                          >
+                        <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-4 kpmg-flex-1-min0">
+                          <span className="kpmg-risk-cve-badge">
                             {v.cve_id || v.cve || v.vuln_id || 'CVE-2023-51467'}
                           </span>
-                          <span style={{ fontSize: 12, fontWeight: 500, color: '#101828', lineHeight: 1.4 }}>
+                          <span className="kpmg-risk-cve-title">
                             {v.title || 'SQL injection in corporate web portal'}
                           </span>
                         </div>
 
                         {/* Circular CVSS Gauge */}
-                        <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <svg width={44} height={44} viewBox="0 0 44 44" style={{ transform: 'rotate(-90deg)' }}>
+                        <div className="kpmg-risk-cvss-gauge">
+                          <svg width={44} height={44} viewBox="0 0 44 44">
                             <circle cx="22" cy="22" r="18" fill="none" stroke="#EAECF0" strokeWidth="3" />
                             <circle
                               cx="22"
@@ -679,7 +594,7 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
                               strokeLinecap="round"
                             />
                           </svg>
-                          <span style={{ position: 'absolute', fontSize: 11, fontWeight: 700, color: gaugeColor }}>
+                          <span className="kpmg-risk-cvss-text" style={{ color: gaugeColor }}>
                             {typeof cvssVal === 'number' ? cvssVal.toFixed(1) : cvssVal}
                           </span>
                         </div>
@@ -691,24 +606,8 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
             </div>
           ) : (
             <div
-              style={{
-                background: '#ffffff',
-                border: '1px solid #EAECF0',
-                borderRadius: 16,
-                padding: '24px 20px',
-                height: '100%',
-                minHeight: STAGE_H,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 13,
-                fontWeight: 500,
-                color: '#667085',
-                textAlign: 'center',
-                lineHeight: 1.5,
-                boxShadow: '0 1px 3px rgba(16,24,40,0.04)',
-                boxSizing: 'border-box',
-              }}
+              className="kpmg-risk-sidebar-empty"
+              style={{ minHeight: STAGE_H }}
             >
               Click an asset node to view its exploitable status and linked CVEs.
             </div>
@@ -717,8 +616,8 @@ function ReactFlowPurdueGraph({ zones, assets, vulns, highlightAssetId }) {
       </div>
 
       <div className="kpmg-legend-footer">
-        {zones.map(z => (<span key={z.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: nodeColor(z.id) }} />{z.name}</span>))}
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: '#B42318', boxShadow: '0 0 6px #B42318' }} />red glow = severe vulnerability</span>
+        {zones.map(z => (<span key={z.id} className="kpmg-legend-item"><span className="kpmg-dot-10" style={{ background: nodeColor(z.id) }} />{z.name}</span>))}
+        <span className="kpmg-legend-item"><span className="kpmg-dot-glow" />red glow = severe vulnerability</span>
       </div>
     </Card>
   );
@@ -738,30 +637,20 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
       onClose={onClose}
       maxWidth={580}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 4 }}>
+      <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-16 kpmg-mt-4">
         {/* Business Risk Card */}
-        <div
-          style={{
-            background: '#FEF3F2',
-            border: '1px solid #FEE4E2',
-            borderRadius: 12,
-            padding: '14px 16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
-        >
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#B42318' }}>Business Risk</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#B42318' }}>
+        <div className="kpmg-risk-why-card">
+          <div className="kpmg-risk-why-title">Business Risk</div>
+          <div className="kpmg-risk-why-impact">
             {whyOf.q?.consequence?.impact || whyOf.technique || 'Loss of Control'}
           </div>
-          <div style={{ fontSize: 12, color: '#475467' }}>
+          <div className="kpmg-risk-why-sub">
             {`${vulnsList.length || 4} supporting findings identified in ${zones.find(z => z.id === whyOf.zoneId)?.name || 'Operations'}.`}
           </div>
         </div>
 
         {/* 3 Navigation Tabs */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #EAECF0', gap: 20 }}>
+        <div className="kpmg-risk-tabs-bar">
           {[
             ['why', 'Why we believe this exists'],
             ['assets', 'Affected assets on this route'],
@@ -770,18 +659,7 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
             <button
               key={tKey}
               onClick={() => setTab(tKey)}
-              style={{
-                padding: '8px 4px 10px 4px',
-                fontSize: 12.5,
-                fontWeight: tab === tKey ? 600 : 500,
-                color: tab === tKey ? '#1E49E2' : '#475467',
-                background: 'none',
-                border: 'none',
-                borderBottom: tab === tKey ? '2.5px solid #1E49E2' : '2.5px solid transparent',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                marginBottom: -1,
-              }}
+              className={`kpmg-risk-tab-btn ${tab === tKey ? 'active' : ''}`}
             >
               {label}
             </button>
@@ -789,18 +667,9 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
         </div>
 
         {/* Tab Content Box */}
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #EAECF0',
-            borderRadius: 12,
-            padding: '14px 16px',
-            maxHeight: 220,
-            overflowY: 'auto',
-          }}
-        >
+        <div className="kpmg-risk-tab-content-box">
           {tab === 'why' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-10">
               {(evList.length > 0 ? evList : [
                 'CORP-WEB-01 is internet-facing or boundary-exposed',
                 'Jump server (JUMP-01) reachable on this route',
@@ -810,8 +679,8 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
                 '5 vulnerabilities with high exploitation likelihood (EPSS)',
                 '3 high-risk findings on assets in this route',
               ]).map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#344054', lineHeight: 1.4 }}>
-                  <span style={{ color: '#101828', fontWeight: 700 }}>•</span>
+                <div key={idx} className="kpmg-risk-why-impact-row">
+                  <span className="kpmg-risk-why-bullet">•</span>
                   <span>{item}</span>
                 </div>
               ))}
@@ -819,7 +688,7 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
           )}
 
           {tab === 'assets' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-10">
               {(hops.length > 0 ? hops : [
                 { name: 'ERP-APP-01', deviceType: 'Application server', zoneName: 'Enterprise' },
                 { name: 'CORP-WEB-01', deviceType: 'Web / boundary', zoneName: 'OT DMZ' },
@@ -830,18 +699,15 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
                 return (
                   <div
                     key={h.id || idx}
+                    className="kpmg-risk-hop-row"
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 0',
                       borderBottom: idx < hops.length - 1 ? '1px solid #EAECF0' : 'none',
                     }}
                   >
-                    <span style={{ fontSize: 12.5, fontWeight: 500, color: '#101828' }}>
+                    <span className="kpmg-risk-hop-title">
                       {h.name} - {a?.deviceType || h.deviceType || 'Server'}
                     </span>
-                    <span style={{ fontSize: 12, color: '#667085' }}>
+                    <span className="kpmg-risk-hop-zone">
                       {zones.find(z => z.id === h.zone)?.name || h.zoneName || 'Operations'}
                     </span>
                   </div>
@@ -851,7 +717,7 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
           )}
 
           {tab === 'vulns' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-10">
               {(vulnsList.length > 0 ? vulnsList : [
                 { cve_id: 'CVE-2020-1472', title: 'Unauthenticated command injection in PLC firmware', score: 7.9 },
                 { cve_id: 'CVE-2020-1472', title: 'Exploited VPN appliance flaw relevant to OT edge', score: 6.9 },
@@ -863,34 +729,20 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
                 return (
                   <div
                     key={v.vuln_id || idx}
+                    className="kpmg-risk-vuln-row"
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                      padding: '6px 0',
                       borderBottom: idx < vulnsList.length - 1 ? '1px solid #EAECF0' : 'none',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: '#B42318',
-                          background: '#FEF3F2',
-                          padding: '2px 8px',
-                          borderRadius: 6,
-                          flexShrink: 0,
-                        }}
-                      >
+                    <div className="kpmg-risk-vuln-info">
+                      <span className="kpmg-risk-vuln-badge">
                         {v.cve_id || v.cve || v.vuln_id || 'CVE-2020-1472'}
                       </span>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: '#101828', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span className="kpmg-risk-vuln-title-text">
                         {v.title}
                       </span>
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#B42318', flexShrink: 0 }}>
+                    <span className="kpmg-risk-vuln-score-text">
                       {cvssNum}
                     </span>
                   </div>
@@ -901,7 +753,7 @@ function WhyEngineModal({ whyOf, srSeed, zones, assets, vulns, onClose }) {
         </div>
 
         {/* Footer Explanation Note */}
-        <div style={{ fontSize: 11.5, color: '#667085', lineHeight: 1.5 }}>
+        <div className="kpmg-risk-modal-footer-note">
           The attack path shown alongside is one illustration of how this could materialise — one broader theme (the vulnerabilities and route shown here), not an enumeration of every possible path. Other variations may also exist.
         </div>
       </div>
@@ -976,8 +828,8 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
   if (!selLeaf) {
     return (
       <Card>
-        <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:6 }}>Business risk</div>
-        <div style={{ fontSize:12.5, color:C.muted, lineHeight:1.6 }}>No business risks are currently evidenced.</div>
+        <div className="kpmg-risk-empty-title">Business risk</div>
+        <div className="kpmg-risk-empty-desc">No business risks are currently evidenced.</div>
       </Card>
     );
   }
@@ -993,7 +845,7 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
   });
 
   return (
-    <Card style={{ padding: 24, borderRadius: 16 }}>
+    <Card className="kpmg-card-pad-24">
       {/* Top Header Row with standardized kpmg-card-header-bar class */}
       <div className="kpmg-card-header-bar">
         <div className="kpmg-header-title-group">
@@ -1005,87 +857,43 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
         <div className="kpmg-header-actions">
           <button
             onClick={() => setEditing({ mode: 'add' })}
-            style={{
-              background: '#1E49E2',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: 8,
-              padding: '8px 16px',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontFamily: 'inherit',
-            }}
+            className="kpmg-btn-add-risk"
           >
-            <PageIcon name="Add.svg" size={14} style={{ filter: 'brightness(0) invert(1)' }} /> Add business risk
+            <PageIcon name="Add.svg" size={14} className="kpmg-icon-white" /> Add business risk
           </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, marginTop: 12, alignItems: 'start' }}>
+      <div className="kpmg-risk-br-layout">
         {/* LEFT COLUMN — Pick a risk with View & Edit pill buttons */}
-        <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: 16, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginBottom: 12 }}>
+        <div className="kpmg-risk-br-list-box">
+          <div className="kpmg-risk-pick-title">
             Pick a risk and see one plausible attack path on real assets.
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-10">
             {allLeaves.map((leaf) => {
               const on = leaf.technique === sel.id;
               return (
                 <div
                   key={leaf.technique}
                   onClick={() => setSelId(leaf.technique)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 10,
-                    padding: '10px 12px',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    background: '#ffffff',
-                    border: `1px solid ${on ? '#1E49E2' : '#EAECF0'}`,
-                    boxShadow: on ? '0 1px 3px rgba(30,73,226,0.12)' : 'none',
-                  }}
+                  className={`kpmg-risk-br-item ${on ? 'active' : ''}`}
                 >
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', flex: 1, minWidth: 0 }}>
+                  <span className="kpmg-risk-item-name">
                     {leaf.technique}{leaf.topVuln?.inKev ? ' · KEV' : ''}
                   </span>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <div className="kpmg-d-flex kpmg-items-center kpmg-gap-6 kpmg-flex-shrink-0">
                     <button
                       onClick={(e) => { e.stopPropagation(); setSelId(leaf.technique); setWhyOf(leaf.sel); }}
-                      style={{
-                        background: '#1E49E2',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: 6,
-                        padding: '4px 12px',
-                        fontSize: 11.5,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                      }}
+                      className="kpmg-btn-primary-blue kpmg-btn-sm-pad"
                     >
                       View
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); setEditing({ mode: 'edit', leaf }); }}
-                      style={{
-                        background: '#ffffff',
-                        color: '#344054',
-                        border: '1px solid #D0D5DD',
-                        borderRadius: 6,
-                        padding: '4px 10px',
-                        fontSize: 11.5,
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                      }}
+                      className="kpmg-btn-secondary kpmg-btn-sm-pad"
                     >
                       Edit
                     </button>
@@ -1097,33 +905,33 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
         </div>
 
         {/* RIGHT COLUMN — Details & Kill Chain Grid */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#101828' }}>{sel.technique || 'Loss of Safety'}</div>
-          <div style={{ fontSize: 12.5, color: '#475467', lineHeight: 1.5, marginTop: -8 }}>
+        <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-16">
+          <div className="kpmg-risk-selected-title">{sel.technique || 'Loss of Safety'}</div>
+          <div className="kpmg-risk-selected-desc">
             Deduced from 1 high-ranked vulnerability that would allow an attacker to achieve {sel.technique || 'loss of safety'}. Because this sits in your Safety (SIS) zone, if exploited it could play out like the route shown below.
           </div>
 
           {/* Top Score Cards Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="kpmg-grid-2col-gap16">
             {/* Risk Score Card */}
-            <div style={{ background: '#FEF3F2', border: '1px solid #FEE4E2', borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#B42318' }}>
+            <div className="kpmg-risk-score-box">
+              <div className="kpmg-risk-score-val">
                 {sel.score.toFixed(1)}/10
               </div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#101828', marginTop: 2 }}>
+              <div className="kpmg-risk-score-zone">
                 Safety (SIS)
               </div>
-              <div style={{ fontSize: 11.5, color: '#475467', marginTop: 4 }}>
+              <div className="kpmg-risk-score-sub">
                 Unauthenticated command injection in PLC firmware
               </div>
             </div>
 
             {/* Business Impact Card */}
-            <div style={{ background: '#FEF3F2', border: '1px solid #FEE4E2', borderRadius: 12, padding: 14 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#B42318' }}>
+            <div className="kpmg-risk-score-box">
+              <div className="kpmg-risk-impact-title">
                 Business impact: {sel.q.consequence.impact}
               </div>
-              <div style={{ fontSize: 11.5, color: '#475467', marginTop: 6, lineHeight: 1.4 }}>
+              <div className="kpmg-risk-impact-sub">
                 0 supporting findings identified in Safety (SIS). If walked to the end zone, this is what the attacker achieves.
               </div>
             </div>
@@ -1131,76 +939,39 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
 
           {/* Kill Chain Section */}
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#101828', marginBottom: 2 }}>
+            <div className="kpmg-risk-kc-title">
               Kill chain - technique &amp; enabling vulnerability
             </div>
-            <div style={{ fontSize: 12, color: '#667085', marginBottom: 12 }}>
+            <div className="kpmg-risk-kc-sub">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit
             </div>
 
             {/* Kill Chain Cards Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            <div className="kpmg-risk-kc-grid">
               {killChain.slice(0, 6).map((stg, i) => (
                 <div
                   key={i}
                   onClick={() => { setPhaseOf(stg); setGlowZoneId(stg.zoneId); }}
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #EAECF0',
-                    borderRadius: 10,
-                    padding: '12px 14px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justify: 'space-between',
-                    minHeight: 90,
-                    cursor: 'pointer',
-                  }}
+                  className="kpmg-risk-kc-card"
                 >
                   <div>
-                    <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginBottom: 2 }}>
+                    <div className="kpmg-risk-kc-stage">
                       {i + 1}. {stg.stage} - {stg.zoneName}
                     </div>
-                    <div style={{ fontSize: 11, color: '#475467' }}>
+                    <div className="kpmg-risk-kc-top">
                       {stg.top?.name || 'Autorun Image'}
                     </div>
                   </div>
 
-                  <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
-                    <div
-                      style={{
-                        background: '#FEF3F2',
-                        borderRadius: 6,
-                        padding: '4px 8px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          color: '#B42318',
-                          borderLeft: '2px solid #B42318',
-                          paddingLeft: 6,
-                          lineHeight: 1.2,
-                        }}
-                      >
+                  <div className="kpmg-risk-kc-bottom-wrap">
+                    <div className="kpmg-risk-kc-cve-pill">
+                      <span className="kpmg-risk-kc-cve-text">
                         {stg.enabling?.cve_id || 'CVE-2022-29464'} ({(stg.enabling?.risk_score || 2.8).toFixed(1)})
                       </span>
                     </div>
                     <button
                       onClick={() => setPhaseOf(stg)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#1E49E2',
-                        fontSize: 11,
-                        fontWeight: 600,
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        padding: 0,
-                        fontFamily: 'inherit',
-                      }}
+                      className="kpmg-btn-more-info"
                     >
                       More info
                     </button>
@@ -1210,8 +981,8 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
             </div>
           </div>
           {/* Purdue model graph positioned inside the right column with dotted grid background */}
-          <div className="kpmg-dotted-pattern" style={{ marginTop: 8, border: '1px solid #EAECF0', borderRadius: 16, padding: 16 }}>
-            <div style={{ position: 'relative', width: '100%', height: ASTAGE_H, overflow: 'hidden', borderRadius: 12 }}>
+          <div className="kpmg-dotted-pattern kpmg-risk-graph-card">
+            <div className="kpmg-risk-graph-svg-wrap" style={{ height: ASTAGE_H }}>
               <svg viewBox={`0 0 ${ASTAGE.W} ${ASTAGE_H}`} width="100%" height="100%">
                 <StageDefs />
                 {[5, 4, 3, 2, 1, 0].map((lvl) => (
@@ -1257,7 +1028,7 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
               </svg>
             </div>
 
-            <div style={{ fontSize: 11.5, color: '#475467', marginTop: 12, textAlign: 'left', lineHeight: 1.5 }}>
+            <div className="kpmg-risk-graph-footer-text">
               This exact route is shared with 2 other listed risks (Denial of Control, Loss of Availability) - they diverge in what's actually achieved once there; see the Impact phase on the right.
             </div>
           </div>
@@ -1280,21 +1051,11 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
             onClose={() => setPhaseOf(null)}
             maxWidth={520}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 4 }}>
+            <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-16 kpmg-mt-4">
               {/* Impact Card */}
-              <div
-                style={{
-                  background: '#FEF3F2',
-                  border: '1px solid #FEE4E2',
-                  borderRadius: 12,
-                  padding: '14px 16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 6,
-                }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#B42318' }}>Impact</div>
-                <div style={{ fontSize: 12, color: '#344054', lineHeight: 1.5 }}>
+              <div className="kpmg-risk-modal-impact-card">
+                <div className="kpmg-risk-modal-impact-title">Impact</div>
+                <div className="kpmg-risk-modal-impact-body">
                   {v?.impact || v?.impact_statement || 'Allows the attacker to compromise the affected asset and continue the path.'}
                   {' Defending 62443 control ' + (phaseOf.top?.fr?.join(', ') || 'FR5, FR6') + ' is not evidenced for Operations.'}
                 </div>
@@ -1302,50 +1063,30 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
 
               {/* Context Section */}
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#101828', marginBottom: 4 }}>Context</div>
-                <div style={{ fontSize: 12, color: '#475467', lineHeight: 1.5 }}>
+                <div className="kpmg-risk-modal-ctx-heading">Context</div>
+                <div className="kpmg-risk-modal-ctx-text">
                   {phaseOf.soWhat || `Exposed to "${phaseOf.top?.name || 'Autorun Image'}" because FR2 is not evidenced for ${phaseOf.zoneName || 'OT DMZ'}. The enabling vulnerability (${v?.cve_id || 'CVE-2022-29464'}) which makes this step likely.`}
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid #EAECF0', paddingTop: 14 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: '#101828', marginBottom: 10 }}>Enabling vulnerability</div>
+              <div className="kpmg-risk-modal-ctx-sec">
+                <div className="kpmg-risk-modal-enabling-heading">Enabling vulnerability</div>
 
                 {/* CVE Card */}
-                <div
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #EAECF0',
-                    borderRadius: 12,
-                    padding: 14,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 12,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 0 }}>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: '#344054',
-                          background: '#F2F4F7',
-                          padding: '2px 8px',
-                          borderRadius: 6,
-                          width: 'fit-content',
-                        }}
-                      >
+                <div className="kpmg-risk-modal-cve-card">
+                  <div className="kpmg-risk-modal-cve-row">
+                    <div className="kpmg-d-flex kpmg-flex-col kpmg-gap-4 kpmg-flex-1-min0">
+                      <span className="kpmg-risk-modal-cve-badge">
                         {v?.cve_id || v?.cve || v?.vuln_id || 'CVE-2023-0413'}
                       </span>
-                      <span style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', lineHeight: 1.4 }}>
+                      <span className="kpmg-risk-modal-cve-title">
                         {v?.title || 'Outdated SCADA server operating system'}
                       </span>
                     </div>
 
                     {/* Circular Score Gauge */}
-                    <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width={40} height={40} viewBox="0 0 40 40" style={{ transform: 'rotate(-90deg)' }}>
+                    <div className="kpmg-risk-circle-gauge-wrap">
+                      <svg width={40} height={40} viewBox="0 0 40 40" className="kpmg-risk-circle-gauge-svg">
                         <circle cx="20" cy="20" r="16" fill="none" stroke="#EAECF0" strokeWidth="3" />
                         <circle
                           cx="20"
@@ -1359,41 +1100,33 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
                           strokeLinecap="round"
                         />
                       </svg>
-                      <span style={{ position: 'absolute', fontSize: 11, fontWeight: 700, color: '#B42318' }}>
+                      <span className="kpmg-risk-circle-gauge-text">
                         {cvssNum}
                       </span>
                     </div>
                   </div>
 
                   {/* Metric breakdown row */}
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(4, 1fr)',
-                      gap: 8,
-                      borderTop: '1px solid #EAECF0',
-                      paddingTop: 10,
-                    }}
-                  >
+                  <div className="kpmg-metric-breakdown-row">
                     <div>
-                      <div style={{ fontSize: 10.5, color: '#667085' }}>Score drivers</div>
-                      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginTop: 2 }}>CVSS {v?.cvss || 7.4}</div>
+                      <div className="kpmg-text-10-muted">Score drivers</div>
+                      <div className="kpmg-text-11-bold-dark">CVSS {v?.cvss || 7.4}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 10.5, color: '#667085' }}>EPSS</div>
-                      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginTop: 2 }}>
+                      <div className="kpmg-text-10-muted">EPSS</div>
+                      <div className="kpmg-text-11-bold-dark">
                         {typeof v?.epss === 'number' ? `${Math.round(v.epss * 100)}%` : '28%'}
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 10.5, color: '#667085' }}>Exposure</div>
-                      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginTop: 2 }}>
+                      <div className="kpmg-text-10-muted">Exposure</div>
+                      <div className="kpmg-text-11-bold-dark">
                         {bd.exposure?.probability || '0.861'}
                       </div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 10.5, color: '#667085' }}>Controls</div>
-                      <div style={{ fontSize: 11.5, fontWeight: 600, color: '#101828', marginTop: 2 }}>
+                      <div className="kpmg-text-10-muted">Controls</div>
+                      <div className="kpmg-text-11-bold-dark">
                         {bd.control_factor ? `+${bd.control_factor.value}` : '+1.329'}
                       </div>
                     </div>
@@ -1402,7 +1135,7 @@ function BusinessRiskView({ zones, srSeed, assets, vulns=[], onJumpAsset }) {
               </div>
 
               {/* Footer tactic line */}
-              <div style={{ fontSize: 11.5, color: '#667085', marginTop: 8, paddingBottom: 8, lineHeight: 1.4 }}>
+              <div className="kpmg-risk-phase-footer">
                 MITRE ATT&amp;CK for ICS tactic: {phaseOf.tacticName || 'Initial Access'} · defending control {phaseOf.top?.fr?.join(', ') || 'FR3'}
               </div>
             </div>
@@ -1458,50 +1191,39 @@ function SearchAdd({ items, selectedIds, onToggle, placeholder, emptyText, hintT
         value={q}
         onChange={e => setQ(e.target.value)}
         placeholder={placeholder}
-        style={{ borderRadius: 8, borderColor: '#D0D5DD' }}
+        className="kpmg-input-rounded-8"
       />
       {hintText && (
-        <div style={{ fontSize: 12, color: '#667085', marginTop: 4, marginBottom: 4 }}>
+        <div className="kpmg-text-12-muted-my">
           {hintText}
         </div>
       )}
       {results.length > 0 && (
-        <div style={{ border: `1px solid ${C.border}`, borderRadius: 8, marginTop: 4, maxHeight: 170, overflowY: 'auto', background: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+        <div className="kpmg-search-results-dropdown">
           {results.map(it => (
             <div
               key={it.id}
               onClick={() => { onToggle(it.id); setQ(''); }}
-              style={{ padding: '8px 12px', fontSize: 12, cursor: 'pointer', borderBottom: `1px solid ${C.border}` }}
+              className="kpmg-search-result-item"
             >
-              <span style={{ fontWeight: 600, color: C.text }}>{it.label}</span>
-              {it.sublabel && <span style={{ color: C.muted, marginLeft: 6 }}>{it.sublabel}</span>}
+              <span className="kpmg-fw-600 kpmg-text-dark">{it.label}</span>
+              {it.sublabel && <span className="kpmg-text-muted kpmg-ml-6">{it.sublabel}</span>}
             </div>
           ))}
         </div>
       )}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-        {selected.length === 0 && <span style={{ fontSize: 12, color: C.muted, fontStyle: 'italic' }}>{emptyText}</span>}
+      <div className="kpmg-search-selected-list">
+        {selected.length === 0 && <span className="kpmg-text-12-italic-muted">{emptyText}</span>}
         {selected.map(it => (
           <span
             key={it.id}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 500,
-              padding: '4px 10px',
-              borderRadius: 6,
-              background: '#EFF6FF',
-              color: '#1D4ED8',
-              border: '1px solid #BFDBFE'
-            }}
+            className="kpmg-search-chip"
           >
             {it.label}
             <span
               onClick={() => onToggle(it.id)}
               title="Remove"
-              style={{ cursor: 'pointer', fontWeight: 600, marginLeft: 2, color: '#1D4ED8' }}
+              className="kpmg-search-chip-del"
             >
               ×
             </span>
@@ -1581,7 +1303,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
       onClose={onClose}
       maxWidth={580}
       footer={
-        <div style={{ display: 'flex', gap: 10, width: '100%', alignItems: 'center', justifyContent: 'flex-end' }}>
+        <div className="kpmg-modal-footer-end">
           {!isAdd && (
             <Btn
               variant="outline"
@@ -1591,7 +1313,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
               Delete
             </Btn>
           )}
-          <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
+          <Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-cancel-22">
             Cancel
           </Btn>
           <Btn
@@ -1618,11 +1340,11 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
 
         {isAdd && (
           inferred ? (
-            <div style={{ fontSize: 12.5, color: C.text, lineHeight: 1.55, padding: '9px 12px', borderRadius: 8, background: '#F4FBF7', border: '1px solid #BBE9D2' }}>
+            <div className="kpmg-risk-inferred-banner">
               → This will create <strong>{inferred.technique}</strong> in <strong>{inferred.zoneName}</strong>.
             </div>
           ) : (
-            <div style={{ fontSize: 12, color: C.muted, fontStyle: 'italic' }}>Pick at least one vulnerability to infer the business risk.</div>
+            <div className="kpmg-risk-inferred-hint">Pick at least one vulnerability to infer the business risk.</div>
           )
         )}
 
@@ -1644,7 +1366,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
               onChange={e => setExampleAssetId(e.target.value)}
               options={pathAssets.map(a => ({ value: a.id, label: a.name }))}
             />
-            <div style={{ fontSize: 12, color: '#667085', marginTop: 4 }}>
+            <div className="kpmg-form-hint-text">
               Which of the assets above represents this risk when you jump to the Purdue model
             </div>
           </FormField>
@@ -1658,7 +1380,7 @@ function BusinessRiskEditModal({ mode, leaf, zones, assets, vulns, onClose, onSa
             placeholder="A short note on why this matters, in your own words"
             className="kpmg-textarea-note"
           />
-          <div style={{ fontSize: 12, color: '#667085', marginTop: 4 }}>
+          <div className="kpmg-form-hint-text">
             Shown in place of the auto-generated summary in the list
           </div>
         </FormField>
@@ -1671,11 +1393,11 @@ function DismissedModal({ dismissed, onRestore, onClose }) {
   return (
     <Modal title="Dismissed business risks" subtitle="Removed from the top-5 list — restorable any time" onClose={onClose} maxWidth={480}>
       {dismissed.length===0 ? (
-        <div style={{ fontSize:12.5, color:C.muted }}>Nothing dismissed.</div>
+        <div className="kpmg-text-125-muted">Nothing dismissed.</div>
       ) : dismissed.map(t => (
-        <div key={t} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 11px', border:`1px solid ${C.border}`, borderRadius:9, marginBottom:6 }}>
-          <span style={{ flex:1, fontSize:12.5, color:C.text }}>{t}</span>
-          <button onClick={()=>onRestore(t)} style={{ background:'none', border:`1px solid ${C.border}`, borderRadius:6, padding:'4px 11px', fontSize:11, color:C.navy, cursor:'pointer', fontFamily:'inherit' }}>Restore</button>
+        <div key={t} className="kpmg-dismissed-row">
+          <span className="kpmg-dismissed-title">{t}</span>
+          <button onClick={()=>onRestore(t)} className="kpmg-btn-restore">Restore</button>
         </div>
       ))}
     </Modal>
@@ -1691,9 +1413,9 @@ export default function RiskLandscapeTab({ onNavigate }) {
   if (vulns === null) return <Loading text="Building risk landscape…"/>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="kpmg-page-stack">
       {/* Top Underline Tab Bar */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #EAECF0', marginBottom: 6 }}>
+      <div className="kpmg-risk-top-tabs-nav">
         {[
           ['purdue', 'Purdue model'],
           ['paths', 'Business risk'],
@@ -1701,19 +1423,7 @@ export default function RiskLandscapeTab({ onNavigate }) {
           <button
             key={v}
             onClick={() => setView(v)}
-            style={{
-              padding: '10px 16px',
-              fontSize: 13,
-              fontWeight: view === v ? 600 : 500,
-              color: view === v ? '#1E49E2' : '#475467',
-              background: 'none',
-              border: 'none',
-              borderBottom: view === v ? '2.5px solid #1E49E2' : '2.5px solid transparent',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              marginBottom: -1,
-              transition: 'all 0.15s ease',
-            }}
+            className={`kpmg-risk-top-tab-btn ${view === v ? 'active' : ''}`}
           >
             {l}
           </button>

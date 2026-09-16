@@ -16,14 +16,14 @@ import { hasBaseline, SNAPSHOT_EVENT } from './services/snapshotService';
 import { useAssessment } from './services/assessmentStore';
 
 const LogsIcon = () => (
-  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{ flexShrink: 0 }}>
+  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="kpmg-icon-no-shrink">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
     <polyline points="14 2 14 8 20 8" />
     <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
   </svg>
 );
 const Network = () => (
-  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" style={{ flexShrink: 0 }}>
+  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="kpmg-icon-no-shrink">
     <rect x="2" y="2" width="6" height="6" rx="1" /><rect x="16" y="2" width="6" height="6" rx="1" /><rect x="9" y="16" width="6" height="6" rx="1" />
     <path d="M5 8v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8" /><line x1="12" y1="12" x2="12" y2="16" />
   </svg>
@@ -36,13 +36,14 @@ const GearLogo = () => (
 );
 
 // Helper to render public folder SVG icons
-const PublicIcon = ({ name, size = 16, style }) => (
+const PublicIcon = ({ name, size = 16, style, className = '' }) => (
   <img
     src={`${process.env.PUBLIC_URL || ''}/icons/${name}`}
     alt=""
     width={size}
     height={size}
-    style={{ flexShrink: 0, display: 'block', ...style }}
+    className={`kpmg-public-icon ${className}`.trim()}
+    style={style}
   />
 );
 
@@ -212,11 +213,11 @@ export default function App() {
             {headerActions}
           </div>
           {tab === 'dashboard' ? (
-            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-              <span style={{ background: '#F4F3FF', color: '#6941C6', fontSize: 12, fontWeight: 600, padding: '3px 12px', borderRadius: 16 }}>
+            <div className="kpmg-header-badges-row">
+              <span className="kpmg-badge-purple-pill">
                 {company?.industry || 'Energy & Utilities'}
               </span>
-              <span style={{ background: '#F2F4F7', color: '#344054', fontSize: 12, fontWeight: 600, padding: '3px 12px', borderRadius: 16 }}>
+              <span className="kpmg-badge-gray-pill">
                 {company?.primarySite || 'North Plant'}
               </span>
             </div>

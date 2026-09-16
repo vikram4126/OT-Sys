@@ -124,7 +124,7 @@ export default function AssetsTab() {
               <span className="kpmg-conns-text">
                 <span className="kpmg-conns-arrow">↑</span> {conns.length}
               </span>
-              <div className="kpmg-text-right" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+              <div className="kpmg-text-right kpmg-table-actions">
                 <button onClick={() => setSel(a)} title="Edit asset" className="kpmg-btn-icon">
                   <PageIcon name="Edit.svg" size={16} />
                 </button>
@@ -140,7 +140,7 @@ export default function AssetsTab() {
               <span className="kpmg-text-code-val">{a.version || '—'}</span>
               <span className="kpmg-text-os">{a.host ? aName(a.host) : '—'}</span>
               <span>{zName(a.zone)}</span>
-              <div className="kpmg-text-right" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+              <div className="kpmg-text-right kpmg-table-actions">
                 <button onClick={() => setSel(a)} title="Edit asset" className="kpmg-btn-icon">
                   <PageIcon name="Edit.svg" size={16} />
                 </button>
@@ -171,6 +171,7 @@ export function DynamicSegmentedBar({
   registerRatio = 0,
   shadowRatio = 0,
   color,
+  className = '',
   style
 }) {
   const containerRef = useRef(null);
@@ -208,7 +209,7 @@ export function DynamicSegmentedBar({
     const register = Math.round((registerRatio || 0) * ticksCount);
     const shadow = Math.max(0, ticksCount - matched - register);
     return (
-      <div ref={containerRef} className="kpmg-segmented-bar" style={{ justifyContent: 'flex-start', ...style }}>
+      <div ref={containerRef} className={`kpmg-segmented-bar ${className}`.trim()} style={style}>
         {Array.from({ length: matched }).map((_, i) => (
           <div key={`m-${i}`} className="kpmg-bar-tick kpmg-bar-tick-matched" />
         ))}
@@ -223,7 +224,7 @@ export function DynamicSegmentedBar({
   }
 
   return (
-    <div ref={containerRef} className="kpmg-segmented-bar" style={{ justifyContent: 'flex-start', ...style }}>
+    <div ref={containerRef} className={`kpmg-segmented-bar ${className}`.trim()} style={style}>
       {Array.from({ length: ticksCount }).map((_, i) => (
         <div
           key={`t-${i}`}
@@ -365,7 +366,7 @@ function HowAssetVisibilityModal({ v, tone, onClose }) {
 
       {/* 100% case: No discrepancies message */}
       {is100 ? (
-        <div style={{ fontSize: 12.5, color: '#475467', paddingTop: 2, paddingBottom: 10 }}>
+        <div className="kpmg-vis-discrepancy-msg">
           No discrepancies — register and logs fully agree.
         </div>
       ) : (
@@ -409,7 +410,7 @@ function HowAssetVisibilityModal({ v, tone, onClose }) {
                     );
                   })
                 ) : (
-                  <div style={{ fontSize: 12, color: C.muted, padding: '8px 0' }}>No shadow assets observed.</div>
+                  <div className="kpmg-vis-empty-msg">No shadow assets observed.</div>
                 )}
               </div>
             </div>
@@ -420,9 +421,9 @@ function HowAssetVisibilityModal({ v, tone, onClose }) {
               </div>
               <div className="kpmg-vis-list-scroll">
                 {v.registerOnlyAssets && v.registerOnlyAssets.length > 0 ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="kpmg-vis-reg-grid">
                     {v.registerOnlyAssets.map(a => (
-                      <div key={a.id} className="kpmg-vis-item-card" style={{ marginBottom: 0 }}>
+                      <div key={a.id} className="kpmg-vis-item-card kpmg-vis-mb-0">
                         <div>
                           <div className="kpmg-vis-item-title">{a.name}</div>
                           <div className="kpmg-vis-item-sub">{a.deviceType || 'File server'}</div>
@@ -431,7 +432,7 @@ function HowAssetVisibilityModal({ v, tone, onClose }) {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ fontSize: 12, color: C.muted, padding: '8px 0' }}>All registered assets observed in logs.</div>
+                  <div className="kpmg-vis-empty-msg">All registered assets observed in logs.</div>
                 )}
               </div>
             </div>
@@ -476,7 +477,7 @@ function ZoneVisibilityModal({ zone, assets, onClose }) {
 
       {/* 100% case */}
       {is100 ? (
-        <div style={{ fontSize: 12.5, color: '#475467', paddingTop: 2, paddingBottom: 10 }}>
+        <div className="kpmg-vis-discrepancy-msg">
           No discrepancies in this zone — register and logs fully agree.
         </div>
       ) : (
@@ -520,7 +521,7 @@ function ZoneVisibilityModal({ zone, assets, onClose }) {
                     );
                   })
                 ) : (
-                  <div style={{ fontSize: 12, color: C.muted, padding: '8px 0' }}>No shadow assets in this zone.</div>
+                  <div className="kpmg-vis-empty-msg">No shadow assets in this zone.</div>
                 )}
               </div>
             </div>
@@ -531,9 +532,9 @@ function ZoneVisibilityModal({ zone, assets, onClose }) {
               </div>
               <div className="kpmg-vis-list-scroll">
                 {registerOnlyAssets.length > 0 ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="kpmg-vis-reg-grid">
                     {registerOnlyAssets.map(a => (
-                      <div key={a.id} className="kpmg-vis-item-card" style={{ marginBottom: 0 }}>
+                      <div key={a.id} className="kpmg-vis-item-card kpmg-vis-mb-0">
                         <div>
                           <div className="kpmg-vis-item-title">{a.name}</div>
                           <div className="kpmg-vis-item-sub">{a.deviceType}</div>
@@ -542,7 +543,7 @@ function ZoneVisibilityModal({ zone, assets, onClose }) {
                     ))}
                   </div>
                 ) : (
-                  <div style={{ fontSize: 12, color: C.muted, padding: '8px 0' }}>All registered assets observed in logs.</div>
+                  <div className="kpmg-vis-empty-msg">All registered assets observed in logs.</div>
                 )}
               </div>
             </div>
@@ -575,31 +576,31 @@ function RegisterShadowModal({ shadow, zones, onClose, onDone }) {
       maxWidth={520}
       footer={
         <>
-          <Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>
+          <Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-cancel-btn">
             Cancel
           </Btn>
           <Btn
             disabled={missing.length > 0}
             onClick={() => { onDone(f); }}
-            style={{ background: '#1e49e2', color: '#fff', padding: '8px 22px', borderRadius: 8 }}
+            className="kpmg-btn-modal-save-blue"
           >
             Add
           </Btn>
         </>
       }
     >
-      <div className="kpmg-modal-info-alert" style={{ background: '#EFF6FF', border: '1px solid #B2DDFF', color: '#175CD3' }}>
-        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#175CD3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <div className="kpmg-modal-info-alert kpmg-modal-info-alert-blue">
+        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#175CD3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="kpmg-flex-shrink-0">
           <circle cx="12" cy="12" r="10" />
           <line x1="12" y1="16" x2="12" y2="12" />
           <line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
-        <span style={{ fontWeight: 600 }}>
+        <span className="kpmg-fw-600">
           Complete the standard fields so this becomes a managed asset. Visibility recalculates once it&apos;s registered.
         </span>
       </div>
 
-      <div style={{ marginTop: 16 }}>
+      <div className="kpmg-mt-16">
         <FormField label="Asset name" required>
           <Input value={f.name} onChange={e => set('name', e.target.value)} placeholder="Asset name" />
         </FormField>
@@ -621,7 +622,7 @@ function RegisterShadowModal({ shadow, zones, onClose, onDone }) {
         </FormField>
 
         {missing.length > 0 && (
-          <div className="kpmg-modal-box-warning" style={{ marginTop: 12 }}>
+          <div className="kpmg-modal-box-warning kpmg-mt-12">
             Still needed: {missing.join(' · ')}
           </div>
         )}
@@ -645,12 +646,12 @@ function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
     <div className="kpmg-card kpmg-shadow-section-card">
       <div className="kpmg-shadow-banner-top">
         <div className="kpmg-shadow-left-group">
-          <span className="kpmg-shadow-count" style={{ color: '#D9251B' }}>
+          <span className="kpmg-shadow-count">
             {shadows.length < 10 ? `0${shadows.length}` : shadows.length}
           </span>
           <div>
             <div className="kpmg-shadow-title-group">
-              <span className="kpmg-shadow-title" style={{ color: '#D9251B' }}>Shadow assets</span>
+              <span className="kpmg-shadow-title">Shadow assets</span>
               <span className="kpmg-shadow-desc">Seen in logs, not in the register</span>
             </div>
             <div className="kpmg-shadow-sub">
@@ -717,7 +718,7 @@ function ProvenanceModal({ asset, zName, aName, onClose }) {
       <div className="kpmg-provenance-box">
         <span className="kpmg-provenance-brain-icon"><Brain /></span>
         <div>
-          <div className="kpmg-provenance-title">Purdue level L{p.purdue.level}{p.purdue.confidence != null && <span className="kpmg-muted-text" style={{ fontWeight: 500 }}> · {p.purdue.confidence}% confidence</span>}</div>
+          <div className="kpmg-provenance-title">Purdue level L{p.purdue.level}{p.purdue.confidence != null && <span className="kpmg-muted-text"> · {p.purdue.confidence}% confidence</span>}</div>
           <div className="kpmg-provenance-desc">{p.purdue.rationale}</div>
         </div>
       </div>
@@ -726,8 +727,8 @@ function ProvenanceModal({ asset, zName, aName, onClose }) {
       <div className="kpmg-provenance-sources-list">
         {p.sources.map((s, i) => (
           <div key={i} className={`kpmg-provenance-source-item ${i ? 'kpmg-provenance-source-item-bordered' : ''}`}>
-            <span style={{ fontWeight: 600, minWidth: 120, flexShrink: 0 }}>{s.what}</span>
-            <span style={{ color: C.muted, lineHeight: 1.5 }}>{s.where}</span>
+            <span className="kpmg-prov-what">{s.what}</span>
+            <span className="kpmg-prov-where">{s.where}</span>
           </div>
         ))}
       </div>
@@ -790,18 +791,19 @@ function UploadModal({ zones, onClose, onDone }) {
       maxWidth={520}
       footer={
         result ? (
-          <Btn onClick={onClose} style={{ background: '#1E49E2', color: '#fff', padding: '8px 24px', borderRadius: 8 }}>
+          <Btn onClick={onClose} className="kpmg-btn-modal-save-blue">
             Done
           </Btn>
         ) : (
           <>
-            <Btn variant="outline" onClick={onClose} style={{ padding: '8px 20px', borderRadius: 8 }}>
+            <Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-cancel-btn">
               Cancel
             </Btn>
             <Btn
               onClick={simulate}
               disabled={!selectedFile}
-              style={{ background: '#1E49E2', color: '#fff', padding: '8px 24px', borderRadius: 8, opacity: selectedFile ? 1 : 0.5, cursor: selectedFile ? 'pointer' : 'not-allowed' }}
+              className="kpmg-btn-modal-save-blue"
+              style={{ opacity: selectedFile ? 1 : 0.5, cursor: selectedFile ? 'pointer' : 'not-allowed' }}
             >
               Upload
             </Btn>
@@ -819,34 +821,13 @@ function UploadModal({ zones, onClose, onDone }) {
             />
           </FormField>
 
-          <div style={{ marginTop: 16 }}>
+          <div className="kpmg-mt-16">
             <FormField label="File upload" required>
               <div
                 onClick={() => fileInputRef.current?.click()}
-                style={{
-                  background: '#ffffff',
-                  border: '1px dashed #EAECF0',
-                  borderRadius: 12,
-                  padding: '32px 20px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
+                className="kpmg-upload-dropzone"
               >
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                    border: '1px solid #EAECF0',
-                    background: '#F9FAFB',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 12px auto',
-                    boxShadow: '0 1px 2px rgba(16, 24, 40, 0.05)'
-                  }}
-                >
+                <div className="kpmg-upload-icon-box">
                   <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#344054" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
                     <path d="M12 12v9" />
@@ -855,36 +836,36 @@ function UploadModal({ zones, onClose, onDone }) {
                 </div>
 
                 <div>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: '#00338D', textDecoration: 'underline' }}>Click to upload</span>
-                  <span style={{ fontSize: 12.5, fontWeight: 400, color: '#475467' }}> or drag and drop</span>
+                  <span className="kpmg-upload-link-text">Click to upload</span>
+                  <span className="kpmg-upload-drag-text"> or drag and drop</span>
                 </div>
 
-                <div style={{ fontSize: 11, marginTop: 4, fontWeight: selectedFile ? 600 : 400, color: selectedFile ? '#027A48' : '#667085' }}>
+                <div className={`kpmg-upload-status-text ${selectedFile ? 'kpmg-upload-status-selected' : 'kpmg-upload-status-default'}`}>
                   {selectedFile ? `Selected: ${selectedFile.name}` : 'XLSX (max. 50 MB)'}
                 </div>
 
                 <input
                   ref={fileInputRef}
                   type="file"
-                  style={{ display: 'none' }}
+                  className="kpmg-d-none"
                   accept=".xlsx,.xls"
                   onChange={handleFileChange}
                 />
               </div>
             </FormField>
             {fileError && (
-              <div style={{ fontSize: 12, color: '#ED2124', marginTop: 6, fontWeight: 500 }}>
+              <div className="kpmg-upload-error-text">
                 ⚠ {fileError}
               </div>
             )}
           </div>
         </>
       ) : (
-        <div style={{ fontSize: 13, color: '#101828', lineHeight: 1.7, padding: '12px 0' }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#067647', marginBottom: 8 }}>✓ Ingested successfully</div>
+        <div className="kpmg-upload-success-wrap">
+          <div className="kpmg-upload-success-title">✓ Ingested successfully</div>
           <div><strong>{result.added}</strong> new asset{result.added !== 1 ? 's' : ''} added.</div>
           {result.duplicates.length > 0 && (
-            <div style={{ marginTop: 6, color: '#666666' }}>
+            <div className="kpmg-upload-success-dup">
               <strong>{result.duplicates.length}</strong> duplicate{result.duplicates.length !== 1 ? 's' : ''} skipped: {result.duplicates.join(', ')}
             </div>
           )}
@@ -922,18 +903,15 @@ function AddAssetModal({ zones, assets, zName, kind, onClose, addAsset }) {
       onClose={onClose}
       maxWidth={640}
       footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, width: '100%' }}>
-          <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
+        <div className="kpmg-modal-footer-right">
+          <Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-cancel-btn">
             Cancel
           </Btn>
           <Btn
             onClick={save}
             disabled={!f.name.trim()}
+            className="kpmg-btn-modal-save-blue"
             style={{
-              background: '#1E49E2',
-              color: '#ffffff',
-              padding: '8px 24px',
-              borderRadius: 8,
               opacity: f.name.trim() ? 1 : 0.5,
               cursor: f.name.trim() ? 'pointer' : 'not-allowed'
             }}
@@ -979,73 +957,54 @@ function AddAssetModal({ zones, assets, zName, kind, onClose, addAsset }) {
         {/* Internet-facing Toggle Row */}
         <div
           onClick={() => set('internetFacing', !f.internetFacing)}
-          style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, cursor: 'pointer' }}
+          className="kpmg-toggle-row"
         >
-          <div
-            style={{
-              width: 44,
-              height: 24,
-              borderRadius: 12,
-              background: f.internetFacing ? '#1E49E2' : '#EAECF0',
-              padding: 2,
-              display: 'flex',
-              alignItems: 'center',
-              transition: 'all 0.2s ease',
-              cursor: 'pointer',
-              flexShrink: 0
-            }}
-          >
-            <div
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: '50%',
-                background: '#ffffff',
-                transform: f.internetFacing ? 'translateX(20px)' : 'translateX(0px)',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-              }}
-            />
+          <div className={`kpmg-toggle-track ${f.internetFacing ? 'kpmg-toggle-track-active' : 'kpmg-toggle-track-inactive'}`}>
+            <div className={`kpmg-toggle-thumb ${f.internetFacing ? 'kpmg-toggle-thumb-active' : 'kpmg-toggle-thumb-inactive'}`} />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>Internet-facing</div>
-            <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>
+            <div className="kpmg-toggle-title">Internet-facing</div>
+            <div className="kpmg-toggle-desc">
               reachable from outside the OT environment — save above to apply
             </div>
           </div>
         </div>
 
         {/* Connection Header & List */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Connection</h3>
-          <Btn variant="outline" onClick={() => setAddingConn(!addingConn)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500 }}>
-            {addingConn ? 'Cancel' : '+ Add connections'}
+        <div className="kpmg-conn-head">
+          <h3 className="kpmg-conn-title">Connection</h3>
+          <Btn
+            variant={addingConn ? 'outline' : 'primary'}
+            onClick={() => setAddingConn(!addingConn)}
+            className={`kpmg-btn-add-conn ${!addingConn ? 'kpmg-btn-cobalt' : 'is-cancel'}`}
+          >
+            {addingConn ? 'Cancel' : <><PageIcon name="Add.svg" size={14} className="kpmg-mr-6" /> Add connections</>}
           </Btn>
         </div>
 
         {/* Blue Info Alert Box */}
-        <div className="kpmg-modal-info-alert blue" style={{ marginBottom: 12 }}>
-          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <div className="kpmg-modal-info-alert blue kpmg-mb-12">
+          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="kpmg-flex-shrink-0">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          <span style={{ fontWeight: 600 }}>
+          <span className="kpmg-fw-600">
             Inferred from ~10 minutes of zone capture — a limited sample, not a complete picture. Edit, remove or add connections you know to be wrong or missing.
           </span>
         </div>
 
         {/* Inline Add Connection Form */}
         {addingConn && (
-          <div style={{ background: '#F8FAFD', border: '1px solid #EAEBF0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 12, color: '#666666', fontWeight: 500 }}>Target:</span>
+          <div className="kpmg-conn-add-row">
+            <span className="kpmg-conn-add-label">Target:</span>
             <Select
               value={newConnTarget}
               onChange={e => setNewConnTarget(e.target.value)}
-              style={{ flex: 1 }}
+              className="kpmg-flex-1"
               options={[{ value: '', label: 'Select target asset…' }, ...(assets || []).map(a => ({ value: a.id, label: `${a.name} (${zName ? zName(a.zone) : a.zone})` }))] }
             />
-            <Input value={newConnProto} onChange={e => setNewConnProto(e.target.value)} style={{ width: 140 }} placeholder="E.g. SCADA server" />
+            <Input value={newConnProto} onChange={e => setNewConnProto(e.target.value)} className="kpmg-w-140" placeholder="E.g. SCADA server" />
             <Btn size="sm" onClick={() => {
               if (!newConnTarget) return;
               const targetAsset = (assets || []).find(a => a.id === newConnTarget);
@@ -1054,44 +1013,22 @@ function AddAssetModal({ zones, assets, zName, kind, onClose, addAsset }) {
               setNewConnTarget('');
               setNewConnProto('');
               setAddingConn(false);
-            }} style={{ background: '#1E49E2', color: '#fff', padding: '6px 14px', borderRadius: 8 }}>
+            }} className="kpmg-btn-cobalt">
               Add
             </Btn>
           </div>
         )}
 
         {/* Scrollable Connections List Container */}
-        <div style={{ maxHeight: 125, overflowY: 'auto', paddingRight: 4 }}>
+        <div className="kpmg-conn-scroll-list">
           {conns.map(c => (
             <div
               key={c.id}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #EAEBF0',
-                borderRadius: 10,
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-                boxSizing: 'border-box',
-                gap: 16,
-                marginBottom: 10
-              }}
+              className="kpmg-conn-item-card"
             >
-              <span style={{ fontSize: 14, fontWeight: 600, color: '#101828', flex: 1 }}>{c.name}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginLeft: 'auto' }}>
-                <span
-                  className="kpmg-badge"
-                  style={{
-                    background: c.source === 'manual' ? '#F4F3FF' : '#EFF6FF',
-                    color: c.source === 'manual' ? '#6941C6' : '#175CD3',
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    padding: '3px 10px',
-                    borderRadius: 10
-                  }}
-                >
+              <span className="kpmg-conn-item-name">{c.name}</span>
+              <div className="kpmg-conn-item-actions">
+                <span className={`kpmg-badge ${c.source === 'manual' ? 'kpmg-badge-purple' : 'kpmg-badge-blue'}`}>
                   {c.source === 'manual' ? 'Manual' : 'Auto'}
                 </span>
                 <Input
@@ -1101,23 +1038,12 @@ function AddAssetModal({ zones, assets, zName, kind, onClose, addAsset }) {
                     setConns(list => list.map(item => item.id === c.id ? { ...item, proto: val } : item));
                   }}
                   placeholder="E.g. PLC, SCADA server"
-                  style={{ width: 220, height: 42, borderRadius: 8, padding: '0 12px' }}
+                  className="kpmg-conn-proto-input"
                 />
                 <button
                   onClick={() => setConns(list => list.filter(item => item.id !== c.id))}
                   title="Delete connection"
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #D0D5DD',
-                    borderRadius: 8,
-                    width: 42,
-                    height: 42,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    flexShrink: 0
-                  }}
+                  className="kpmg-conn-del-btn"
                 >
                   <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#F04438" strokeWidth="2" strokeLinecap="round">
                     <polyline points="3 6 5 6 21 6" />
@@ -1182,15 +1108,15 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
         onClose={onClose}
         maxWidth={640}
         footer={
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div className="kpmg-modal-footer-between">
             <button
               onClick={() => setShowDeleteConfirm(true)}
               className="kpmg-btn-danger-outline"
             >
               Delete asset
             </button>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <Btn variant="outline" onClick={onClose} style={{ padding: '8px 22px', borderRadius: 8 }}>
+            <div className="kpmg-d-flex kpmg-gap-10">
+              <Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-cancel-btn">
                 Cancel
               </Btn>
               <Btn onClick={saveEdit} className="kpmg-btn-primary-blue">
@@ -1267,74 +1193,55 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
         {/* Internet-facing Toggle Row */}
         <div
           onClick={() => setEdit(s => ({ ...s, internetFacing: !s.internetFacing }))}
-          style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16, cursor: 'pointer' }}
+          className="kpmg-toggle-row"
         >
-          <div
-            style={{
-              width: 44,
-              height: 24,
-              borderRadius: 12,
-              background: edit.internetFacing ? '#1E49E2' : '#EAECF0',
-              padding: 2,
-              display: 'flex',
-              alignItems: 'center',
-              transition: 'all 0.2s ease',
-              cursor: 'pointer',
-              flexShrink: 0
-            }}
-          >
-            <div
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: '50%',
-                background: '#ffffff',
-                transform: edit.internetFacing ? 'translateX(20px)' : 'translateX(0px)',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-              }}
-            />
+          <div className={`kpmg-toggle-track ${edit.internetFacing ? 'kpmg-toggle-track-active' : 'kpmg-toggle-track-inactive'}`}>
+            <div className={`kpmg-toggle-thumb ${edit.internetFacing ? 'kpmg-toggle-thumb-active' : 'kpmg-toggle-thumb-inactive'}`} />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>Internet-facing</div>
-            <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>
+            <div className="kpmg-toggle-title">Internet-facing</div>
+            <div className="kpmg-toggle-desc">
               reachable from outside the OT environment — save above to apply
             </div>
           </div>
         </div>
 
         {/* Connection Section Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: '#101828', margin: 0 }}>Connection</h3>
-          <Btn variant="outline" onClick={() => setAdding(a => !a)} style={{ padding: '6px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500, display: 'inline-flex', alignItems: 'center' }}>
-            {adding ? 'Cancel' : <><PageIcon name="Add.svg" size={14} style={{ marginRight: 6 }} /> Add connections</>}
+        <div className="kpmg-conn-head">
+          <h3 className="kpmg-conn-title">Connection</h3>
+          <Btn
+            variant={adding ? 'outline' : 'primary'}
+            onClick={() => setAdding(a => !a)}
+            className={`kpmg-btn-add-conn ${!adding ? 'kpmg-btn-cobalt' : 'is-cancel'}`}
+          >
+            {adding ? 'Cancel' : <><PageIcon name="Add.svg" size={14} className="kpmg-mr-6" /> Add connections</>}
           </Btn>
         </div>
 
         {/* Blue Info Alert Box */}
-        <div className="kpmg-modal-info-alert blue" style={{ marginBottom: 12 }}>
-          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <div className="kpmg-modal-info-alert blue kpmg-mb-12">
+          <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="kpmg-flex-shrink-0">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          <span style={{ fontWeight: 600 }}>
+          <span className="kpmg-fw-600">
             Inferred from ~10 minutes of zone capture — a limited sample, not a complete picture. Edit, remove or add connections you know to be wrong or missing.
           </span>
         </div>
 
       {/* Inline Add Connection Form */}
       {adding && (
-        <div style={{ background: '#F8FAFD', border: '1px solid #EAEBF0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <span style={{ fontSize: 12, color: '#666666', fontWeight: 500 }}>Target:</span>
+        <div className="kpmg-conn-add-row">
+          <span className="kpmg-conn-add-label">Target:</span>
           <Select
             value={to}
             onChange={e => setTo(e.target.value)}
-            style={{ flex: 1 }}
+            className="kpmg-flex-1"
             options={[{ value: '', label: 'Select target asset…' }, ...assets.filter(a => a.id !== asset.id).map(a => ({ value: a.id, label: `${a.name} (${zName(a.zone)})` }))]}
           />
-          <Input value={proto} onChange={e => setProto(e.target.value)} style={{ width: 140 }} placeholder="E.g. SCADA server" />
-          <Btn size="sm" onClick={add} style={{ background: '#1E49E2', color: '#fff', padding: '6px 14px', borderRadius: 8 }}>
+          <Input value={proto} onChange={e => setProto(e.target.value)} className="kpmg-w-140" placeholder="E.g. SCADA server" />
+          <Btn size="sm" onClick={add} className="kpmg-btn-cobalt">
             Add
           </Btn>
         </div>
@@ -1342,13 +1249,13 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
 
       {/* Connections List Cards */}
       {conns.length === 0 && !adding && (
-        <div style={{ fontSize: 13, color: '#666666', fontStyle: 'italic', padding: '12px 0' }}>
+        <div className="kpmg-vis-empty-msg">
           No connections recorded for this asset.
         </div>
       )}
 
       {/* Scrollable Connections List Container */}
-      <div style={{ maxHeight: 125, overflowY: 'auto', paddingRight: 4 }}>
+      <div className="kpmg-conn-scroll-list">
         {conns.map(c => {
           const otherId = c.from === asset.id ? c.to : c.from;
           const otherName = aName(otherId);
@@ -1356,38 +1263,16 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
           return (
             <div
               key={c.id}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #EAEBF0',
-                borderRadius: 10,
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justify: 'space-between',
-                width: '100%',
-                boxSizing: 'border-box',
-                gap: 16,
-                marginBottom: 10
-              }}
+              className="kpmg-conn-item-card"
             >
               {/* Left: Target Name only */}
-              <div style={{ flexShrink: 0 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#101828' }}>{otherName}</span>
+              <div className="kpmg-flex-shrink-0">
+                <span className="kpmg-conn-item-name">{otherName}</span>
               </div>
 
               {/* Right: Manual/Auto badge + Input + Red delete button */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, marginLeft: 'auto' }}>
-                <span
-                  className="kpmg-badge"
-                  style={{
-                    background: c.source === 'manual' ? '#F4F3FF' : '#EFF6FF',
-                    color: c.source === 'manual' ? '#6941C6' : '#175CD3',
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    padding: '3px 10px',
-                    borderRadius: 10
-                  }}
-                >
+              <div className="kpmg-conn-item-actions">
+                <span className={`kpmg-badge ${c.source === 'manual' ? 'kpmg-badge-purple' : 'kpmg-badge-blue'}`}>
                   {c.source === 'manual' ? 'Manual' : 'Auto'}
                 </span>
 
@@ -1395,23 +1280,12 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
                   value={c.proto || ''}
                   onChange={e => setP(c.id, e.target.value)}
                   placeholder="E.g. PLC, SCADA server"
-                  style={{ width: 220, height: 42, borderRadius: 8, padding: '0 12px' }}
+                  className="kpmg-conn-proto-input"
                 />
                 <button
                   onClick={() => del(c.id)}
                   title="Delete connection"
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #D0D5DD',
-                    borderRadius: 8,
-                    width: 42,
-                    height: 42,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    flexShrink: 0
-                  }}
+                  className="kpmg-conn-del-btn"
                 >
                   <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#F04438" strokeWidth="2" strokeLinecap="round">
                     <polyline points="3 6 5 6 21 6" />

@@ -97,11 +97,11 @@ function SectorBenchmarkSection({ industry, srSeed, zones, assets = [], vulns = 
     <div className="kpmg-benchmark-card">
       {/* Header Top Row with full-bleed end-to-end border */}
       <div className="kpmg-benchmark-header">
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#101828' }}>
+        <div className="kpmg-flex-1">
+          <div className="kpmg-dash-sec-title">
             Sector benchmark - {view === 'compliance' ? 'Compliance' : 'Risk'}
           </div>
-          <div style={{ fontSize: 12.5, color: '#475467', marginTop: 4 }}>
+          <div className="kpmg-dash-sec-sub">
             {view === 'compliance'
               ? `62443 compliance per FR vs ${industry || 'Energy & Utilities'} norm`
               : `Risk score per Purdue level vs ${industry || 'Energy & Utilities'} norm`}
@@ -112,20 +112,13 @@ function SectorBenchmarkSection({ industry, srSeed, zones, assets = [], vulns = 
         <div className="kpmg-benchmark-toggle-group">
           <button
             onClick={() => setView('compliance')}
-            className="kpmg-benchmark-btn"
-            style={{
-              background: view === 'compliance' ? '#F4F5F7' : '#ffffff',
-              borderRight: '1px solid #D0D5DD',
-            }}
+            className={`kpmg-benchmark-btn kpmg-benchmark-btn-bordered ${view === 'compliance' ? 'active' : ''}`}
           >
             Compliance
           </button>
           <button
             onClick={() => setView('risk')}
-            className="kpmg-benchmark-btn"
-            style={{
-              background: view === 'risk' ? '#F4F5F7' : '#ffffff',
-            }}
+            className={`kpmg-benchmark-btn ${view === 'risk' ? 'active' : ''}`}
           >
             Risk
           </button>
@@ -133,59 +126,44 @@ function SectorBenchmarkSection({ industry, srSeed, zones, assets = [], vulns = 
       </div>
 
       {/* Main Chart Body Container (White background) */}
-      <div style={{ padding: '24px 28px 28px', background: '#ffffff' }}>
+      <div className="kpmg-bench-chart-body">
         {/* Legend */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 20, marginBottom: 24, fontSize: 12, fontWeight: 500, color: '#475467' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#002B66' }} />
+        <div className="kpmg-bench-legend">
+          <div className="kpmg-bench-legend-item">
+            <span className="kpmg-dot-navy" />
             <span>You</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#00B4D8' }} />
+          <div className="kpmg-bench-legend-item">
+            <span className="kpmg-dot-cyan" />
             <span>Sector norm</span>
           </div>
         </div>
 
         {/* Vertical Bar Group Chart Plot Canvas Container */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'flex-end',
-            height: 210,
-            paddingBottom: 0,
-            borderBottom: '1px solid #CBD5E1',
-            position: 'relative',
-            marginLeft: 40,
-            marginBottom: 24,
-            background: '#F8FAFC', // Light blue-gray background only inside plot area
-            borderRadius: '4px 4px 0 0',
-            borderLeft: '1px solid #E2E8F0'
-          }}
-        >
-          {/* Y Axis lines and labels (Labels stay outside plot area on white background) */}
+        <div className="kpmg-bench-chart-area">
+          {/* Y Axis lines and labels */}
           {[100, 80, 60, 40, 20, 0].map(val => (
-            <div key={val} style={{ position: 'absolute', left: 0, right: 0, bottom: `${val * 1.85}px`, borderTop: '1px dashed #E2E8F0', display: 'flex', alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#64748B', position: 'absolute', left: -34, top: -7, fontWeight: 500 }}>{val}</span>
+            <div key={val} className="kpmg-bench-grid-line" style={{ bottom: `${val * 1.85}px` }}>
+              <span className="kpmg-bench-grid-val">{val}</span>
             </div>
           ))}
 
           {data.map(d => (
-            <div key={d.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 1, position: 'relative' }}>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 185 }}>
+            <div key={d.label} className="kpmg-bench-col-item">
+              <div className="kpmg-bench-bars-group">
                 {/* You bar */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: '#475467' }}>{d.You}{view === 'compliance' ? '%' : ''}</span>
-                  <div style={{ width: 22, height: `${d.You * 1.6}px`, background: '#002B66', borderRadius: '4px 4px 0 0' }} />
+                <div className="kpmg-bench-bar-wrap">
+                  <span className="kpmg-bench-bar-label">{d.You}{view === 'compliance' ? '%' : ''}</span>
+                  <div className="kpmg-bench-bar-navy" style={{ height: `${d.You * 1.6}px` }} />
                 </div>
                 {/* Sector norm bar */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: '#475467' }}>{d.Sector}{view === 'compliance' ? '%' : ''}</span>
-                  <div style={{ width: 22, height: `${d.Sector * 1.6}px`, background: '#00B4D8', borderRadius: '4px 4px 0 0' }} />
+                <div className="kpmg-bench-bar-wrap">
+                  <span className="kpmg-bench-bar-label">{d.Sector}{view === 'compliance' ? '%' : ''}</span>
+                  <div className="kpmg-bench-bar-cyan" style={{ height: `${d.Sector * 1.6}px` }} />
                 </div>
               </div>
               {/* X-axis label neatly spaced right below baseline (0 line) */}
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#334155', position: 'absolute', top: 198 }}>{d.label}</span>
+              <span className="kpmg-bench-axis-label">{d.label}</span>
             </div>
           ))}
         </div>
@@ -220,94 +198,87 @@ export default function DashboardTab({ onNavigate }) {
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 40 }}>
+    <div className="kpmg-dashboard-container">
       {/* KPI Cards Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
+      <div className="kpmg-kpi-grid-5">
         {/* Card 1: Zones */}
         <div
           onClick={() => onNavigate && onNavigate('model')}
-          style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: '20px 22px', cursor: 'pointer' }}
+          className="kpmg-dash-kpi-card"
         >
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#1E49E2', lineHeight: 1 }}>
+          <div className="kpmg-dash-kpi-val-blue">
             {String(zones.length || 5).padStart(2, '0')}
           </div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginTop: 10 }}>Zones</div>
-          <div style={{ fontSize: 11.5, color: '#667085', marginTop: 4 }}>Tap to review in Model</div>
+          <div className="kpmg-dash-kpi-title">Zones</div>
+          <div className="kpmg-dash-kpi-sub">Tap to review in Model</div>
         </div>
 
         {/* Card 2: Asset visibility */}
         <div
           onClick={() => onNavigate && onNavigate('assets')}
-          style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: '20px 22px', cursor: 'pointer', position: 'relative' }}
+          className="kpmg-dash-kpi-card kpmg-pos-relative"
         >
-          <span style={{ position: 'absolute', top: 18, right: 18, background: '#EFF4FF', color: '#2970FF', fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 12 }}>
+          <span className="kpmg-dash-kpi-badge-blue">
             {assets.length || 21} assets
           </span>
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#1E49E2', lineHeight: 1 }}>78%</div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginTop: 10 }}>Asset visibility</div>
-          <div style={{ fontSize: 11.5, color: '#667085', marginTop: 4 }}>Tap to review in Assets</div>
+          <div className="kpmg-dash-kpi-val-blue">78%</div>
+          <div className="kpmg-dash-kpi-title">Asset visibility</div>
+          <div className="kpmg-dash-kpi-sub">Tap to review in Assets</div>
         </div>
 
         {/* Card 3: High risk zone */}
         <div
           onClick={() => onNavigate && onNavigate('model')}
-          style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: '20px 22px', cursor: 'pointer' }}
+          className="kpmg-dash-kpi-card"
         >
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#1E49E2', lineHeight: 1 }}>
-            07<span style={{ fontSize: 14, fontWeight: 500, color: '#667085' }}> /10</span>
+          <div className="kpmg-dash-kpi-val-blue">
+            07<span className="kpmg-dash-kpi-denom"> /10</span>
           </div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginTop: 10 }}>High risk zone</div>
-          <div style={{ fontSize: 11.5, color: '#667085', marginTop: 4 }}>Safety (SIS)</div>
+          <div className="kpmg-dash-kpi-title">High risk zone</div>
+          <div className="kpmg-dash-kpi-sub">Safety (SIS)</div>
         </div>
 
         {/* Card 4: 62443 Coverage */}
         <div
           onClick={() => onNavigate && onNavigate('compliance')}
-          style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: '20px 22px', cursor: 'pointer' }}
+          className="kpmg-dash-kpi-card"
         >
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#D9251B', lineHeight: 1 }}>
+          <div className="kpmg-dash-kpi-val-red">
             {overallCov || 37}%
           </div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginTop: 10 }}>62443 Coverage</div>
-          <div style={{ fontSize: 11.5, color: '#667085', marginTop: 4 }}>Tap to open IEC 62443</div>
+          <div className="kpmg-dash-kpi-title">62443 Coverage</div>
+          <div className="kpmg-dash-kpi-sub">Tap to open IEC 62443</div>
         </div>
 
         {/* Card 5: Overall risk score */}
         <div
           onClick={() => onNavigate && onNavigate('risk')}
-          style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 14, padding: '20px 22px', cursor: 'pointer' }}
+          className="kpmg-dash-kpi-card"
         >
-          <div style={{ fontSize: 28, fontWeight: 700, color: '#D9251B', lineHeight: 1 }}>50%</div>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: '#101828', marginTop: 10 }}>Overall risk score</div>
-          <div style={{ fontSize: 11.5, color: '#667085', marginTop: 4 }}>Tap to review in Risk Landscape</div>
+          <div className="kpmg-dash-kpi-val-red">50%</div>
+          <div className="kpmg-dash-kpi-title">Overall risk score</div>
+          <div className="kpmg-dash-kpi-sub">Tap to review in Risk Landscape</div>
         </div>
       </div>
 
       {/* Main Content Grid: Top Risk Assets + Security Level Radar */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 20 }}>
+      <div className="kpmg-dash-two-col-grid">
         {/* Top risk assets card */}
-        <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 16, padding: '24px 28px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#101828' }}>Top risk assets</div>
-          <div style={{ fontSize: 12.5, color: '#475467', marginTop: 4, marginBottom: 20 }}>
+        <div className="kpmg-dash-card-box">
+          <div className="kpmg-dash-box-title">Top risk assets</div>
+          <div className="kpmg-dash-box-sub">
             Highest-risk assets by mapped vulnerability score
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="kpmg-dash-assets-list">
             {topAssets.map((item, idx) => (
               <div
                 key={item.asset || idx}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #EAECF0',
-                  borderRadius: 12,
-                  padding: '14px 16px',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
+                className="kpmg-dash-asset-item"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 13.5, fontWeight: 600, color: '#101828' }}>{item.asset}</span>
-                  <span style={{ fontSize: 13.5, fontWeight: 700, color: '#D9251B' }}>{item.score.toFixed(1)}</span>
+                <div className="kpmg-dash-asset-item-head">
+                  <span className="kpmg-dash-asset-name">{item.asset}</span>
+                  <span className="kpmg-dash-asset-score">{item.score.toFixed(1)}</span>
                 </div>
                 <RiskTickBar score={item.score} />
               </div>
@@ -316,55 +287,27 @@ export default function DashboardTab({ onNavigate }) {
         </div>
 
         {/* Security level radar card */}
-        <div style={{ background: '#ffffff', border: '1px solid #EAECF0', borderRadius: 16, padding: '24px 28px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className="kpmg-dash-card-box kpmg-pos-relative">
+          <div className="kpmg-dash-radar-head">
             <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#101828' }}>Security level - target vs achieved</div>
-              <div style={{ fontSize: 12.5, color: '#475467', marginTop: 4 }}>
+              <div className="kpmg-dash-box-title">Security level - target vs achieved</div>
+              <div className="kpmg-dash-box-sub-no-mb">
                 SL-T target vs achieved SL-A across the 7 FRs
               </div>
             </div>
 
             {/* Dropdown for Zone selector */}
-            <div style={{ position: 'relative' }}>
+            <div className="kpmg-pos-relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #D0D5DD',
-                  borderRadius: 8,
-                  padding: '8px 14px',
-                  fontSize: 12.5,
-                  fontWeight: 500,
-                  color: '#344054',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  minWidth: 140,
-                  justifyContent: 'space-between'
-                }}
+                className="kpmg-dash-zone-dropdown-btn"
               >
                 <span>{selectedZone}</span>
                 <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
               </button>
 
               {dropdownOpen && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: 0,
-                    marginTop: 4,
-                    background: '#ffffff',
-                    border: '1px solid #EAECF0',
-                    borderRadius: 8,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-                    zIndex: 10,
-                    minWidth: 160,
-                    overflow: 'hidden'
-                  }}
-                >
+                <div className="kpmg-dash-zone-dropdown-menu">
                   {zoneOptions.map(z => (
                     <div
                       key={z}
@@ -372,14 +315,7 @@ export default function DashboardTab({ onNavigate }) {
                         setSelectedZone(z);
                         setDropdownOpen(false);
                       }}
-                      style={{
-                        padding: '9px 14px',
-                        fontSize: 12.5,
-                        color: z === selectedZone ? '#1E49E2' : '#344054',
-                        background: z === selectedZone ? '#F5F8FF' : '#ffffff',
-                        fontWeight: z === selectedZone ? 600 : 400,
-                        cursor: 'pointer'
-                      }}
+                      className={`kpmg-dash-zone-dropdown-item ${z === selectedZone ? 'active' : ''}`}
                     >
                       {z}
                     </div>
@@ -390,7 +326,7 @@ export default function DashboardTab({ onNavigate }) {
           </div>
 
           {/* Radar Chart */}
-          <div style={{ height: 380, marginTop: 20, flex: 1 }}>
+          <div className="kpmg-dash-radar-chart-wrap">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={radarData} outerRadius={145}>
                 <PolarGrid stroke="#EAECF0" />
