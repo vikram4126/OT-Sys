@@ -3,6 +3,21 @@
 
 ---
 
+> [!IMPORTANT]
+> ### 🛑 Abhi Code Me Koi Change Mat Karna (Wait for Real API Link):
+> 1. **Abhi Frontend 100% Ready & Stable Hai:** Saare UI components, buttons, forms, validations aur logic bilkul perfect chal rahe hain.
+> 2. **Abhi Code Kyun Nahi Badlna:** Agar hum bina backend server ke abhi se API calls laga denge, toh browser me *"Network Error / Server Not Found"* aayega aur screens khali ho jayengi. Abhi ka fallback/localStorage setup testing ke liye best hai.
+> 3. **Agla Step:** Humein sirf backend team se FastAPI ka **Base URL** (e.g. `http://127.0.0.1:8000/api`) aur **Endpoints List** aane ka wait karna hai.
+> 4. **Links Aate Hi:** Niche di gayi cheatsheet se Line numbers dekh kar sirf Base URL aur Endpoints paste karna hai, aur saara data automatic real database se sync ho jayega!
+>
+> **Features Jo Pehle Se 100% Real API Ke Liye Ready Hain (Zero code changes needed):**
+> - **Zone Model PDF & DOCX Download** (`POST /report/zone-model/pdf/`, `POST /report/zone-model/docx/`)
+> - **Report Generation** (`POST /report/docx/`)
+> - **Vulnerabilities List Fetch** (`GET /vulnerabilities/`)
+> - **Baseline Analysis & Lock Mechanism** (`POST /baseline/capture/`)
+
+---
+
 ## 1. Concept: API Ka URL Kahan Aur Kaise Kaam Karta Hai?
 
 FastAPI ka link **2 hisson** me divide hota hai:

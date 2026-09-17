@@ -1071,6 +1071,12 @@ export function techniqueExposure(srSeed, zones, technique) {
 }
 
 // ── React hook with zone CRUD ────────────────────────────────────────────────
+// 📌 REAL API INTEGRATION NOTICE:
+// Abhi yeh hook saara data (zones, assets, evidence, company, conduits)
+// localStorage se le raha hai taaki testing smoothly chal sake.
+// Jab backend team FastAPI ka link degi, toh is hook ke useEffect (Line 1081)
+// me api.get('/zones/'), etc. call karke setZones(res.data) karna hai.
+// Complete Guide & line-by-line replacement ke liye dekhein: API_INTEGRATION_GUIDE.md
 export function useAssessment() {
   const [zones, setZones] = useState(readZones);
   const [srSeed, setSrSeed] = useState(readSR);
