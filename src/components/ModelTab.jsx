@@ -1277,8 +1277,8 @@ function Sr62443DirectoryCard({ a, onNavigate }) {
   return (
     <Card className="kpmg-model-zone-card kpmg-model-zone-card-lg">
       <div className="kpmg-zone-card-body">
-        <div className="kpmg-d-flex kpmg-items-start kpmg-justify-between kpmg-mb-12">
-          <div>
+        <div className="kpmg-d-flex kpmg-items-start kpmg-justify-between kpmg-w-full kpmg-mb-12">
+          <div className="kpmg-flex-1 kpmg-mr-12">
             <div className="kpmg-subheading-14-bold kpmg-mb-2">62443 evidence directory</div>
             <div className="kpmg-text-12-muted">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
