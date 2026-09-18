@@ -7296,8 +7296,23 @@ h3 {
 }
 
 .kpmg-model-baseline-btn {
-  padding: 8px 16px !important;
+  background-color: #1E49E2 !important;
+  color: #ffffff !important;
+  border: 1px solid #1E49E2 !important;
+  padding: 0 18px !important;
   border-radius: 8px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+
+  &:hover:not(:disabled) {
+    background-color: #183bb5 !important;
+    border-color: #183bb5 !important;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait !important;
+  }
 }
 
 /* Section Scope */
@@ -11726,6 +11741,7 @@ button.ds-btn-success,
 .kpmg-btn-download-report,
 .kpmg-btn-preview-toggle,
 .kpmg-locked-btn,
+.kpmg-model-baseline-btn,
 .kpmg-btn-retry {
   height: 32px !important;
   box-sizing: border-box !important;

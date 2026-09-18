@@ -126,7 +126,7 @@ function BaselineBar({ a }) {
               {analysing ? 'Analysing…' : `${baseline.metrics?.coverage ?? 30}% compliance`}
             </span>
           ) : (
-            <Btn size="sm" variant="primary" onClick={captureBaseline} disabled={analysing} className="kpmg-model-baseline-btn">
+            <Btn size="sm" variant="primary" onClick={captureBaseline} disabled={analysing} className="kpmg-model-baseline-btn kpmg-btn-cobalt">
               {analysing ? 'Analysing…' : 'Run analysis & capture baseline'}
             </Btn>
           )}
