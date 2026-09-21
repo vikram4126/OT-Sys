@@ -221,15 +221,6 @@ export default function AuthScreen({ onLoginSuccess }) {
                 {loading ? 'Logging in…' : 'Log in'}
               </button>
             </form>
-
-            <div className="kpmg-auth-footer-hint">
-              <div className="kpmg-auth-demo-badge">
-                <span>Demo:</span>
-                <strong>vikramkumar4@kpmg.com</strong>
-                <span>•</span>
-                <strong>12345</strong>
-              </div>
-            </div>
           </div>
         )}
 
