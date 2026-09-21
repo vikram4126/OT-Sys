@@ -1519,13 +1519,37 @@ function WorkshopExportCard({ a, rules }) {
 
         <div className="kpmg-d-flex kpmg-gap-10 kpmg-flex-shrink-0">
           <Btn onClick={() => download('pdf')} disabled={busy !== null} className="kpmg-model-btn-download">
-            {busy === 'pdf' ? 'Generating…' : 'Download PDF'}
+            {busy === 'pdf' ? (
+              <span className="kpmg-d-flex kpmg-items-center kpmg-gap-6">
+                <span className="kpmg-spinner-sm" />
+                <span>Compiling PDF…</span>
+              </span>
+            ) : (
+              'Download PDF'
+            )}
           </Btn>
           <Btn onClick={() => download('docx')} disabled={busy !== null} className="kpmg-model-btn-download">
-            {busy === 'docx' ? 'Generating…' : 'Download DOCX'}
+            {busy === 'docx' ? (
+              <span className="kpmg-d-flex kpmg-items-center kpmg-gap-6">
+                <span className="kpmg-spinner-sm" />
+                <span>Compiling DOCX…</span>
+              </span>
+            ) : (
+              'Download DOCX'
+            )}
           </Btn>
         </div>
       </div>
+
+      {busy && (
+        <div className="kpmg-model-heavy-export-banner">
+          <span className="kpmg-spinner-dark" />
+          <span>
+            Compiling <strong>{busy.toUpperCase()}</strong> with all zones, subnets, assets and network conduits. Large documents may take 10–25 seconds to generate, please wait…
+          </span>
+        </div>
+      )}
+
       {err && <div className="kpmg-model-err-msg">{err}</div>}
     </Card>
   );
