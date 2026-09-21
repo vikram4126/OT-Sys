@@ -11,9 +11,11 @@ import MitigationsTab from './components/MitigationsTab';
 import ReportTab from './components/ReportTab';
 import LogsTab from './components/LogsTab';
 import AdminPortal from './components/AdminPortal';
+import AuthScreen from './components/AuthScreen';
 import { seedDemoLogs, addLog, LOG_TYPES } from './services/logService';
 import { hasBaseline, SNAPSHOT_EVENT } from './services/snapshotService';
 import { useAssessment } from './services/assessmentStore';
+import { getCurrentUser, logout, AUTH_CHANGE_EVENT } from './services/authService';
 
 const LogsIcon = () => (
   <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="kpmg-icon-no-shrink">
@@ -92,6 +94,7 @@ const SUBTITLES = {
 
 export default function App() {
   const { company } = useAssessment();
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
   const [tab, setTab] = useState(hasBaseline() ? 'dashboard' : 'model');
   const [adminMode, setAdminMode] = useState(false);
   const [expanded, setExpanded] = useState({ Assessment: true, Analysis: true, Reports: true });
@@ -110,6 +113,17 @@ export default function App() {
     window.addEventListener(SNAPSHOT_EVENT, sync);
     return () => window.removeEventListener(SNAPSHOT_EVENT, sync);
   }, []);
+
+  useEffect(() => {
+    const syncAuth = () => setCurrentUser(getCurrentUser());
+    window.addEventListener(AUTH_CHANGE_EVENT, syncAuth);
+    return () => window.removeEventListener(AUTH_CHANGE_EVENT, syncAuth);
+  }, []);
+
+  // Auth gate: render auth screen if not logged in
+  if (!currentUser) {
+    return <AuthScreen onLoginSuccess={(u) => setCurrentUser(u)} />;
+  }
 
   if (adminMode) return <AdminPortal onExit={() => setAdminMode(false)} />;
 
@@ -193,12 +207,28 @@ export default function App() {
 
           <div className="kpmg-sidebar-user">
             <div className="kpmg-user-avatar">
-              JD
+              {currentUser?.avatarInitials || 'JD'}
             </div>
-            <div className="kpmg-user-info">
-              <div className="kpmg-user-name">J. Davies</div>
-              <div className="kpmg-user-role">Lead Analyst</div>
+            <div className="kpmg-user-info" style={{ flex: 1, minWidth: 0 }}>
+              <div className="kpmg-user-name" title={currentUser?.name || 'J. Davies'}>
+                {currentUser?.name || 'J. Davies'}
+              </div>
+              <div className="kpmg-user-role" title={currentUser?.role || 'Lead Analyst'}>
+                {currentUser?.role || 'Lead Analyst'}
+              </div>
             </div>
+            <button
+              onClick={() => logout()}
+              title="Sign out / Log out"
+              className="kpmg-sidebar-logout-btn"
+              aria-label="Sign out"
+            >
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>

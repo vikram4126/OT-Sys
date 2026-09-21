@@ -763,6 +763,25 @@ h3 {
   border-radius: 12px;
 }
 
+.kpmg-sidebar-logout-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #667085;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  margin-left: auto;
+
+  &:hover {
+    color: #b42318;
+    background: #fee4e2;
+  }
+}
+
 .kpmg-header {
   background: #FAFAFC;
   padding: 22px 24px 6px 24px;

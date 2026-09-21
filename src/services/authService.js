@@ -15,15 +15,15 @@ export const AUTH_CHANGE_EVENT = 'ot_auth_state_changed';
 // Default user matching the system & mockups
 export const DEFAULT_USER = {
   id: 'u1',
-  name: 'J. Davies',
-  email: 'j.davies@acmeindustrial.com',
+  name: 'Vikram Kumar',
+  email: 'vikramkumar4@kpmg.com',
   role: 'Lead Analyst',
   department: 'OT Security & Resilience',
-  avatarInitials: 'JD',
+  avatarInitials: 'VK',
 };
 
 // Default fallback password for initial testing
-export const INITIAL_DEFAULT_PASSWORD = 'Password123';
+export const INITIAL_DEFAULT_PASSWORD = '12345';
 
 /**
  * Returns currently set password (either default or recently reset by user)
@@ -76,14 +76,14 @@ export const login = async (email, password) => {
 
   // Allow default email or any valid email for demo flexibility
   const validEmail = cleanEmail === DEFAULT_USER.email.toLowerCase() || cleanEmail.includes('@');
-  const validPassword = password === activePwd || password === INITIAL_DEFAULT_PASSWORD || password === 'admin123';
+  const validPassword = password === activePwd || password === INITIAL_DEFAULT_PASSWORD || password === '12345' || password === 'Password123';
 
   if (!validEmail) {
     throw new Error('Please enter a valid registered email address.');
   }
 
   if (!validPassword) {
-    throw new Error('Incorrect password. Default demo password is: Password123');
+    throw new Error('Incorrect password. Default demo password is: 12345');
   }
 
   // Create or retrieve session user
@@ -91,7 +91,7 @@ export const login = async (email, password) => {
     ...DEFAULT_USER,
     email: cleanEmail,
     name: cleanEmail === DEFAULT_USER.email.toLowerCase() ? DEFAULT_USER.name : cleanEmail.split('@')[0].replace('.', ' '),
-    avatarInitials: cleanEmail === DEFAULT_USER.email.toLowerCase() ? 'JD' : cleanEmail.substring(0, 2).toUpperCase(),
+    avatarInitials: cleanEmail === DEFAULT_USER.email.toLowerCase() ? 'VK' : cleanEmail.substring(0, 2).toUpperCase(),
     loginTime: new Date().toISOString(),
   };
 
@@ -117,6 +117,7 @@ export const logout = () => {
   }
   localStorage.removeItem(AUTH_USER_KEY);
   localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem('ot_csrf_token');
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 };
 
@@ -138,8 +139,8 @@ export const requestPasswordReset = async (email) => {
  * Confirm New Password (Step 3: Set new password)
  */
 export const confirmNewPassword = async (newPassword, confirmPassword) => {
-  if (!newPassword || newPassword.length < 6) {
-    throw new Error('Password must be at least 6 characters long.');
+  if (!newPassword || newPassword.length < 4) {
+    throw new Error('Password must be at least 4 characters long.');
   }
 
   if (newPassword !== confirmPassword) {

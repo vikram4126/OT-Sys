@@ -3,10 +3,27 @@ import { VULN_SEED } from '../services/vulnSeed';
 import { scoreVulnerability } from '../services/scoringEngine';
 import { getAcceptedComplementaryVulns, getManuallyAddedVulns, getDeletedVulnIds, applyVulnOverride } from '../services/assessmentStore';
 
-// CSRF token read from cookie set by Django on first response
-function getCsrfToken() {
-  const match = document.cookie.match(/csrftoken=([^;]+)/);
-  return match ? match[1] : '';
+// CSRF Token Management
+// Can be received from login response body, response headers, or cookies
+export function getCsrfToken() {
+  try {
+    const stored = localStorage.getItem('ot_csrf_token');
+    if (stored) return stored;
+  } catch {}
+
+  try {
+    const match = document.cookie.match(/(?:csrftoken|csrf_token|XSRF-TOKEN)=([^;]+)/i);
+    if (match) return decodeURIComponent(match[1]);
+  } catch {}
+
+  return '';
+}
+
+export function setCsrfToken(token) {
+  if (!token) return;
+  try {
+    localStorage.setItem('ot_csrf_token', token);
+  } catch {}
 }
 
 // Absolute URL — required when serving the built app with `npx serve`
@@ -19,17 +36,44 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach CSRF token to every state-changing request
+// Attach JWT/Bearer token and CSRF token to state-changing requests
 api.interceptors.request.use(config => {
-  if (['post','put','patch','delete'].includes(config.method)) {
-    config.headers['X-CSRFToken'] = getCsrfToken();
+  try {
+    const token = localStorage.getItem('ot_auth_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+  } catch {}
+
+  const method = (config.method || '').toLowerCase();
+  if (['post', 'put', 'patch', 'delete'].includes(method)) {
+    const csrf = getCsrfToken();
+    if (csrf) {
+      // Set both standard headers for 100% backend compatibility
+      config.headers['X-CSRFToken'] = csrf;
+      config.headers['X-CSRF-Token'] = csrf;
+    }
   }
   return config;
 });
 
-// Normalise errors — never expose raw server messages to the UI
+// Intercept responses: automatically extract CSRF token if returned in header or body
 api.interceptors.response.use(
-  r => r,
+  res => {
+    try {
+      const headerToken = res.headers?.['x-csrftoken'] || res.headers?.['x-csrf-token'];
+      if (headerToken) {
+        setCsrfToken(headerToken);
+      }
+      if (res.data && typeof res.data === 'object') {
+        const bodyToken = res.data.csrf_token || res.data.csrfToken || res.data.csrf;
+        if (bodyToken) {
+          setCsrfToken(bodyToken);
+        }
+      }
+    } catch {}
+    return res;
+  },
   err => {
     const msg = err.response?.data?.detail || err.message || 'Request failed';
     return Promise.reject(new Error(msg));
@@ -64,5 +108,8 @@ export const getVulnerabilities    = (params)  => api.get('/vulnerabilities/', {
 export const generateReportDocx    = (data)    => api.post('/report/docx/', data, { responseType: 'blob' });
 export const generateZoneModelPdf  = (data)    => api.post('/report/zone-model/pdf/', data, { responseType: 'blob' });
 export const generateZoneModelDocx = (data)    => api.post('/report/zone-model/docx/', data, { responseType: 'blob' });
+
+// Health check endpoint
+export const checkBackendHealth    = ()        => api.get('/health');
 
 export default api;
