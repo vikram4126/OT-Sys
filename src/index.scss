@@ -7367,6 +7367,171 @@ h3 {
   line-height: 1.5;
 }
 
+/* ── 2-Column Model Inputs Header Banner ──────────────────────────────── */
+.kpmg-model-inputs-header-banner {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}
+
+.kpmg-model-inputs-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.kpmg-model-inputs-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #101828;
+}
+
+.kpmg-model-inputs-desc {
+  font-size: 12.5px;
+  color: #475467;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.kpmg-model-inputs-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.kpmg-btn-cve-header {
+  background: #FFFFFF;
+  border: 1px solid #D0D5DD;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #F9FAFB;
+    border-color: #98A2B3;
+  }
+}
+
+.kpmg-btn-scan-header {
+  background: #1D4ED8;
+  border: 1px solid #1D4ED8;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #1E40AF;
+    border-color: #1E40AF;
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Text here section with Retry rows ────────────────────────────────── */
+.kpmg-model-text-here-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.kpmg-model-text-here-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #101828;
+}
+
+.kpmg-model-retry-card {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.04);
+}
+
+.kpmg-model-retry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #F2F4F7;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #FAFAFB;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.kpmg-model-retry-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.kpmg-model-retry-icon {
+  color: #667085;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.kpmg-model-retry-text {
+  font-size: 12.5px;
+  color: #344054;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.kpmg-btn-retry-item {
+  background: #FFFFFF;
+  border: 1px solid #D0D5DD;
+  color: #344054;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #F9FAFB;
+    border-color: #98A2B3;
+  }
+
+  &:active {
+    background: #F2F4F7;
+  }
+}
+
 .kpmg-model-form-row-2col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -9269,6 +9434,351 @@ h3 {
   background: #FFFFFF;
 }
 
+/* ── Updated Vulnerability Edit & Intelligence UI ───────────────────────── */
+.kpmg-vuln-edit-v2-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kpmg-vuln-v2-card {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  box-sizing: border-box;
+}
+
+.kpmg-vuln-risk-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kpmg-vuln-risk-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kpmg-vuln-risk-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpmg-vuln-risk-h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #101828;
+  margin: 0;
+}
+
+.kpmg-vuln-risk-desc-sub {
+  font-size: 12px;
+  color: #475467;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.kpmg-vuln-risk-badges-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.kpmg-vuln-driver-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kpmg-vuln-driver-card {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.15s ease-in-out;
+
+  &.expanded {
+    border-color: #D0D5DD;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+  }
+}
+
+.kpmg-vuln-driver-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.kpmg-vuln-driver-head-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpmg-vuln-driver-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #101828;
+}
+
+.kpmg-vuln-driver-badge-orange {
+  background: #FEF6EE;
+  color: #B54708;
+  border: 1px solid #F9DBAF;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.kpmg-vuln-driver-chevron {
+  background: none;
+  border: none;
+  color: #667085;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpmg-vuln-slider-track-wrap {
+  width: 100%;
+  padding: 4px 0;
+}
+
+.kpmg-vuln-slider-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  display: block;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #1D4ED8;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.35);
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+
+  &::-webkit-slider-thumb:hover {
+    transform: scale(1.18);
+  }
+
+  &::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #1D4ED8;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.35);
+    cursor: pointer;
+  }
+}
+
+.kpmg-vuln-driver-expanded-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.kpmg-vuln-driver-explanation {
+  font-size: 12.5px;
+  color: #475467;
+  line-height: 1.45;
+}
+
+.kpmg-vuln-reason-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kpmg-vuln-reason-heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: #344054;
+}
+
+.kpmg-vuln-reason-text-box {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid #D0D5DD;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #101828;
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 54px;
+
+  &:focus {
+    border-color: #1D4ED8;
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+  }
+}
+
+.kpmg-vuln-driver-footer-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.kpmg-vuln-btn-cancel-sm {
+  background: #FFFFFF;
+  border: 1px solid #D0D5DD;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #F9FAFB;
+    border-color: #98A2B3;
+  }
+}
+
+.kpmg-vuln-btn-save-sm {
+  background: #1D4ED8;
+  border: 1px solid #1D4ED8;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #1E40AF;
+  }
+}
+
+.kpmg-vuln-exploited-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.kpmg-vuln-pill-loss {
+  background: #FEF3F2;
+  color: #B42318;
+  border: 1px solid #FECDCA;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.kpmg-vuln-ai-reasoning-box {
+  background: #EFF6FF;
+  border: 1px solid #D0DCFB;
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+.kpmg-vuln-ai-reasoning-h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E3A8A;
+  margin-bottom: 6px;
+}
+
+.kpmg-vuln-ai-reasoning-p {
+  font-size: 12.5px;
+  color: #1E40AF;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.kpmg-vuln-section-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #101828;
+  margin: 0;
+}
+
+.kpmg-vuln-mitigation-section {
+  margin-top: 18px;
+  margin-bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kpmg-vuln-mitigation-row-card {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.kpmg-vuln-mit-left-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #101828;
+}
+
+.kpmg-vuln-mit-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.kpmg-vuln-btn-view-link {
+  background: none;
+  border: none;
+  color: #1D4ED8;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: #1E40AF;
+  }
+}
+
+.kpmg-vuln-modal-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
 .kpmg-detail-mit-header {
   display: flex;
   align-items: center;
@@ -9331,6 +9841,337 @@ h3 {
   font-size: 28px;
   font-weight: 700;
   line-height: 1;
+}
+
+/* ── Underlying CVEs Table & Tooltips ─────────────────────────────────── */
+.kpmg-underlying-cve-card {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+  overflow: visible;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+}
+
+.kpmg-underlying-cve-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+
+  thead {
+    position: relative;
+    z-index: 100;
+  }
+
+  thead tr {
+    background: #FAFAFC;
+    border-bottom: 1px solid #EAECF0;
+  }
+
+  th {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475467;
+    white-space: nowrap;
+    position: relative;
+    overflow: visible;
+  }
+
+  tbody tr.kpmg-cve-row {
+    border-bottom: 1px solid #F2F4F7;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #F9FAFB;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    padding: 14px 16px;
+    color: #101828;
+    vertical-align: middle;
+  }
+}
+
+.kpmg-th-tooltip-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+  cursor: default;
+
+  &.align-left {
+    justify-content: flex-start;
+  }
+  &.align-center {
+    justify-content: center;
+  }
+  &.align-right {
+    justify-content: flex-end;
+  }
+}
+
+.kpmg-th-label-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475467;
+}
+
+.kpmg-info-icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #98A2B3;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: #1D4ED8;
+
+    .kpmg-header-pop-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+
+      &.tooltip-left {
+        transform: translateY(0);
+      }
+      &.tooltip-right {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+.kpmg-th-info-svg {
+  display: block;
+}
+
+.kpmg-header-pop-tooltip {
+  position: absolute;
+  top: calc(100% + 9px); /* Positioned downwards to prevent hiding under modal header */
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: #101828;
+  color: #FFFFFF;
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  padding: 7px 11px;
+  border-radius: 6px;
+  white-space: normal;
+  width: max-content;
+  max-width: 240px;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.35);
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 1;
+  visibility: visible;
+  animation: kpmgTooltipFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 100%; /* Arrow pointing UP towards the info icon */
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #101828 transparent;
+  }
+
+  &.tooltip-left {
+    left: 0;
+    transform: translateY(0);
+    animation: kpmgTooltipFadeInLeft 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &::after {
+      left: 14px;
+      transform: none;
+    }
+  }
+
+  &.tooltip-right {
+    left: auto;
+    right: 0;
+    transform: translateY(0);
+    animation: kpmgTooltipFadeInRight 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &::after {
+      left: auto;
+      right: 14px;
+      transform: none;
+    }
+  }
+}
+
+@keyframes kpmgTooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes kpmgTooltipFadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kpmgTooltipFadeInRight {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kpmg-tooltip-inner-text {
+  color: #FFFFFF;
+}
+
+.kpmg-cve-id-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #101828;
+  margin-bottom: 2px;
+}
+
+.kpmg-cve-sub-desc {
+  font-size: 12px;
+  color: #667085;
+  line-height: 1.4;
+  max-width: 320px;
+}
+
+.kpmg-cwe-pill {
+  display: inline-flex;
+  align-items: center;
+  background: #F2F4F7;
+  color: #344054;
+  border: 1px solid #EAECF0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.kpmg-cpe-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #475467;
+  background: #F8F9FA;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #EAECF0;
+  display: inline-block;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kpmg-cve-score-num {
+  font-size: 13px;
+  font-weight: 500;
+  color: #101828;
+  display: inline-flex;
+  align-items: center;
+}
+
+.kpmg-btn-chevron-toggle {
+  background: none;
+  border: none;
+  color: #667085;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, color 0.15s ease;
+
+  &:hover {
+    color: #1D4ED8;
+  }
+
+  &.expanded {
+    transform: rotate(180deg);
+  }
+}
+
+.kpmg-cve-accordion-body {
+  background: #FFFFFF;
+  padding: 16px 20px 22px 20px;
+  border-top: 1px solid #F2F4F7;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kpmg-cve-field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.kpmg-cve-field-heading {
+  font-size: 13px;
+  font-weight: 600;
+  color: #101828;
+}
+
+.kpmg-cve-field-text {
+  font-size: 13px;
+  color: #344054;
+  line-height: 1.45;
+
+  &.kpmg-font-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12.5px;
+    color: #344054;
+    word-break: break-all;
+  }
+}
+
+.kpmg-implicated-assets-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.kpmg-implicated-asset-pill {
+  background: #F9F5FF;
+  color: #6941C6;
+  border: 1px solid #E9D7FE;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 14px;
+  letter-spacing: 0.2px;
 }
 
 .kpmg-vuln-table-toolbar {

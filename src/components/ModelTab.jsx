@@ -505,9 +505,18 @@ function EvidenceTile({ g, bump }) {
   );
 }
 
-function SectionInputs() {
+function SectionInputs({ onNavigate }) {
   const [, force] = useState(0);
   const bump = () => force(n => n + 1);
+  const [scanning, setScanning] = useState(false);
+  const [retryStates, setRetryStates] = useState({});
+
+  const handleRetry = (idx) => {
+    setRetryStates(prev => ({ ...prev, [idx]: true }));
+    setTimeout(() => {
+      setRetryStates(prev => ({ ...prev, [idx]: false }));
+    }, 600);
+  };
 
   useEffect(() => {
     // Ensure initial sample data is populated if state is empty
@@ -523,14 +532,43 @@ function SectionInputs() {
   const findings = evidenceFindings();
   const groups = evidenceGroupSummary();
 
-  const scanAll = () => { scanEvidenceDrop(); bump(); };
+  const scanAll = () => {
+    setScanning(true);
+    setTimeout(() => {
+      scanEvidenceDrop();
+      bump();
+      setScanning(false);
+    }, 500);
+  };
   const demo = () => { simulateClientUpload(); bump(); };
 
   return (
     <div className="kpmg-model-scope-stack">
-      {/* Top Intro text */}
-      <div className="kpmg-model-section-desc">
-        What came back from the drop, and what didn&apos;t. Nothing here blocks the assessment – a gap either has a fallback or becomes a finding. Scan a group as its evidence arrives, or scan everything at once.
+      {/* 2-Column Banner: Model inputs title + Intro text on left, 2 CTAs (CVE, Scan) on right */}
+      <div className="kpmg-model-inputs-header-banner">
+        <div className="kpmg-model-inputs-header-left">
+          <div className="kpmg-model-inputs-title">Model inputs</div>
+          <p className="kpmg-model-inputs-desc">
+            What came back from the drop, and what didn&apos;t. Nothing here blocks the assessment - a gap either has a fallback or becomes a finding. Scan a group as its evidence arrives, or scan everything at once.
+          </p>
+        </div>
+        <div className="kpmg-model-inputs-header-right">
+          <button
+            type="button"
+            className="kpmg-btn-cve-header"
+            onClick={() => onNavigate && onNavigate('vulnerabilities')}
+          >
+            CVE
+          </button>
+          <button
+            type="button"
+            className="kpmg-btn-scan-header"
+            onClick={scanAll}
+            disabled={scanning}
+          >
+            {scanning ? 'Scanning…' : 'Scan'}
+          </button>
+        </div>
       </div>
 
       {/* 3 Metric Cards: Received, Not received, Resolved */}
@@ -560,6 +598,45 @@ function SectionInputs() {
       {/* Grid of Evidence Group Tiles */}
       <div className="kpmg-model-metrics-grid">
         {groups.map(g => <EvidenceTile key={g.id} g={g} onScan={scanEvidenceGroup} bump={bump} />)}
+      </div>
+
+      {/* Text here section with Retry rows */}
+      <div className="kpmg-model-text-here-section">
+        <div className="kpmg-model-text-here-title">Text here</div>
+        <div className="kpmg-model-retry-card">
+          {[0, 1, 2, 3].map(idx => (
+            <div key={idx} className="kpmg-model-retry-row">
+              <div className="kpmg-model-retry-left">
+                <span className="kpmg-model-retry-icon">
+                  <svg
+                    width={18}
+                    height={18}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                </span>
+                <p className="kpmg-model-retry-text">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vulputate urna eu massa rhoncus, in tincidunt massa placerat.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="kpmg-btn-retry-item"
+                onClick={() => handleRetry(idx)}
+              >
+                {retryStates[idx] ? 'Retrying…' : 'Retry'}
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {findings.length > 0 && (
@@ -2112,7 +2189,7 @@ export default function ModelTab({ onNavigate = () => { } }) {
       <BaselineBar a={a} />
       <SectionNav section={section} setSection={setSection} company={a.company} prog={prog} zonesCount={a.zones.length} />
       {section === 'scope' && <SectionScope company={a.company} setCompany={a.setCompany} onSaved={() => setSection('inputs')} />}
-      {section === 'inputs' && <SectionInputs />}
+      {section === 'inputs' && <SectionInputs onNavigate={onNavigate} />}
       {section === 'zones' && <SectionZones a={a} onNavigate={onNavigate} />}
     </div>
   );
