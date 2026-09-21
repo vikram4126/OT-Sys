@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Untitled Document</title>
+  </head>
+
+  <body>
+    <table cellspacing="0" cellpadding="0">
+      <col width="90" />
+      <col width="64" />
+      <col width="169" />
+      <col width="349" />
+      <col width="282" />
+      <tr>
+        <td width="90">Number</td>
+        <td width="64">Method</td>
+        <td width="169">Path</td>
+        <td width="349">Purpose</td>
+        <td width="282">Response </td>
+      </tr>
+      <tr>
+        <td align="left" width="90">1</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/scope/</td>
+        <td width="349">
+          Load company/site scope (name, industry, scale, tooling, SL-T, notes).
+        </td>
+        <td width="282">200 → ScopeResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">2</td>
+        <td width="64">PUT</td>
+        <td width="169">/api/model/scope/</td>
+        <td width="349">Save the scope form (upsert; audit-logged).</td>
+        <td width="282">200 → ScopeResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">3</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/baseline/</td>
+        <td width="349">
+          Latest captured baseline snapshot for the &quot;Capture baseline&quot;
+          bar.
+        </td>
+        <td width="282">200 → BaselineResponse | null</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">4</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/baseline/</td>
+        <td width="349">Capture a new baseline from current metrics.</td>
+        <td width="282">201 → BaselineResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">5</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/evidence/groups/</td>
+        <td width="349">
+          Evidence groups + per-group progress for the Model inputs panel.
+        </td>
+        <td width="282">200 → { items: EvidenceGroup[] }</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">6</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/evidence/</td>
+        <td width="349">
+          Evidence items with status/quality/notes; supports group_id, status.
+        </td>
+        <td width="282">200 → { items: EvidenceItem[], total }</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">7</td>
+        <td width="64">PUT</td>
+        <td width="169">/api/model/evidence/{item_id}/</td>
+        <td width="349">
+          Update an evidence item (status, received quality, notes, file refs).
+        </td>
+        <td width="282">200 → EvidenceItem · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">8</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/evidence/findings/</td>
+        <td width="349">
+          Findings derived from evidence gaps (drives the &quot;issues&quot;
+          list).
+        </td>
+        <td width="282">200 → { items: EvidenceFinding[] }</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">9</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/evidence/scan/</td>
+        <td width="349">Trigger a full evidence-drop scan (all groups).</td>
+        <td width="282">200 → { groups_scanned, items_updated }</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">10</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/evidence/scan/{group_id}/</td>
+        <td width="349">Scan a single evidence group.</td>
+        <td width="282">200 → { items_updated }</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">11</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/parse-connections/</td>
+        <td width="349">
+          Kick off async parse of pcap/log blobs into shadow assets +
+          connections.
+        </td>
+        <td width="282">202 → ParseJobResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">12</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/parse-connections/jobs/{job_id}</td>
+        <td width="349">Poll parse-job progress/results.</td>
+        <td width="282">200 → ParseJobResponse · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">13</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/reconcile/</td>
+        <td width="349">
+          Kick off shadow-asset reconciliation for the current client.
+        </td>
+        <td width="282">202 → ReconcileJobResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">14</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/reconcile/jobs/{job_id}</td>
+        <td width="349">Poll reconcile-job progress/results.</td>
+        <td width="282">200 → ReconcileJobResponse · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">15</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/zones/</td>
+        <td width="349">
+          List zones for the Zone modeller (name, SL-T,subnets, purdue, asset
+          count).
+        </td>
+        <td width="282">200 → ZoneResponse[]</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">16</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/zones/{zone_id}</td>
+        <td width="349">Fetch one zone for the edit panel.</td>
+        <td width="282">200 → ZoneResponse · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">17</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/zones/</td>
+        <td width="349">
+          Create a zone (manual residue after subnet-derived zones).
+        </td>
+        <td width="282">201 → ZoneResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">18</td>
+        <td width="64">PATCH</td>
+        <td width="169">/api/model/zones/{zone_id}</td>
+        <td width="349">Edit a zone (name, SL-T, purdue, description).</td>
+        <td width="282">200 → ZoneResponse · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">19</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/zones/{zone_id}/delete-preview</td>
+        <td width="349">
+          Preview assets/conduits/rules impacted by deleting a zone.
+        </td>
+        <td width="282">200 → ZoneDeletePreview · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">20</td>
+        <td width="64">DELETE</td>
+        <td width="169">/api/model/zones/{zone_id}</td>
+        <td width="349">Delete a zone.</td>
+        <td width="282">204 · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">21</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/zones/{zone_id}/air-gap-check</td>
+        <td width="349">
+          Air-gap contradictions for a zone (conduits vs claim).
+        </td>
+        <td width="282">200 → AirGapCheckResponse · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">22</td>
+        <td width="64">GET</td>
+        <td width="169">/api//model/subnets/zones/{zone_id}/rules</td>
+        <td width="349">
+          List subnet rules driving auto-assignment for a zone.
+        </td>
+        <td width="282">200 → ZoneRuleResponse[]</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">23</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/subnets/zones/{zone_id}/rules</td>
+        <td width="349">Add a CIDR (subnet) rule to a zone.</td>
+        <td width="282">201 → ZoneRuleResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">24</td>
+        <td width="64">DELETE</td>
+        <td width="169">/api/model/subnets/zone-rules/{rule_id}</td>
+        <td width="349">Remove a subnet rule.</td>
+        <td width="282">204 · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">25</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/zones/assets/auto-assign/</td>
+        <td width="349">
+          Re-run auto-assignment across all assets from current subnet rules.
+        </td>
+        <td width="282">200 → { reassigned, unplaced, by_method }</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">26</td>
+        <td width="64">POST</td>
+        <td width="169">
+          /api/modelzones/{zone_id}/assets/{asset_id}/override/
+        </td>
+        <td width="349">
+          Manually pin an asset to a zone (records zone_assign_method='manual').
+        </td>
+        <td width="282">200 → AssetResponse · 404</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">27</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/coverage</td>
+        <td width="349">Retrieve the coverage calculations</td>
+        <td width="282">200 -&gt; coverage response</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">28</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/assets/unassigned/</td>
+        <td width="349">
+          List assets that are not currently assigned to any zone.
+        </td>
+        <td width="282">200 → { items: AssetResponse[], total }</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">29</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/assets/internet-facing/</td>
+        <td width="349">
+          Return suggested internet-facing assets identified during modelling.
+        </td>
+        <td width="282">200 → { items: InternetFacingAssetResponse[] }</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">30</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/evidence/plan/</td>
+        <td width="349">
+          Retrieve the generated evidence collection plan used by the &quot;Copy
+          Evidence Plan&quot; action.
+        </td>
+        <td width="282">200 → EvidencePlanResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">31</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/62443/evidence-summary/</td>
+        <td width="349">
+          Retrieve IEC 62443 evidence directory metrics (prefillable, policy
+          answers required, walkthrough samples, conduits pending review).
+        </td>
+        <td width="282">200 → EvidenceSummaryResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">32</td>
+        <td width="64">POST</td>
+        <td width="169">/api/model/62443/prefill/</td>
+        <td width="349">
+          Apply available evidence-derived prefill recommendations to IEC 62443
+          requirements.
+        </td>
+        <td width="282">200 → PrefillResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">33</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/62443/folder-plan/</td>
+        <td width="349">
+          Retrieve the generated IEC 62443 evidence folder structure plan.
+        </td>
+        <td width="282">200 → FolderPlanResponse</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">34</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/workshop-confirmation/pdf/</td>
+        <td width="349">Download workshop confirmation document as PDF.</td>
+        <td width="282">200 → application/pdf</td>
+      </tr>
+      <tr>
+        <td align="left" width="90">35</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/workshop-confirmation/docx/</td>
+        <td width="349">Download workshop confirmation document as DOCX.</td>
+        <td width="282">
+          200 →
+          application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        </td>
+      </tr>
+      <tr>
+        <td align="left" width="90">36</td>
+        <td width="64">GET</td>
+        <td width="169">/api/model/compliance-summary/</td>
+        <td width="349">
+          Retrieve overall modelling/compliance progress displayed in the header
+          badge.
+        </td>
+        <td width="282">200 → ComplianceSummaryResponse</td>
+      </tr>
+    </table>
+  </body>
+</html>
