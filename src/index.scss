@@ -12722,3 +12722,157 @@ button.ds-btn-success,
     fill: #ffffff !important;
   }
 }
+
+/* ── Risk Scoring Engine Modal UI ─────────────────────────────────────── */
+.kpmg-risk-engine-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kpmg-risk-engine-gauges-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.kpmg-risk-engine-gauge-card {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.kpmg-risk-engine-gauge-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #101828;
+  white-space: nowrap;
+}
+
+.kpmg-risk-engine-section-card {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.kpmg-risk-engine-card-h4 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #101828;
+  margin: 0 0 10px 0;
+}
+
+.kpmg-risk-engine-bullets-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kpmg-risk-engine-bullet-item {
+  font-size: 12.5px;
+  color: #344054;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  &::before {
+    content: "•";
+    color: #101828;
+    font-size: 14px;
+    line-height: 1.2;
+    flex-shrink: 0;
+  }
+}
+
+.kpmg-risk-engine-ctrl-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kpmg-risk-engine-ctrl-sub {
+  font-size: 12.5px;
+  color: #475467;
+  margin-top: 2px;
+}
+
+.kpmg-risk-engine-sla-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #00338D;
+}
+
+.kpmg-risk-engine-ctrl-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpmg-risk-engine-ctrl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #F2F4F7;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.kpmg-risk-engine-ctrl-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kpmg-risk-engine-ctrl-name {
+  font-size: 13px;
+  color: #101828;
+}
+
+.kpmg-risk-engine-ctrl-badge {
+  background: #EFF4FE;
+  color: #2E5AAC;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.kpmg-risk-engine-status-missing {
+  color: #D92D20;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.kpmg-risk-engine-status-implemented {
+  color: #079455;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.kpmg-risk-engine-note-box {
+  background: #FFFFFF;
+  border: 1px solid #EAECF0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 12.5px;
+  color: #475467;
+  line-height: 1.5;
+}

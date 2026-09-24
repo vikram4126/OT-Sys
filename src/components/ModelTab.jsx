@@ -556,7 +556,6 @@ function SectionInputs({ onNavigate }) {
           <button
             type="button"
             className="kpmg-btn-cve-header"
-            onClick={() => onNavigate && onNavigate('vulnerabilities')}
           >
             CVE
           </button>

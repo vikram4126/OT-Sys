@@ -198,21 +198,8 @@ const YellowStar = () => (
 // ── Explain modal — Underlying CVEs Popup with Tooltips ──────────────────────
 function ExplainModal({ vuln, onClose, onRefresh }) {
   const [expandedRow, setExpandedRow] = useState(0);
-  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
-  const bd = vuln.breakdown || {};
-  const { zones: allZones, srSeed } = getAssessmentSnapshot();
   const list = Array.isArray(vuln.assets) && vuln.assets.length ? vuln.assets : (vuln.asset_label ? vuln.asset_label.split(',').map(s=>s.trim()).filter(Boolean) : []);
-  const vZones = vuln.zones && vuln.zones.length ? vuln.zones : (vuln.zone ? [vuln.zone] : []);
-  const vZoneObjs = vZones.map(id=>allZones.find(z=>z.id===id)).filter(Boolean);
-  const fr = vuln.domain && /^FR\d/.test(vuln.domain) ? vuln.domain : vulnFR(vuln);
-
-  const controlRows = [];
-  vZoneObjs.forEach(z => requiredItems(fr, z.slT||1).forEach(it => {
-    const st = itemStatus(srSeed, z.id, it.id);
-    controlRows.push({ zone:z.name, id:it.id, name:it.name, met: st==='met', status:st });
-  }));
-
   const defaultImplicatedAssets = ['PLC-CTRL-01', 'RTU-FIELD-01', 'HMI-OPS-01', 'SIS-LOGIC-01', 'SIS-IO-01'];
 
   const rawCves = (vuln.linked_cves && vuln.linked_cves.length > 0) ? vuln.linked_cves : [
@@ -273,7 +260,7 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
       title="Underlying CVEs"
       subtitle="Explore all CVEs related to this vulnerability"
       onClose={onClose}
-      maxWidth={860}
+      maxWidth={920}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Table Card */}
@@ -403,81 +390,6 @@ function ExplainModal({ vuln, onClose, onRefresh }) {
             </tbody>
           </table>
         </div>
-
-        {/* Optional Collapsible Technical Breakdown */}
-        <div style={{ marginTop: 4 }}>
-          <button
-            type="button"
-            onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#475467',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '4px 0'
-            }}
-          >
-            <svg
-              width={14}
-              height={14}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ transform: showTechnicalDetails ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s ease' }}
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-            {showTechnicalDetails ? 'Hide Systemic Breakdown & IEC 62443 Controls' : 'Show Systemic Breakdown & IEC 62443 Controls'}
-          </button>
-
-          {showTechnicalDetails && (
-            <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Formula */}
-              <div className="kpmg-vuln-formula-banner">
-                <strong>Final risk</strong> = <strong>CVE core (Worst-case CVSS / EPSS / KEV across ALL linked CVEs)</strong> × <strong>Exposure probability</strong> ÷ <strong>Control effectiveness</strong>
-              </div>
-
-              {/* 62443 Controls */}
-              <div className="kpmg-vuln-controls-card">
-                <div className="kpmg-flex-between-mb12">
-                  <div className="kpmg-explain-card-title">IEC 62443 - Control effectiveness</div>
-                  <div className="kpmg-vuln-sla-title">SL-A 1 / SL-T 3</div>
-                </div>
-
-                <div className="kpmg-vuln-controls-list">
-                  {(controlRows.length > 0 ? controlRows : [
-                    { name: 'Network segmentation', id: 'SR 5.1', met: false },
-                    { name: 'Physical network segmentation', id: 'SR 5.1 RE1', met: true },
-                    { name: 'Zone boundary protection', id: 'SR 5.2', met: false },
-                    { name: 'Deny by default, allow by exception', id: 'SR 5.1', met: true },
-                    { name: 'Island mode / fail close', id: 'SR 5.1', met: false },
-                    { name: 'General purpose person-to-person comm restrictions', id: 'SR 5.1', met: false },
-                  ]).map((ctrl, i) => (
-                    <div key={i} className="kpmg-vuln-ctrl-row" style={{ borderBottom: i !== 5 ? `1px solid ${C.border}` : 'none' }}>
-                      <div className="kpmg-d-flex kpmg-items-center kpmg-gap-6">
-                        <span className="kpmg-text-slate-900">{ctrl.name}</span>
-                        <span className="kpmg-vuln-ctrl-code">{ctrl.id}</span>
-                      </div>
-                      {ctrl.met ? (
-                        <span className="kpmg-pill-implemented">Implemented</span>
-                      ) : (
-                        <span className="kpmg-pill-missing">Missing</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </Modal>
   );
@@ -575,8 +487,214 @@ function CircularRiskGauge({ score = 6.9, max = 10, size = 52 }) {
   );
 }
 
+// ── Risk Scoring Engine Gauge ──────────────────────────────────────────
+function RiskEngineCircularGauge({ value, pct = 0.85, color = '#ED2124', size = 58, strokeWidth = 4.5 }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const clampedPct = Math.min(1, Math.max(0, pct));
+  const strokeDashoffset = circumference - (clampedPct * circumference);
+
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="#F2F4F7"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: size,
+        height: size,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 700,
+        fontSize: typeof value === 'string' && value.length > 3 ? '12px' : '14px',
+        color: color
+      }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+// ── Risk Scoring Engine Popup Modal ──────────────────────────────────────
+function RiskScoringEngineModal({ vuln = {}, currentScore, onClose }) {
+  const rawScore = currentScore ?? vuln.risk_score ?? vuln.cvss ?? 8.5;
+  const scoreNum = Number(rawScore) || 8.5;
+  const displayScore = scoreNum.toFixed(1);
+  const severity = vuln.severity || (scoreNum >= 7 ? 'High' : (scoreNum >= 4 ? 'Moderate' : 'Low'));
+
+  const techRisk = vuln.technical_risk ?? vuln.technicalRisk ?? 92;
+  const netExposure = vuln.network_exposure ?? vuln.networkExposure ?? '95%';
+  const confScore = vuln.confidence_score ?? vuln.confidenceScore ?? (vuln.confidence ? `${vuln.confidence}%` : (vuln.ai_confidence ? `${vuln.ai_confidence}%` : '95%'));
+
+  const whyReasons = vuln.why_reasons || vuln.scoring_rationale || [
+    'Public exploit exists',
+    'KEV listed',
+    'High EPSS',
+    'Reachable from Operations Zone',
+    'Traffic Observed in Logs'
+  ];
+
+  const controlFramework = vuln.control_framework || '62443 - Control effectiveness';
+  const controlSL = vuln.control_sl || 'SL-A 1 / SL-T 3';
+  const associatedControls = vuln.associated_controls || [
+    { name: 'Network segmentation', badge: 'SR5.1', status: 'Missing' },
+    { name: 'Physical network segmentation', badge: 'SR5.1 RE1', status: 'Implemented' },
+    { name: 'Zone boundary protection', badge: 'SR5.2', status: 'Missing' },
+    { name: 'Deny by default, allow by exception', badge: 'SR5.1', status: 'Implemented' },
+    { name: 'Island mode / fail close', badge: 'SR5.1', status: 'Missing' },
+    { name: 'General purpose person-to-person comm restrictions', badge: 'SR5.1', status: 'Missing' }
+  ];
+
+  const controlNote = vuln.control_note || '0 of 6 required controls evidenced — the unmet ones keep SL-A below SL-T and raise the score. Evidence these in the IEC 62443 tab, not here.';
+
+  const assumptions = vuln.assumptions || [
+    'Zone assignment',
+    'Route Exists',
+    'Firewall permits traffic',
+    'Asset attribution'
+  ];
+
+  // Calculate percentages and dynamic colors consistent with site theme
+  const scorePct = Math.min(1, Math.max(0, scoreNum / 10));
+  const scoreColor = vuln.risk_color || (scoreNum >= 6.5 ? '#ED2124' : (scoreNum >= 4.0 ? '#F97316' : '#098E7E'));
+
+  const techRiskNum = typeof techRisk === 'number' ? techRisk : parseInt(techRisk, 10) || 92;
+  const techRiskPct = Math.min(1, Math.max(0, techRiskNum / 100));
+  const techRiskColor = vuln.technical_risk_color || (techRiskNum >= 65 ? '#ED2124' : (techRiskNum >= 40 ? '#F97316' : '#098E7E'));
+
+  const netExposureNum = parseInt(String(netExposure).replace('%', ''), 10) || 95;
+  const netExposurePct = Math.min(1, Math.max(0, netExposureNum / 100));
+  const netExposureColor = vuln.network_exposure_color || (netExposureNum >= 65 ? '#ED2124' : (netExposureNum >= 40 ? '#F97316' : '#098E7E'));
+
+  const confScoreNum = parseInt(String(confScore).replace('%', ''), 10) || 95;
+  const confScorePct = Math.min(1, Math.max(0, confScoreNum / 100));
+  const confScoreColor = vuln.confidence_color || (confScoreNum >= 80 ? '#098E7E' : (confScoreNum >= 60 ? '#F97316' : '#ED2124'));
+
+  const modalTitle = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+      Risk Scoring Engine
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#667085" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ cursor: 'pointer' }}>
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="16" x2="12" y2="12" />
+        <line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
+    </span>
+  );
+
+  return (
+    <Modal
+      title={modalTitle}
+      subtitle="View risk scoring rationale"
+      onClose={onClose}
+      maxWidth={680}
+    >
+      <div className="kpmg-risk-engine-container">
+        {/* 1. Top 4 Gauges Grid */}
+        <div className="kpmg-risk-engine-gauges-grid">
+          <div className="kpmg-risk-engine-gauge-card">
+            <RiskEngineCircularGauge value={displayScore} pct={scorePct} color={scoreColor} />
+            <div className="kpmg-risk-engine-gauge-label">{severity}</div>
+          </div>
+          <div className="kpmg-risk-engine-gauge-card">
+            <RiskEngineCircularGauge value={techRisk} pct={techRiskPct} color={techRiskColor} />
+            <div className="kpmg-risk-engine-gauge-label">Technical Risk</div>
+          </div>
+          <div className="kpmg-risk-engine-gauge-card">
+            <RiskEngineCircularGauge value={typeof netExposure === 'number' ? `${netExposure}%` : netExposure} pct={netExposurePct} color={netExposureColor} />
+            <div className="kpmg-risk-engine-gauge-label">Network Exposure</div>
+          </div>
+          <div className="kpmg-risk-engine-gauge-card">
+            <RiskEngineCircularGauge value={typeof confScore === 'number' ? `${confScore}%` : confScore} pct={confScorePct} color={confScoreColor} />
+            <div className="kpmg-risk-engine-gauge-label">Confidence Score</div>
+          </div>
+        </div>
+
+        {/* 2. Why? Card */}
+        <div className="kpmg-risk-engine-section-card">
+          <h4 className="kpmg-risk-engine-card-h4">Why?</h4>
+          <ul className="kpmg-risk-engine-bullets-list">
+            {whyReasons.map((reason, idx) => (
+              <li key={idx} className="kpmg-risk-engine-bullet-item">
+                <span>{reason}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* 3. Associated Control Status Card */}
+        <div className="kpmg-risk-engine-section-card">
+          <div className="kpmg-risk-engine-ctrl-header">
+            <div>
+              <h4 className="kpmg-risk-engine-card-h4" style={{ margin: 0 }}>Associated Control Status</h4>
+              <div className="kpmg-risk-engine-ctrl-sub">{controlFramework}</div>
+            </div>
+            <div className="kpmg-risk-engine-sla-text">{controlSL}</div>
+          </div>
+
+          <div className="kpmg-risk-engine-ctrl-list">
+            {associatedControls.map((ctrl, idx) => {
+              const isMissing = ctrl.status === 'Missing' || ctrl.status === 'Unmet';
+              return (
+                <div key={idx} className="kpmg-risk-engine-ctrl-row">
+                  <div className="kpmg-risk-engine-ctrl-left">
+                    <span className="kpmg-risk-engine-ctrl-name">{ctrl.name}</span>
+                    {ctrl.badge && (
+                      <span className="kpmg-risk-engine-ctrl-badge">{ctrl.badge}</span>
+                    )}
+                  </div>
+                  <div className={isMissing ? 'kpmg-risk-engine-status-missing' : 'kpmg-risk-engine-status-implemented'}>
+                    {ctrl.status}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 4. Note Box */}
+        <div className="kpmg-risk-engine-note-box">
+          {controlNote}
+        </div>
+
+        {/* 5. Assumptions Card */}
+        <div className="kpmg-risk-engine-section-card">
+          <h4 className="kpmg-risk-engine-card-h4">Assumptions</h4>
+          <ul className="kpmg-risk-engine-bullets-list">
+            {assumptions.map((item, idx) => (
+              <li key={idx} className="kpmg-risk-engine-bullet-item">
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 // ── Detailed vulnerability overview & Edit Modal (Updated UI) ─────────────
-function DetailModal({ vuln, isMitigated, onClose, onNavigate, onExplain, onRefresh }) {
+function DetailModal({ vuln, isMitigated, onClose, onNavigate, onExplain, onRefresh, onOpenRiskEngine }) {
   const { zones } = getAssessmentSnapshot();
   const initZones = vuln.zones && vuln.zones.length ? vuln.zones.map(zName) : (vuln.zone ? [zName(vuln.zone)] : ['Process control']);
   const initLevels = vuln.levels && vuln.levels.length ? vuln.levels : [1];
@@ -679,13 +797,13 @@ function DetailModal({ vuln, isMitigated, onClose, onNavigate, onExplain, onRefr
       title={vuln.title || 'Unauthenticated command injection in PLC firmware'}
       subtitle={subtitle}
       onClose={onClose}
-      maxWidth={620}
+      maxWidth={680}
       footer={
         <div className="kpmg-vuln-modal-footer-row">
           <Btn variant="outline" onClick={onExplain} className="kpmg-btn-modal-action">
             View underlying CVEs
           </Btn>
-          <Btn onClick={() => { saveDriver(expandedDriver || 'inherent'); onClose(); }} className="kpmg-btn-modal-save">
+          <Btn onClick={() => { if (onOpenRiskEngine) onOpenRiskEngine(currentScore); }} className="kpmg-btn-modal-save">
             Risk Score
           </Btn>
         </div>
@@ -693,7 +811,12 @@ function DetailModal({ vuln, isMitigated, onClose, onNavigate, onExplain, onRefr
     >
       <div className="kpmg-vuln-edit-v2-container">
         {/* 1. Risk Header Card with Circular Gauge */}
-        <div className="kpmg-vuln-v2-card kpmg-vuln-risk-header-row">
+        <div
+          className="kpmg-vuln-v2-card kpmg-vuln-risk-header-row"
+          style={{ cursor: 'pointer' }}
+          onClick={() => { if (onOpenRiskEngine) onOpenRiskEngine(currentScore); }}
+          title="Click to view Risk Scoring Engine rationale"
+        >
           <div className="kpmg-vuln-risk-header-left">
             <CircularRiskGauge score={currentScore} />
             <div className="kpmg-vuln-risk-meta">
@@ -833,11 +956,13 @@ function DetailModal({ vuln, isMitigated, onClose, onNavigate, onExplain, onRefr
 
 // ── Row ───────────────────────────────────────────────────────────────────────
 function VulnRow({ vuln, onRefresh, isMitigated, onNavigate, isLastRow }) {
-  const [showRemove,  setShowRemove]  = useState(false);
-  const [showExplain, setShowExplain] = useState(false);
-  const [showDetail,  setShowDetail]  = useState(false);
-  const [detailEdit,  setDetailEdit]  = useState(false);
-  const [statusOpen,  setStatusOpen]  = useState(false);
+  const [showRemove,      setShowRemove]      = useState(false);
+  const [showExplain,     setShowExplain]     = useState(false);
+  const [showDetail,      setShowDetail]      = useState(false);
+  const [detailEdit,      setDetailEdit]      = useState(false);
+  const [statusOpen,      setStatusOpen]      = useState(false);
+  const [showRiskEngine,  setShowRiskEngine]  = useState(false);
+  const [activeRiskScore, setActiveRiskScore] = useState(null);
 
   const isFlagged  = vuln.source !== 'manual' && typeof vuln.ai_confidence === 'number' && vuln.ai_confidence < LOW_CONF_THRESHOLD;
   const isAccepted = vuln.status === 'Accepted Risk';
@@ -923,7 +1048,7 @@ function VulnRow({ vuln, onRefresh, isMitigated, onNavigate, isLastRow }) {
           const badgeCls = rs >= 6 ? 'kpmg-risk-badge-high' : rs >= 4 ? 'kpmg-risk-badge-medium' : 'kpmg-risk-badge-low';
           const dotColor = rs >= 6 ? '#ED2124' : rs >= 4 ? '#f97316' : '#098e7e';
           return (
-            <div className="kpmg-cursor-pointer" onClick={()=>setShowExplain(true)}>
+            <div className="kpmg-cursor-pointer" onClick={() => setShowRiskEngine(true)} title="View Risk Scoring Engine">
               <div className={`kpmg-risk-badge ${badgeCls}`}>
                 <span className="kpmg-dot-6" style={{ background: dotColor }}/>
                 {rs.toFixed(1)}
@@ -947,9 +1072,34 @@ function VulnRow({ vuln, onRefresh, isMitigated, onNavigate, isLastRow }) {
         </div>
       </div>
 
-      {showDetail  && <DetailModal  vuln={vuln} isMitigated={isMitigated} startEdit={detailEdit} onClose={()=>{setShowDetail(false);setDetailEdit(false);}} onNavigate={onNavigate} onExplain={()=>{setShowDetail(false);setShowExplain(true);}} onRefresh={onRefresh}/>}
+      {showDetail  && (
+        <DetailModal
+          vuln={vuln}
+          isMitigated={isMitigated}
+          startEdit={detailEdit}
+          onClose={()=>{setShowDetail(false);setDetailEdit(false);}}
+          onNavigate={onNavigate}
+          onExplain={()=>{setShowDetail(false);setShowExplain(true);}}
+          onRefresh={onRefresh}
+          onOpenRiskEngine={(score) => {
+            setActiveRiskScore(score);
+            setShowDetail(false);
+            setShowRiskEngine(true);
+          }}
+        />
+      )}
       {showExplain && <ExplainModal vuln={vuln} onClose={()=>setShowExplain(false)} onRefresh={onRefresh}/>}
       {showRemove  && <RemoveModal  vuln={vuln} onClose={()=>setShowRemove(false)} onDeleted={()=>{setShowRemove(false);onRefresh();}}/>}
+      {showRiskEngine && (
+        <RiskScoringEngineModal
+          vuln={vuln}
+          currentScore={activeRiskScore ?? (typeof vuln.risk_score === 'number' ? vuln.risk_score : (vuln.cvss || 5.0))}
+          onClose={() => {
+            setShowRiskEngine(false);
+            setActiveRiskScore(null);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -1151,7 +1301,7 @@ function ComplementaryModal({ candidates, onAccept, onDismiss, onClose }) {
       title="Additional CVEs found via complementary lookup"
       subtitle="Matched from asset/software inventory – not present in the client-triggered vulnerability scan"
       onClose={onClose}
-      maxWidth={640}
+      maxWidth={680}
     >
       {/* Top Blue Alert Banner */}
       <div className="kpmg-modal-info-alert blue kpmg-mb-16">
