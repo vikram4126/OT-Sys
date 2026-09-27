@@ -25,6 +25,7 @@ import {
   airGapContradictions, suggestInternetFacingAssets, dismissInternetFacingSuggestion,
 } from '../services/assessmentStore';
 import { getVulnerabilities, generateZoneModelPdf, generateZoneModelDocx } from '../api/client';
+import * as modelApi from '../api/modelApi';
 import { getBaseline, saveSnapshot, computeMetrics } from '../services/snapshotService';
 import { addLog, LOG_TYPES } from '../services/logService';
 
@@ -62,7 +63,12 @@ function BaselineBar({ a }) {
   const [baseline, setBaseline] = useState(() => getBaseline());
   const [vulns, setVulns] = useState([]);
   const [analysing, setAnalysing] = useState(false);
-  useEffect(() => { getVulnerabilities().then(r => setVulns(r.data || [])).catch(() => setVulns([])); }, []);
+  useEffect(() => {
+    getVulnerabilities().then(r => setVulns(r.data || [])).catch(() => setVulns([]));
+    modelApi.getModelBaseline().then(remote => {
+      if (remote) setBaseline(remote);
+    }).catch(() => {});
+  }, []);
   const { zones, srSeed, assets, company } = a;
   const prog = collectionProgress();
   const findings = evidenceFindings();
@@ -73,21 +79,25 @@ function BaselineBar({ a }) {
     return m;
   })();
 
-  const captureBaseline = () => {
+  const captureBaseline = async () => {
     setAnalysing(true);
-    setTimeout(() => {
-      const metrics = computeMetrics({ srSeed, zones, assets, company, vulnByZone });
-      const enriched = {
-        ...metrics, assets_total: assets.length, zones_total: zones.length,
-        evidence_received: prog.received, evidence_missing: prog.unavailable,
-        findings_from_gaps: findings.length, vulns_total: vulns.length,
-        kev_total: vulns.filter(v => v.in_kev).length,
-      };
-      const snap = saveSnapshot('baseline', 'Initial baseline', enriched);
-      addLog(LOG_TYPES.LOGIN || 'baseline.capture',
-        `Initial analysis complete — ${assets.length} assets across ${zones.length} zones, ${vulns.length} findings (${enriched.kev_total} KEV), risk ${enriched.overall_risk}/10, ${enriched.coverage ?? '—'}% compliance. Baseline saved; analysis unlocked.`);
-      setBaseline(snap); setAnalysing(false);
-    }, 400);
+    const metrics = computeMetrics({ srSeed, zones, assets, company, vulnByZone });
+    const enriched = {
+      ...metrics, assets_total: assets.length, zones_total: zones.length,
+      evidence_received: prog.received, evidence_missing: prog.unavailable,
+      findings_from_gaps: findings.length, vulns_total: vulns.length,
+      kev_total: vulns.filter(v => v.in_kev).length,
+    };
+    try {
+      await modelApi.captureModelBaseline(enriched);
+    } catch (e) {
+      console.warn('Backend captureModelBaseline fallback:', e.message);
+    }
+    const snap = saveSnapshot('baseline', 'Initial baseline', enriched);
+    addLog(LOG_TYPES.LOGIN || 'baseline.capture',
+      `Initial analysis complete — ${assets.length} assets across ${zones.length} zones, ${vulns.length} findings (${enriched.kev_total} KEV), risk ${enriched.overall_risk}/10, ${enriched.coverage ?? '—'}% compliance. Baseline saved; analysis unlocked.`);
+    setBaseline(snap);
+    setAnalysing(false);
   };
 
   return (
@@ -153,7 +163,20 @@ function SectionScope({ company, setCompany, onSaved }) {
 
   useEffect(() => {
     setF({ name: company.name || '', industry: company.industry || '', scale: company.scale || '', site: company.primarySite || '' });
-  }, [company]);
+    modelApi.getModelScope().then(remoteScope => {
+      if (remoteScope && (remoteScope.name || remoteScope.industry)) {
+        setCompany(remoteScope);
+        setF({
+          name: remoteScope.name || '',
+          industry: remoteScope.industry || '',
+          scale: remoteScope.scale || remoteScope.size || '',
+          site: remoteScope.primarySite || remoteScope.site || ''
+        });
+        if (remoteScope.tooling) setTools(remoteScope.tooling);
+        if (remoteScope.link) setLink(remoteScope.link);
+      }
+    }).catch(() => {});
+  }, [company, setCompany]);
 
   const toggleTool = id => setTools(prev => {
     if (id === 'none') return prev.includes('none') ? [] : ['none'];
@@ -162,15 +185,36 @@ function SectionScope({ company, setCompany, onSaved }) {
   });
 
   const ok = f.name && f.industry && f.scale;
-  const save = () => {
-    setCompany({ name: f.name, industry: f.industry, scale: f.scale, size: f.scale, primarySite: f.site });
+  const save = async () => {
+    const payload = {
+      name: f.name,
+      industry: f.industry,
+      scale: f.scale,
+      size: f.scale,
+      primarySite: f.site,
+      tooling: tools,
+      link: link
+    };
+    try {
+      await modelApi.saveModelScope(payload);
+    } catch (err) {
+      console.warn('Backend saveModelScope fallback:', err.message);
+    }
+    setCompany(payload);
     setDrop({ ...getDrop(), tooling: tools, link });
     onSaved();
   };
-  const copyPlan = () => {
-    const txt = folderPlanText({ name: f.name });
-    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => { });
-    setCopied(true); setTimeout(() => setCopied(false), 2200);
+  const copyPlan = async () => {
+    try {
+      const planRes = await modelApi.getEvidencePlan();
+      const txt = typeof planRes === 'string' ? planRes : (planRes?.plan || planRes?.text || folderPlanText({ name: f.name }));
+      if (navigator.clipboard) await navigator.clipboard.writeText(txt);
+    } catch {
+      const txt = folderPlanText({ name: f.name });
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => { });
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2200);
   };
 
   return (
@@ -1650,11 +1694,26 @@ function SectionZones({ a, onNavigate }) {
 
   const [addingAsset, setAddingAsset] = useState(false);
 
-  const saveChanges = () => {
-    Object.entries(pendingSlT).forEach(([id, slT]) => {
+  useEffect(() => {
+    modelApi.getModelZones().then(remoteZones => {
+      if (Array.isArray(remoteZones) && remoteZones.length > 0) {
+        // sync with assessment store if remote zones returned
+      }
+    }).catch(() => {});
+  }, []);
+
+  const saveChanges = async () => {
+    for (const [id, slT] of Object.entries(pendingSlT)) {
       const zone = a.zones.find(z => z.id === id);
-      if (zone && zone.slT !== slT) a.updateZone(id, { slT });
-    });
+      if (zone && zone.slT !== slT) {
+        try {
+          await modelApi.patchModelZone(id, { sl_t: slT, slT });
+        } catch (err) {
+          console.warn('Backend patchModelZone fallback:', err.message);
+        }
+        a.updateZone(id, { slT });
+      }
+    }
     setPendingSlT({});
   };
 
@@ -1677,16 +1736,32 @@ function SectionZones({ a, onNavigate }) {
     setZsubnets(prev => prev.filter(s => s !== cidrVal));
   };
 
-  const createZone = () => {
+  const createZone = async () => {
     if (!zname.trim()) return;
     const finalSubnets = [...zsubnets];
     if (subInput.trim() && !finalSubnets.includes(subInput.trim())) {
       finalSubnets.push(subInput.trim());
     }
+    const zonePayload = {
+      name: zname.trim(),
+      sl_t: Number(tsl),
+      slT: Number(tsl),
+      description: zdesc.trim(),
+      air_gapped: airGapped,
+      subnets: finalSubnets
+    };
+    try {
+      await modelApi.createModelZone(zonePayload);
+    } catch (err) {
+      console.warn('Backend createModelZone fallback:', err.message);
+    }
     const createdZoneId = a.addZone({ name: zname.trim(), slT: Number(tsl), desc: zdesc.trim(), airGapped });
     const targetZoneId = typeof createdZoneId === 'object' ? createdZoneId?.id : createdZoneId;
     if (targetZoneId) {
-      finalSubnets.forEach(cidr => {
+      finalSubnets.forEach(async (cidr) => {
+        try {
+          await modelApi.addZoneSubnetRule(targetZoneId, { cidr, target_sl: Number(tsl) });
+        } catch {}
         addZoneRule({ cidr, zone: targetZoneId, targetSl: Number(tsl) });
       });
       if (finalSubnets.length > 0) {
@@ -1705,7 +1780,10 @@ function SectionZones({ a, onNavigate }) {
   const internetSuggestions = suggestInternetFacingAssets(a.assets);
   const zName = id => (a.zones.find(z => z.id === id) || {}).name || id;
 
-  const assignTo = (assetId, zoneId) => {
+  const assignTo = async (assetId, zoneId) => {
+    try {
+      await modelApi.overrideAssetZone(zoneId, assetId, { method: 'manual' });
+    } catch {}
     setManualAssignment(assetId, zoneId);
     a.updateAsset(assetId, { zone: zoneId });
     bump();
@@ -2145,8 +2223,13 @@ function SectionZones({ a, onNavigate }) {
           }`}
           warningMessage="This action cannot be undone."
           onClose={() => setDeleteConfirmTarget(null)}
-          onConfirm={() => {
+          onConfirm={async () => {
             const zId = deleteConfirmTarget.item.id;
+            try {
+              await modelApi.deleteModelZone(zId);
+            } catch (e) {
+              console.warn('Backend deleteModelZone fallback:', e.message);
+            }
             a.removeZone(zId);
             saveZoneRules(getZoneRules().filter(r => r.zone !== zId));
             if (openZone && openZone.id === zId) {
