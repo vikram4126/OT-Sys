@@ -2,9 +2,10 @@ import axios from 'axios';
 import { VULN_SEED } from '../services/vulnSeed';
 import { scoreVulnerability } from '../services/scoringEngine';
 import { getAcceptedComplementaryVulns, getManuallyAddedVulns, getDeletedVulnIds, applyVulnOverride } from '../services/assessmentStore';
+import { getFreshBearerToken } from '../authConfig';
 
 // CSRF Token Management
-// Can be received from login response body, response headers, or cookies
+// Can be received from response body, response headers (x-csrftoken), or cookies
 export function getCsrfToken() {
   try {
     const stored = localStorage.getItem('ot_csrf_token');
@@ -29,22 +30,24 @@ export function setCsrfToken(token) {
 // Absolute URL — required when serving the built app with `npx serve`
 // (the proxy in package.json only works during `npm start`). Overridable via
 // REACT_APP_API_BASE (see .env.example) so a production build can point at a
-// real host without a source change — falls back to the local dev backend.
+// real host without a source change — falls back to https://arc.customappsteam.co.uk/api.
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api',
+  baseURL: process.env.REACT_APP_API_BASE || 'https://arc.customappsteam.co.uk/api',
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach JWT/Bearer token and CSRF token to state-changing requests
-api.interceptors.request.use(config => {
+// Attach JWT/Bearer token and CSRF token to requests
+api.interceptors.request.use(async (config) => {
+  // 1. Attach Bearer token from MSAL (or fallback localStorage)
   try {
-    const token = localStorage.getItem('ot_auth_token');
+    const token = await getFreshBearerToken();
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
   } catch {}
 
+  // 2. Attach CSRF token on mutating methods (POST, PUT, PATCH, DELETE)
   const method = (config.method || '').toLowerCase();
   if (['post', 'put', 'patch', 'delete'].includes(method)) {
     const csrf = getCsrfToken();
@@ -54,6 +57,10 @@ api.interceptors.request.use(config => {
       config.headers['X-CSRF-Token'] = csrf;
     }
   }
+
+  // Ensure withCredentials is always true so cookies are sent/received
+  config.withCredentials = true;
+
   return config;
 });
 
@@ -71,14 +78,47 @@ api.interceptors.response.use(
           setCsrfToken(bodyToken);
         }
       }
+      const cookieToken = getCsrfToken();
+      if (cookieToken) {
+        setCsrfToken(cookieToken);
+      }
     } catch {}
     return res;
   },
   err => {
-    const msg = err.response?.data?.detail || err.message || 'Request failed';
-    return Promise.reject(new Error(msg));
+    // Capture CSRF token even on error response if present
+    try {
+      const headerToken = err.response?.headers?.['x-csrftoken'] || err.response?.headers?.['x-csrf-token'];
+      if (headerToken) setCsrfToken(headerToken);
+    } catch {}
+
+    const status = err.response?.status;
+    const detail = err.response?.data?.detail || err.response?.data?.message || err.message || 'Request failed';
+    const error = new Error(detail);
+    error.status = status;
+    error.response = err.response;
+    return Promise.reject(error);
   }
 );
+
+/**
+ * Initializes and fetches the initial CSRF token by pinging /health on first page view
+ * As backend team confirmed: "jaise hi hum first time page view karenge to wo token hume mil jayega by api"
+ */
+export async function initCsrfToken() {
+  try {
+    const existing = getCsrfToken();
+    if (existing) return existing;
+
+    // Ping health endpoint to trigger initial Set-Cookie: csrftoken
+    const res = await api.get('/health');
+    const token = res.headers?.['x-csrftoken'] || res.headers?.['x-csrf-token'] || getCsrfToken();
+    if (token) setCsrfToken(token);
+    return token;
+  } catch {
+    return getCsrfToken();
+  }
+}
 
 // Every mutation a consultant makes to a finding — overrides, manually-added
 // findings, deletions, accepted complementary-CVE-lookup suggestions — lives
@@ -95,16 +135,13 @@ function resolveVulns(list) {
   ];
   return withExtra.filter(v => !deleted.has(v.vuln_id)).map(applyVulnOverride);
 }
+
 // Falls back to a local, frontend-only seed when the backend isn't reachable
-// (e.g. only the frontend is deployed/copied, with no API behind it) — same
-// response shape ({ data: [...] }) either way, so every caller works unchanged.
 export const getVulnerabilities    = (params)  => api.get('/vulnerabilities/', { params })
   .then(r => ({ ...r, data: resolveVulns(r.data) }))
   .catch(() => ({ data: resolveVulns(VULN_SEED) }));
 
-// Report generation is the one backend capability with no frontend
-// equivalent (python-docx/matplotlib rendering) — stateless, so it works with
-// no database behind it, just needs the FastAPI app running.
+// Report generation
 export const generateReportDocx    = (data)    => api.post('/report/docx/', data, { responseType: 'blob' });
 export const generateZoneModelPdf  = (data)    => api.post('/report/zone-model/pdf/', data, { responseType: 'blob' });
 export const generateZoneModelDocx = (data)    => api.post('/report/zone-model/docx/', data, { responseType: 'blob' });

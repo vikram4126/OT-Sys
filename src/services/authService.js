@@ -1,43 +1,38 @@
 /**
  * authService.js — Authentication service for OT-Synapse.
- * Manages user session, default credentials, password reset, and auth tokens.
- * Currently uses local storage with demo credentials, and is 100% ready for
- * backend FastAPI / Django JWT integration.
+ * 
+ * Powered by Microsoft Entra ID (Azure AD) via MSAL:
+ * - SSO via Microsoft ("Sign in with Microsoft")
+ * - Access token retrieved and passed as Bearer token
+ * - /api/auth/me called once on initial load to get profile & permissions
+ * - is_admin flag controls access to User Management / Admin portal
  */
 
 import { addLog, LOG_TYPES } from './logService';
+import { msalInstance, ensureMsalInitialized, apiLoginRequest, getFreshBearerToken } from '../authConfig';
+import { apiGetCurrentUser } from '../api/authApi';
+import { initCsrfToken } from '../api/client';
 
 const AUTH_USER_KEY = 'ot_auth_user';
 const AUTH_TOKEN_KEY = 'ot_auth_token';
-const AUTH_PWD_KEY = 'ot_auth_custom_pwd';
 export const AUTH_CHANGE_EVENT = 'ot_auth_state_changed';
 
-// Default user matching the system & mockups
+// Fallback demo user for local offline preview if needed
 export const DEFAULT_USER = {
   id: 'u1',
-  name: 'Vikram Kumar',
-  email: 'vikramkumar4@kpmg.com',
+  user_id: 'u1',
+  name: 'Lead Analyst',
+  email: 'analyst@acmeindustrial.com',
   role: 'Lead Analyst',
+  isAdmin: true,
+  is_admin: true,
+  status: 'active',
   department: 'OT Security & Resilience',
-  avatarInitials: 'VK',
-};
-
-// Default fallback password for initial testing
-export const INITIAL_DEFAULT_PASSWORD = '12345';
-
-/**
- * Returns currently set password (either default or recently reset by user)
- */
-export const getActivePassword = () => {
-  try {
-    return localStorage.getItem(AUTH_PWD_KEY) || INITIAL_DEFAULT_PASSWORD;
-  } catch {
-    return INITIAL_DEFAULT_PASSWORD;
-  }
+  avatarInitials: 'LA',
 };
 
 /**
- * Get active auth token (passed to API Authorization header)
+ * Get active auth token from storage
  */
 export const getAuthToken = () => {
   try {
@@ -48,7 +43,7 @@ export const getAuthToken = () => {
 };
 
 /**
- * Get currently logged-in user object
+ * Get currently logged-in user object from storage
  */
 export const getCurrentUser = () => {
   try {
@@ -67,92 +62,151 @@ export const isAuthenticated = () => {
 };
 
 /**
- * Login function.
- * Verifies email & password. In future, this connects to POST /api/auth/login/.
+ * Fetch profile from backend /api/auth/me endpoint.
+ * Note from backend team:
+ * - Call once when the app loads as each call gets logged as a sign in.
+ * - Role is for info; use is_admin to decide who can use manage users.
+ * - 403 if not added or suspended.
+ * - 401 if token missing or expired.
  */
-export const login = async (email, password) => {
-  const cleanEmail = (email || '').trim().toLowerCase();
-  const activePwd = getActivePassword();
+export const fetchUserProfileFromApi = async () => {
+  try {
+    const res = await apiGetCurrentUser();
+    const data = res.data || {};
 
-  // Allow default email or any valid email for demo flexibility
-  const validEmail = cleanEmail === DEFAULT_USER.email.toLowerCase() || cleanEmail.includes('@');
-  const validPassword = password === activePwd || password === INITIAL_DEFAULT_PASSWORD || password === '12345' || password === 'Password123';
+    const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
 
-  if (!validEmail) {
-    throw new Error('Please enter a valid registered email address.');
+    const initials = (data.name || account?.name || data.email || 'US')
+      .split(' ')
+      .filter(Boolean)
+      .map(part => part[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+
+    const user = {
+      id: data.user_id || account?.homeAccountId || 'user_1',
+      user_id: data.user_id || account?.homeAccountId || 'user_1',
+      name: data.name || account?.name || 'Authenticated User',
+      email: data.email || account?.username || '',
+      role: data.role || 'Analyst',
+      isAdmin: Boolean(data.is_admin),
+      is_admin: Boolean(data.is_admin),
+      status: data.status || 'active',
+      lastLogin: data.last_login || new Date().toISOString(),
+      clientId: data.client_id || null,
+      permissions: Array.isArray(data.permissions) ? data.permissions : [],
+      avatarInitials: initials || 'OT',
+    };
+
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+    return user;
+  } catch (err) {
+    if (err.status === 403 || err.response?.status === 403) {
+      const error = new Error('Access Denied: Your account has not been authorized or has been suspended. Please contact your system administrator.');
+      error.isForbidden = true;
+      throw error;
+    }
+    if (err.status === 401 || err.response?.status === 401) {
+      const error = new Error('Session expired or authentication failed. Please sign in again.');
+      error.isUnauthorized = true;
+      throw error;
+    }
+    throw err;
+  }
+};
+
+/**
+ * Login with Microsoft Entra ID via MSAL Popup
+ */
+export const loginWithMicrosoft = async () => {
+  await ensureMsalInitialized();
+
+  let loginResponse = null;
+  try {
+    // Attempt loginPopup first for best UX
+    loginResponse = await msalInstance.loginPopup(apiLoginRequest);
+  } catch (popupErr) {
+    // If popup was blocked or failed, attempt loginRedirect
+    if (popupErr.name === 'BrowserAuthError' && popupErr.errorCode === 'popup_window_error') {
+      await msalInstance.loginRedirect(apiLoginRequest);
+      return;
+    }
+    throw popupErr;
   }
 
-  if (!validPassword) {
-    throw new Error('Incorrect password. Default demo password is: 12345');
+  if (loginResponse && loginResponse.account) {
+    msalInstance.setActiveAccount(loginResponse.account);
+    if (loginResponse.accessToken) {
+      localStorage.setItem(AUTH_TOKEN_KEY, loginResponse.accessToken);
+    }
   }
 
-  // Create or retrieve session user
-  const user = {
-    ...DEFAULT_USER,
-    email: cleanEmail,
-    name: cleanEmail === DEFAULT_USER.email.toLowerCase() ? DEFAULT_USER.name : cleanEmail.split('@')[0].replace('.', ' '),
-    avatarInitials: cleanEmail === DEFAULT_USER.email.toLowerCase() ? 'VK' : cleanEmail.substring(0, 2).toUpperCase(),
-    loginTime: new Date().toISOString(),
-  };
+  // Retrieve token if not in loginResponse
+  const token = await getFreshBearerToken();
+  if (token) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  }
 
-  // Generate demo mock JWT token
-  const mockToken = `ot_jwt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  // Initialize CSRF token from backend
+  await initCsrfToken().catch(() => {});
 
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-  localStorage.setItem(AUTH_TOKEN_KEY, mockToken);
+  // Call /api/auth/me once to retrieve backend user profile & is_admin status
+  const user = await fetchUserProfileFromApi();
 
-  addLog(LOG_TYPES.LOGIN || 'login', `User login: ${user.email} (${user.role})`);
-  window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
-
-  return { success: true, user, token: mockToken };
+  addLog(LOG_TYPES.LOGIN || 'login', `Microsoft SSO login: ${user.email} (is_admin: ${user.is_admin})`);
+  return { success: true, user };
 };
 
 /**
  * Logout function
  */
-export const logout = () => {
+export const logout = async () => {
   const user = getCurrentUser();
   if (user) {
     addLog(LOG_TYPES.LOGOUT || 'logout', `User logged out: ${user.email}`);
   }
+
   localStorage.removeItem(AUTH_USER_KEY);
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem('ot_csrf_token');
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+
+  try {
+    await ensureMsalInitialized();
+    const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
+    if (account) {
+      await msalInstance.logoutPopup({ account });
+    }
+  } catch (err) {
+    console.warn('MSAL logout error:', err.message);
+  }
 };
 
 /**
- * Request Password Reset (Step 1: Enter email)
+ * Initialize session on app boot (call once when app mounts)
  */
-export const requestPasswordReset = async (email) => {
-  const cleanEmail = (email || '').trim();
-  if (!cleanEmail || !cleanEmail.includes('@')) {
-    throw new Error('Please enter a valid email address.');
+export const initializeAuthSession = async () => {
+  // Always trigger CSRF initialization on first page view
+  initCsrfToken().catch(() => {});
+
+  try {
+    await ensureMsalInitialized();
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      const active = msalInstance.getActiveAccount() || accounts[0];
+      msalInstance.setActiveAccount(active);
+
+      // If user is already cached, return it to avoid unnecessary /auth/me calls
+      const cached = getCurrentUser();
+      if (cached) return cached;
+
+      // Otherwise fetch profile from /api/auth/me once
+      return await fetchUserProfileFromApi();
+    }
+  } catch (err) {
+    console.warn('Auto auth session init error:', err.message);
   }
-
-  // In real backend, this will call POST /api/auth/forgot-password/
-  sessionStorage.setItem('ot_pending_reset_email', cleanEmail);
-  return { success: true, email: cleanEmail };
-};
-
-/**
- * Confirm New Password (Step 3: Set new password)
- */
-export const confirmNewPassword = async (newPassword, confirmPassword) => {
-  if (!newPassword || newPassword.length < 4) {
-    throw new Error('Password must be at least 4 characters long.');
-  }
-
-  if (newPassword !== confirmPassword) {
-    throw new Error('Passwords do not match. Please re-enter.');
-  }
-
-  // Save updated password in localStorage
-  localStorage.setItem(AUTH_PWD_KEY, newPassword);
-
-  const email = sessionStorage.getItem('ot_pending_reset_email') || DEFAULT_USER.email;
-  addLog(LOG_TYPES.EDIT || 'password.reset', `Password successfully reset for account: ${email}`);
-  sessionStorage.removeItem('ot_pending_reset_email');
-
-  return { success: true, message: 'Password has been updated successfully.' };
+  return getCurrentUser();
 };
