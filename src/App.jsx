@@ -15,7 +15,7 @@ import AuthScreen from './components/AuthScreen';
 import { seedDemoLogs, addLog, LOG_TYPES } from './services/logService';
 import { hasBaseline, SNAPSHOT_EVENT } from './services/snapshotService';
 import { useAssessment } from './services/assessmentStore';
-import { getCurrentUser, logout, AUTH_CHANGE_EVENT, initializeAuthSession } from './services/authService';
+import { getCurrentUser, logout, AUTH_CHANGE_EVENT } from './services/authService';
 
 const LogsIcon = () => (
   <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="kpmg-icon-no-shrink">
@@ -107,14 +107,7 @@ export default function App() {
     setTab(newTab);
   };
 
-  useEffect(() => {
-    seedDemoLogs();
-    addLog(LOG_TYPES.LOGIN, 'User session started');
-    // Silently restore session or initialize CSRF on first page load
-    initializeAuthSession().then(u => {
-      if (u) setCurrentUser(u);
-    }).catch(() => {});
-  }, []);
+  useEffect(() => { seedDemoLogs(); addLog(LOG_TYPES.LOGIN, 'User session started'); }, []);
   useEffect(() => {
     const sync = () => setBaselineDone(hasBaseline());
     window.addEventListener(SNAPSHOT_EVENT, sync);
@@ -132,14 +125,7 @@ export default function App() {
     return <AuthScreen onLoginSuccess={(u) => setCurrentUser(u)} />;
   }
 
-  // Admin gate: only is_admin can access the Admin Portal
-  if (adminMode) {
-    if (!currentUser?.is_admin) {
-      setAdminMode(false);
-    } else {
-      return <AdminPortal currentUser={currentUser} onExit={() => setAdminMode(false)} />;
-    }
-  }
+  if (adminMode) return <AdminPortal onExit={() => setAdminMode(false)} />;
 
   // Only setup is open before the baseline. Evidence is now collected in Model
   // (collect-flat), so 62443 is an analysis view that needs the baseline first.
@@ -204,22 +190,20 @@ export default function App() {
           })}
         </nav>
 
-        {/* Sidebar Footer — Admin Portal Card (is_admin only) & User Profile Card */}
+        {/* Sidebar Footer — Admin Portal Card & User Profile Card */}
         <div className="kpmg-sidebar-footer">
-          {Boolean(currentUser?.is_admin) && (
-            <div className="kpmg-sidebar-admin" onClick={() => setAdminMode(true)}>
-              <div className="kpmg-admin-avatar">
-                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </svg>
-              </div>
-              <div className="kpmg-admin-info">
-                <div className="kpmg-admin-name">Admin Portal</div>
-                <div className="kpmg-admin-role">System Management</div>
-              </div>
+          <div className="kpmg-sidebar-admin" onClick={() => setAdminMode(true)}>
+            <div className="kpmg-admin-avatar">
+              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
             </div>
-          )}
+            <div className="kpmg-admin-info">
+              <div className="kpmg-admin-name">Admin Portal</div>
+              <div className="kpmg-admin-role">System Management</div>
+            </div>
+          </div>
 
           <div className="kpmg-sidebar-user">
             <div className="kpmg-user-avatar">

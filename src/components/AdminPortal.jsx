@@ -1277,28 +1277,11 @@ const SUBTITLES = {
   health: 'Security controls and service status',
 };
 
-export default function AdminPortal({ onExit, currentUser }) {
+export default function AdminPortal({ onExit }) {
   const [tab, setTab] = useState('users');
   const [isGroupOpen, setIsGroupOpen] = useState(true);
   const [showAddClient, setShowAddClient] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
-
-  // Enforce is_admin gate for Admin Portal
-  if (currentUser && !currentUser.is_admin) {
-    return (
-      <div className="kpmg-app-layout" style={{ alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#F8FAFC' }}>
-        <div style={{ background: '#fff', padding: '36px', borderRadius: '12px', border: '1px solid #E2E8F0', maxWidth: '420px', textAlign: 'center', boxShadow: '0 4px 6px -2px rgba(16,24,40,0.05)' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#101828', marginBottom: '8px' }}>Access Denied</h2>
-          <p style={{ fontSize: '14px', color: '#475467', lineHeight: 1.5, marginBottom: '20px' }}>
-            Only users with administrative privileges (<code>is_admin: true</code>) are authorized to manage users and access the Admin Portal.
-          </p>
-          <button className="kpmg-btn-outline kpmg-w-full-justify-center" onClick={onExit}>
-            ← Back to Main Portal
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="kpmg-app-layout">
