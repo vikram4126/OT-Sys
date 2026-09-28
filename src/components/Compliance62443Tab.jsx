@@ -209,7 +209,7 @@ function ZoneDiagram({ zones, conduits, srSeed, assets, sel, onSelZone, onSelCon
 }
 
 // ── Requirement evidence-review popup ────────────────────────────────────────
-function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAddEvidence, onRemoveEvidence }) {
+function ReqModal({ zone, item, status, docs, srSeed, meta, onClose, onSetStatus, onAddEvidence, onRemoveEvidence }) {
   const [docIdx, setDocIdx] = useState(0);
   const [pageNo, setPageNo] = useState(4);
   const [reanalysed, setReanalysed] = useState(false);
@@ -267,7 +267,18 @@ function ReqModal({ zone, item, status, docs, srSeed, onClose, onSetStatus, onAd
   return (
     <Modal
       title={`${item.id} - ${item.name}`}
-      subtitle={`${zone.name} · Evidence review`}
+      subtitle={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span>{zone.name} · Evidence review</span>
+          {meta?.assessed_at && (
+            <span style={{ fontSize: 11, color: '#475467', fontWeight: 400 }}>
+              Live Assessment: {new Date(meta.assessed_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              {meta.assessed_by ? ` by ${meta.assessed_by}` : ''}
+              {meta.client_id ? ` · Client: ${meta.client_id}` : ''}
+            </span>
+          )}
+        </div>
+      }
       onClose={onClose}
       maxWidth={1120}
       footer={(() => {
@@ -558,7 +569,11 @@ function AssetPanel({ zone, assets, srSeed, onClose, onConfirm }) {
 // ── Asset registry confidence modals ─────────────────────────────────────────
 
 export default function Compliance62443Tab() {
-  const { zones, conduits, srSeed, assets, evidence, company, setSrStatus, addEvidence, removeEvidence, confirmAssetLevel } = useAssessment();
+  const {
+    zones, conduits, srSeed, assets, evidence, company,
+    complianceMeta, loadingCompliance, liveComplianceCount,
+    setSrStatus, addEvidence, removeEvidence, confirmAssetLevel
+  } = useAssessment();
   const [sel, setSel] = useState(zones[0] ? { type:'zone', id:zones[0].id } : null);
   const [reqOpen, setReqOpen] = useState(null);
   const [assetOpen, setAssetOpen] = useState(null);
@@ -710,6 +725,29 @@ export default function Compliance62443Tab() {
 
   return (
     <div className="kpmg-page-stack">
+      {/* Live Status Header / Sync Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: '#F8FAFC', borderRadius: 8, border: '1px solid #EAECF0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#344054', fontWeight: 500 }}>
+          <span>IEC 62443-3-3 System Requirements</span>
+          {liveComplianceCount > 0 ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#027A48', background: '#ECFDF3', border: '1px solid #ABEFC6', padding: '3px 10px', borderRadius: 12 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#12B76A' }} />
+              Live API Connected ({liveComplianceCount} status items)
+            </span>
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#667085', background: '#F2F4F7', border: '1px solid #D0D5DD', padding: '3px 10px', borderRadius: 12 }}>
+              Connecting to /api/compliance/status...
+            </span>
+          )}
+        </div>
+        {loadingCompliance && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#175CD3', fontWeight: 500 }}>
+            <span style={{ width: 13, height: 13, border: '2px solid #B2DDFF', borderTopColor: '#175CD3', borderRadius: '50%', display: 'inline-block', animation: 'kpmg-spin 0.8s linear infinite' }} />
+            Syncing compliance status...
+          </div>
+        )}
+      </div>
+
       <ZoneDiagram zones={zones} conduits={conduits} srSeed={srSeed} assets={assets} sel={sel}
         onSelZone={z=>setSel({type:'zone',id:z.id})} onSelConduit={c=>setSel({type:'conduit',id:c.id})}/>
 
@@ -725,6 +763,7 @@ export default function Compliance62443Tab() {
         <ReqModal zone={reqOpen.zone} item={reqOpen.item} srSeed={srSeed}
           status={itemStatus(srSeed, reqOpen.zone.id, reqOpen.item.id)}
           docs={evidenceForReq(evidence, reqOpen.zone.id, reqOpen.item)}
+          meta={complianceMeta[`${reqOpen.zone.id}:${reqOpen.item.id}`]}
           onClose={()=>setReqOpen(null)} onSetStatus={setSrStatus}
           onAddEvidence={addEvidence} onRemoveEvidence={removeEvidence}/>
       )}

@@ -191,6 +191,35 @@ export const initializeAuthSession = async () => {
   // Always trigger CSRF initialization on first page view
   initCsrfToken().catch(() => {});
 
+  // 1. If backend has DEBUG=true auto-auth enabled (or localhost dev), test /api/auth/me directly
+  try {
+    const user = await fetchUserProfileFromApi();
+    if (user) return user;
+  } catch (err) {
+    // If not auto-authenticated by backend, check local dev bypass or MSAL
+  }
+
+  // 2. If pointing to local backend (127.0.0.1 / localhost), auto-login dev user so UI never blocks on MSAL
+  const apiBase = process.env.REACT_APP_API_BASE || '';
+  const isLocalDev = apiBase.includes('127.0.0.1') || apiBase.includes('localhost');
+  if (isLocalDev) {
+    const cached = getCurrentUser();
+    if (cached) return cached;
+    const devUser = {
+      ...DEFAULT_USER,
+      name: 'Local Dev Analyst',
+      email: 'dev@local.test',
+      role: 'Lead Analyst',
+      isAdmin: true,
+      is_admin: true,
+    };
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(devUser));
+    localStorage.setItem(AUTH_TOKEN_KEY, 'local_dev_token');
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+    return devUser;
+  }
+
+  // 3. Normal MSAL session check for deployed environments
   try {
     await ensureMsalInitialized();
     const accounts = msalInstance.getAllAccounts();

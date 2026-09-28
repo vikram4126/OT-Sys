@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, Tooltip, ResponsiveContainer } from 'recharts';
-import { getVulnerabilities } from '../api/client';
+import { getVulnerabilities, getDashboardStats } from '../api/client';
 import { C } from '../theme';
 import { Loading } from './UI';
 import { DynamicSegmentedBar } from './AssetsTab';
@@ -178,8 +178,11 @@ export default function DashboardTab({ onNavigate }) {
   const [selectedZone, setSelectedZone] = useState('Safety (SIS)');
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const [stats, setStats] = useState(null);
+
   useEffect(() => {
     getVulnerabilities().then(r => setVulns(r.data || [])).catch(() => setVulns([]));
+    getDashboardStats().then(r => setStats(r.data || null)).catch(() => {});
   }, []);
 
   if (!vulns) return <Loading />;
@@ -197,6 +200,9 @@ export default function DashboardTab({ onNavigate }) {
     return { fr: f.fr, Target: target, Achieved: achieved };
   });
 
+  const totalZonesCount = stats?.zones_count ?? stats?.zones ?? zones.length;
+  const totalAssetsCount = stats?.assets_count ?? stats?.assets ?? assets.length;
+
   return (
     <div className="kpmg-dashboard-container">
       {/* KPI Cards Row */}
@@ -207,7 +213,7 @@ export default function DashboardTab({ onNavigate }) {
           className="kpmg-dash-kpi-card"
         >
           <div className="kpmg-dash-kpi-val-blue">
-            {String(zones.length || 5).padStart(2, '0')}
+            {String(totalZonesCount || 5).padStart(2, '0')}
           </div>
           <div className="kpmg-dash-kpi-title">Zones</div>
           <div className="kpmg-dash-kpi-sub">Tap to review in Model</div>
@@ -219,7 +225,7 @@ export default function DashboardTab({ onNavigate }) {
           className="kpmg-dash-kpi-card kpmg-pos-relative"
         >
           <span className="kpmg-dash-kpi-badge-blue">
-            {assets.length || 21} assets
+            {totalAssetsCount || 21} assets
           </span>
           <div className="kpmg-dash-kpi-val-blue">78%</div>
           <div className="kpmg-dash-kpi-title">Asset visibility</div>

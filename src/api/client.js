@@ -27,12 +27,15 @@ export function setCsrfToken(token) {
   } catch {}
 }
 
-// Absolute URL — required when serving the built app with `npx serve`
-// (the proxy in package.json only works during `npm start`). Overridable via
-// REACT_APP_API_BASE (see .env.example) so a production build can point at a
-// real host without a source change — falls back to https://arc.customappsteam.co.uk/api.
+// Absolute URL — overridable via REACT_APP_API_BASE (.env)
+// Normalizes URL so both http://127.0.0.1:8000 and http://127.0.0.1:8000/api work seamlessly
+const rawBase = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
+const baseURL = (rawBase.endsWith('/api') || rawBase.endsWith('/api/'))
+  ? rawBase.replace(/\/+$/, '')
+  : rawBase.replace(/\/+$/, '') + '/api';
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE || 'https://arc.customappsteam.co.uk/api',
+  baseURL,
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
@@ -145,6 +148,13 @@ export const getVulnerabilities    = (params)  => api.get('/vulnerabilities/', {
 export const generateReportDocx    = (data)    => api.post('/report/docx/', data, { responseType: 'blob' });
 export const generateZoneModelPdf  = (data)    => api.post('/report/zone-model/pdf/', data, { responseType: 'blob' });
 export const generateZoneModelDocx = (data)    => api.post('/report/zone-model/docx/', data, { responseType: 'blob' });
+
+// Direct endpoints for Zones, Assets, Dashboard Stats, and Compliance
+export const getZonesApi           = ()        => api.get('/zones/');
+export const getAssetsApi          = ()        => api.get('/assets/');
+export const getDashboardStats     = ()        => api.get('/dashboard/stats');
+export const getComplianceStatus   = ()        => api.get('/compliance/status').then(r => r.data);
+export const updateComplianceStatus = (data)   => api.post('/compliance/status', data).then(r => r.data).catch(() => null);
 
 // Health check endpoint
 export const checkBackendHealth    = ()        => api.get('/health');

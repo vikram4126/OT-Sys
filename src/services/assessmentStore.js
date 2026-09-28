@@ -12,6 +12,7 @@
 //  - MVP: seeded. In production the per-SR met/partial/missing comes from the
 //    self-aware-agent pipeline reading the SharePoint evidence.
 import { useState, useEffect, useCallback } from 'react';
+import api from '../api/client';
 
 const ZKEY = 'ot_assess_zones_v2';
 const SKEY = 'ot_assess_srstatus_v2';
@@ -436,6 +437,10 @@ function readEvidence() { return read(EKEY, { docs:EV_DOCS_SEED }); }
 const AKEY = 'ot_assess_assets_v2';
 function readAssets() { const list = read(AKEY, ASSET_SEED); return list.map(a => { const seed = ASSET_SEED.find(s => s.id === a.id); return seed && seed.internetFacing ? { ...a, internetFacing: true } : a; }); }
 function writeAssets(a) { localStorage.setItem(AKEY, JSON.stringify(a)); window.dispatchEvent(new Event('assessment-change')); }
+
+const CMKEY = 'ot_assess_compliance_meta_v1';
+export function readComplianceMeta() { try { return JSON.parse(localStorage.getItem(CMKEY) || '{}'); } catch { return {}; } }
+export function writeComplianceMeta(m) { try { localStorage.setItem(CMKEY, JSON.stringify(m)); } catch {} }
 
 export { CONF_THRESHOLD };
 export function assetsForZone(assets, zoneId) { return assets.filter(a => a.zone === zoneId); }
@@ -1084,11 +1089,124 @@ export function useAssessment() {
   const [assets, setAssets] = useState(readAssets);
   const [company, setCompanyState] = useState(()=>read(CKEY, COMPANY_SEED));
   const [conduits, setConduits] = useState(()=>read(CDKEY, CONDUIT_SEED));
+  const [complianceMeta, setComplianceMeta] = useState(readComplianceMeta);
+  const [loadingCompliance, setLoadingCompliance] = useState(false);
+  const [complianceError, setComplianceError] = useState(null);
+  const [liveComplianceCount, setLiveComplianceCount] = useState(0);
+
   useEffect(() => {
-    const refresh = () => { setZones(readZones()); setSrSeed(readSR()); setEvidence(readEvidence()); setAssets(readAssets()); setCompanyState(read(CKEY,COMPANY_SEED)); setConduits(read(CDKEY,CONDUIT_SEED)); };
+    const refresh = () => {
+      setZones(readZones());
+      setSrSeed(readSR());
+      setEvidence(readEvidence());
+      setAssets(readAssets());
+      setCompanyState(read(CKEY,COMPANY_SEED));
+      setConduits(read(CDKEY,CONDUIT_SEED));
+      setComplianceMeta(readComplianceMeta());
+    };
     window.addEventListener('assessment-change', refresh);
     window.addEventListener('storage', refresh);
-    return () => { window.removeEventListener('assessment-change', refresh); window.removeEventListener('storage', refresh); };
+
+    // Fetch live zones from backend: GET /api/zones/
+    api.get('/zones/')
+      .then(res => {
+        const raw = res.data;
+        const list = Array.isArray(raw) ? raw : (raw?.items || raw?.zones || []);
+        if (list.length > 0) {
+          const normalized = list.map(z => ({
+            id: z.id || z.zone_id || `Z-${z.name}`,
+            name: z.name || z.zone_name,
+            slT: z.slT ?? z.sl_t ?? z.target_sl ?? 2,
+            desc: z.desc || z.description || '',
+            conf: z.conf || 0,
+            subnets: z.subnets || [],
+            ...z
+          }));
+          setZones(normalized);
+          write(ZKEY, normalized);
+        }
+      })
+      .catch(err => console.warn('Live backend /zones/ not available, using store:', err.message));
+
+    // Fetch live assets from backend: GET /api/assets/
+    api.get('/assets/')
+      .then(res => {
+        const raw = res.data;
+        const list = Array.isArray(raw) ? raw : (raw?.items || raw?.assets || []);
+        if (list.length > 0) {
+          const normalized = list.map(a => ({
+            id: a.id || a.asset_id || a.name,
+            name: a.name || a.asset_name,
+            zone: a.zone || a.zone_id || '',
+            ip: a.ip || a.ip_address || '',
+            deviceType: a.deviceType || a.device_type || a.type || 'Host',
+            level: a.level ?? a.purdue_level ?? 2,
+            confidence: a.confidence ?? 100,
+            ...a
+          }));
+          setAssets(normalized);
+          writeAssets(normalized);
+        }
+      })
+      .catch(err => console.warn('Live backend /assets/ not available, using store:', err.message));
+
+    // Fetch live compliance status: GET /api/compliance/status
+    setLoadingCompliance(true);
+    setComplianceError(null);
+    api.get('/compliance/status')
+      .then(res => {
+        const raw = res.data;
+        const list = Array.isArray(raw) ? raw : (raw?.items || raw?.status || []);
+        if (list.length > 0) {
+          setLiveComplianceCount(list.length);
+          const complianceMap = {};
+          const metaMap = {};
+
+          list.forEach(item => {
+            const zId = item.zone_id || item.zone;
+            const srId = item.sr_id || item.srId;
+            const st = (item.status || '').toLowerCase().trim();
+            if (!zId || !srId) return;
+
+            if (!complianceMap[zId]) {
+              complianceMap[zId] = { met: [], partial: [], blocked: [] };
+            }
+            if (st === 'met') {
+              if (!complianceMap[zId].met.includes(srId)) complianceMap[zId].met.push(srId);
+            } else if (st === 'partial') {
+              if (!complianceMap[zId].partial.includes(srId)) complianceMap[zId].partial.push(srId);
+            } else if (st === 'blocked') {
+              if (!complianceMap[zId].blocked.includes(srId)) complianceMap[zId].blocked.push(srId);
+            }
+
+            metaMap[`${zId}:${srId}`] = {
+              client_id: item.client_id,
+              assessed_at: item.assessed_at,
+              assessed_by: item.assessed_by,
+              evidence_refs: item.evidence_refs || []
+            };
+          });
+
+          // Merge with any existing zone structures and update store
+          const current = readSR();
+          const merged = { ...current, ...complianceMap };
+          setSrSeed(merged);
+          write(SKEY, merged);
+
+          setComplianceMeta(metaMap);
+          writeComplianceMeta(metaMap);
+        }
+      })
+      .catch(err => {
+        console.warn('Live backend /compliance/status not available, using store:', err.message);
+        setComplianceError(err.message);
+      })
+      .finally(() => setLoadingCompliance(false));
+
+    return () => {
+      window.removeEventListener('assessment-change', refresh);
+      window.removeEventListener('storage', refresh);
+    };
   }, []);
 
   const setCompany = useCallback((patch)=>{ const next={...read(CKEY,COMPANY_SEED),...patch}; write(CKEY,next); setCompanyState(next); }, []);
@@ -1148,9 +1266,27 @@ export function useAssessment() {
     z.met = z.met.filter(x=>x!==itemId); z.partial = z.partial.filter(x=>x!==itemId); z.blocked = z.blocked.filter(x=>x!==itemId);
     if (status==='met') z.met.push(itemId); else if (status==='partial') z.partial.push(itemId); else if (status==='blocked') z.blocked.push(itemId);
     const next = { ...s, [zoneId]:z }; write(SKEY, next); setSrSeed(next);
+
+    // Update metadata locally
+    const meta = readComplianceMeta();
+    meta[`${zoneId}:${itemId}`] = {
+      ...(meta[`${zoneId}:${itemId}`] || {}),
+      assessed_at: new Date().toISOString(),
+      assessed_by: 'consultant'
+    };
+    writeComplianceMeta(meta);
+    setComplianceMeta(meta);
+
+    // Sync status change to backend API if available
+    api.post('/compliance/status', {
+      zone_id: zoneId,
+      sr_id: itemId,
+      status: status
+    }).catch(err => console.warn('Compliance status sync to backend failed:', err.message));
   }, []);
 
   return { zones, srSeed, evidence, assets, company, conduits,
+    complianceMeta, loadingCompliance, complianceError, liveComplianceCount,
     addZone, updateZone, removeZone, addEvidence, removeEvidence, confirmAssetLevel, addAsset, updateAsset, removeAsset,
     setCompany, addConduit, removeConduit, rescan, setSrStatus };
 }
