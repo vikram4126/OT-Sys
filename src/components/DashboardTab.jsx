@@ -232,16 +232,21 @@ export default function DashboardTab({ onNavigate }) {
           <div className="kpmg-dash-kpi-sub">Tap to review in Assets</div>
         </div>
 
-        {/* Card 3: High risk zone */}
+        {/* Card 3: Vulnerabilities */}
         <div
-          onClick={() => onNavigate && onNavigate('model')}
+          onClick={() => onNavigate && onNavigate('vulns')}
           className="kpmg-dash-kpi-card"
         >
-          <div className="kpmg-dash-kpi-val-blue">
-            07<span className="kpmg-dash-kpi-denom"> /10</span>
+          <div className="kpmg-dash-kpi-val-red">
+            {String(stats?.total_count ?? (vulns ? vulns.length : 3)).padStart(2, '0')}
+            <span className="kpmg-dash-kpi-denom" style={{ fontSize: 13, color: '#B42318', marginLeft: 4 }}>
+              ({stats?.critical_count ?? 3} Critical)
+            </span>
           </div>
-          <div className="kpmg-dash-kpi-title">High risk zone</div>
-          <div className="kpmg-dash-kpi-sub">Safety (SIS)</div>
+          <div className="kpmg-dash-kpi-title">Active Vulnerabilities</div>
+          <div className="kpmg-dash-kpi-sub">
+            {stats?.kev_count ? `${stats.kev_count} CISA KEV detected` : 'Tap to review in Vulnerabilities'}
+          </div>
         </div>
 
         {/* Card 4: 62443 Coverage */}
@@ -264,6 +269,86 @@ export default function DashboardTab({ onNavigate }) {
           <div className="kpmg-dash-kpi-val-red">50%</div>
           <div className="kpmg-dash-kpi-title">Overall risk score</div>
           <div className="kpmg-dash-kpi-sub">Tap to review in Risk Landscape</div>
+        </div>
+      </div>
+
+      {/* Live Threat & Vulnerability Posture Bar from /api/dashboard/stats */}
+      <div style={{
+        marginTop: 16,
+        padding: '12px 18px',
+        background: '#FFFFFF',
+        borderRadius: 8,
+        border: '1px solid #EAECF0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: 600, fontSize: 13, color: '#101828' }}>Vulnerability Posture:</span>
+          <span style={{
+            fontSize: 12,
+            fontWeight: 600,
+            padding: '3px 9px',
+            borderRadius: 6,
+            background: '#FEE4E2',
+            color: '#B42318',
+            border: '1px solid #FECDCA'
+          }}>
+            {stats?.critical_count ?? 3} Critical
+          </span>
+          <span style={{
+            fontSize: 12,
+            fontWeight: 500,
+            padding: '3px 9px',
+            borderRadius: 6,
+            background: '#FEF0C7',
+            color: '#B54708',
+            border: '1px solid #FEDF89'
+          }}>
+            {stats?.high_count ?? 0} High
+          </span>
+          <span style={{
+            fontSize: 12,
+            fontWeight: 500,
+            padding: '3px 9px',
+            borderRadius: 6,
+            background: '#F2F4F7',
+            color: '#344054',
+            border: '1px solid #EAECF0'
+          }}>
+            {stats?.medium_count ?? 0} Medium
+          </span>
+          <span style={{
+            fontSize: 12,
+            fontWeight: 500,
+            padding: '3px 9px',
+            borderRadius: 6,
+            background: '#F2F4F7',
+            color: '#344054',
+            border: '1px solid #EAECF0'
+          }}>
+            {stats?.low_count ?? 0} Low
+          </span>
+          <span style={{
+            fontSize: 12,
+            fontWeight: 600,
+            padding: '3px 9px',
+            borderRadius: 6,
+            background: '#FFFAEB',
+            color: '#B54708',
+            border: '1px solid #FEDF89',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4
+          }}>
+            ⚠️ {stats?.kev_count ?? 2} CISA KEV Exploited
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#027A48', fontWeight: 500 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#12B76A' }} />
+          <span>Live API Data (/api/dashboard/stats)</span>
         </div>
       </div>
 

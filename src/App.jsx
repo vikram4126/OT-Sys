@@ -16,6 +16,7 @@ import { seedDemoLogs, addLog, LOG_TYPES } from './services/logService';
 import { hasBaseline, SNAPSHOT_EVENT } from './services/snapshotService';
 import { useAssessment } from './services/assessmentStore';
 import { getCurrentUser, logout, AUTH_CHANGE_EVENT, initializeAuthSession } from './services/authService';
+import { checkBackendHealth } from './api/client';
 
 const LogsIcon = () => (
   <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="kpmg-icon-no-shrink">
@@ -101,6 +102,7 @@ export default function App() {
   // Gate: analysis tabs stay locked until the consultant captures the initial
   // baseline (their declaration that the starting evidence is loaded).
   const [baselineDone, setBaselineDone] = useState(hasBaseline()); const [headerActions, setHeaderActions] = useState(null);
+  const [health, setHealth] = useState(null);
 
   const handleSetTab = (newTab) => {
     setHeaderActions(null);
@@ -114,6 +116,11 @@ export default function App() {
     initializeAuthSession().then(u => {
       if (u) setCurrentUser(u);
     }).catch(() => {});
+
+    // Check live backend API health status
+    checkBackendHealth()
+      .then(res => setHealth(res.data))
+      .catch(err => console.warn('Backend health check error:', err.message));
   }, []);
   useEffect(() => {
     const sync = () => setBaselineDone(hasBaseline());
@@ -253,9 +260,31 @@ export default function App() {
       <div className="kpmg-main-area">
         <header className="kpmg-header">
           <div className="kpmg-header-row">
-            <h1 className="kpmg-title">
-              {tab === 'dashboard' ? (company?.name || 'Acme Utilities') : TITLES[tab]}
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <h1 className="kpmg-title">
+                {tab === 'dashboard' ? (company?.name || 'Acme Utilities') : TITLES[tab]}
+              </h1>
+              {health && (
+                <div
+                  title={`Status: ${health.status} · Features: ${health.features?.join(', ')} · Worker: ${health.enrichment_worker?.running ? 'Running' : 'Stopped'}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '3px 10px',
+                    background: '#ECFDF3',
+                    border: '1px solid #ABEFC6',
+                    borderRadius: 16,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: '#027A48'
+                  }}
+                >
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#12B76A', boxShadow: '0 0 0 2px rgba(18, 183, 106, 0.2)' }} />
+                  <span>API v{health.version || '1.0.0'} ({health.features?.length || 17} features)</span>
+                </div>
+              )}
+            </div>
             {headerActions}
           </div>
           {tab === 'dashboard' ? (

@@ -118,9 +118,31 @@ export const fetchUserProfileFromApi = async () => {
 };
 
 /**
- * Login with Microsoft Entra ID via MSAL Popup
+ * URL for server-initiated Microsoft Azure AD OAuth Login
+ */
+export const getAzureLoginUrl = () => {
+  const base = process.env.REACT_APP_API_BASE || 'https://arc.customappsteam.co.uk/api';
+  const clean = base.replace(/\/+$/, '');
+  return `${clean}/auth/azure/login`;
+};
+
+/**
+ * Direct redirect to backend Microsoft login endpoint
+ */
+export const redirectToAzureLogin = () => {
+  window.location.href = getAzureLoginUrl();
+};
+
+/**
+ * Login with Microsoft Entra ID via MSAL Popup or direct backend OAuth redirect
  */
 export const loginWithMicrosoft = async () => {
+  // If direct Azure AD backend endpoint is requested, redirect to it
+  const loginUrl = getAzureLoginUrl();
+  if (loginUrl) {
+    redirectToAzureLogin();
+    return { redirecting: true };
+  }
   await ensureMsalInitialized();
 
   let loginResponse = null;
