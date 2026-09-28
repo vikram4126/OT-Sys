@@ -213,7 +213,23 @@ export const initializeAuthSession = async () => {
   // Always trigger CSRF initialization on first page view
   initCsrfToken().catch(() => {});
 
-  // 1. If backend has DEBUG=true auto-auth enabled (or localhost dev), test /api/auth/me directly
+  // 0. Extract token from URL query or hash if returning from Microsoft OAuth redirect
+  try {
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const urlToken = searchParams.get('token') || searchParams.get('access_token') || searchParams.get('bearer') ||
+                     hashParams.get('token') || hashParams.get('access_token');
+    if (urlToken) {
+      localStorage.setItem(AUTH_TOKEN_KEY, urlToken);
+      // Clean query params from URL so sensitive token is not left in browser history
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  } catch (err) {
+    console.warn('URL token parsing failed:', err.message);
+  }
+
+  // 1. Fetch user profile from backend /api/auth/me (works via Bearer token or HttpOnly Cookie)
   try {
     const user = await fetchUserProfileFromApi();
     if (user) return user;
