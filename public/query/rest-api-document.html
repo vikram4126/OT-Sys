@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Untitled Document</title>
+</head>
+
+<body>
+  <p>
+    ARC REST API Documentation<br />
+    Version 1.0 | Sample Developer Reference
+  </p>
+  <p>Contents</p>
+  <h1><a name="_Toc240983533">1. Overview</a></h1>
+  <p>
+    The ARC REST API enables authorized applications to create, retrieve,
+    update, and delete asset records. It uses JSON request and response
+    bodies, standard HTTP methods, and resource-oriented endpoints. This
+    sample is intended as a reusable documentation template; replace
+    placeholder values with implementation-specific details before
+    publication.
+  </p>
+  <h2><a name="_Toc240983534">1.1 Key Capabilities</a></h2>
+  <ul>
+    <li>Register and retrieve assets.</li>
+    <li>Update asset metadata and lifecycle status.</li>
+    <li>Filter and paginate asset collections.</li>
+    <li>Delete assets when permitted.</li>
+    <li>Return consistent success and error responses.</li>
+  </ul>
+  <h1><a name="_Toc240983535">2. API Environments</a></h1>
+  <table border="1" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>
+        <p><strong>Environment</strong></p>
+      </td>
+      <td>
+        <p><strong>Base URL</strong></p>
+      </td>
+      <td>
+        <p><strong>Purpose</strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Development</p>
+      </td>
+      <td>
+        <p>
+          <a href="https://arc.customappsteam.co.uk/">https://arc.customappsteam.co.uk/</a>api
+        </p>
+      </td>
+      <td>
+        <p>Developer integration and testing</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>UAT</p>
+      </td>
+      <td></td>
+      <td>
+        <p>User acceptance testing</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Production</p>
+      </td>
+      <td></td>
+      <td>
+        <p>Live workloads</p>
+      </td>
+    </tr>
+  </table>
+  <h1><a name="_Toc240983536">3. Authentication and Authorization</a></h1>
+  <p>
+    State-changing API requests use cookie-based CSRF protection. Send the
+    same CSRF token value in both required headers for POST, PATCH, and DELETE
+    requests. GET requests do not require these CSRF headers.<br />
+    <strong>Required headers</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}
+  </p>
+  <h1><a name="_Toc240983537">4. Common Conventions</a></h1>
+  <ul>
+    <li>
+      <strong>Format:</strong> Request and response bodies use JSON encoded as
+      UTF-8.
+    </li>
+    <li>
+      <strong>CSRF protection:</strong> For POST, PATCH, and DELETE requests,
+      clients must send the same server-issued token in Cookie:
+      csrftoken={csrf-token} and x-csrftoken: {csrf-token}. GET requests do
+      not require these headers.
+    </li>
+  </ul>
+  <h1><a name="_Toc240983538">5. Feature-wise API Reference</a></h1>
+  <table border="1" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>
+        <p><strong>Feature</strong></p>
+      </td>
+      <td>
+        <p><strong>Base Path</strong></p>
+      </td>
+      <td>
+        <p><strong>Status</strong></p>
+      </td>
+      <td>
+        <p><strong>Purpose</strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Health</p>
+      </td>
+      <td>
+        <p>/health</p>
+      </td>
+      <td>
+        <p>Available</p>
+      </td>
+      <td>
+        <p>Checks service health and returns the CSRF token.</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Models</p>
+      </td>
+      <td>
+        <p>/model</p>
+      </td>
+      <td>
+        <p>Available</p>
+      </td>
+      <td>
+        <p>Manages model records and related metadata.</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Zones</p>
+      </td>
+      <td>
+        <p>/api/zones, /api/zone-rules, /api/conduits</p>
+      </td>
+      <td>
+        <p>Available</p>
+      </td>
+      <td>
+        <p>
+          Manages tenant-scoped zones, subnet rules, overrides, deletion
+          impact, air-gap checks, and conduits.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Evidence</p>
+      </td>
+      <td>
+        <p>/api/model/evidence</p>
+      </td>
+      <td>
+        <p>Available</p>
+      </td>
+      <td>
+        <p>
+          Manages the evidence checklist, findings, blind spots, group
+          summaries, and evidence-drop scans.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Compliance</p>
+      </td>
+      <td>
+        <p>/api/compliance</p>
+      </td>
+      <td>
+        <p>Available</p>
+      </td>
+      <td>
+        <p>
+          Manages IEC 62443 functional requirements, system requirements,
+          assessment statuses, summaries, diagrams, and applicable
+          requirements.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Assets</p>
+      </td>
+      <td>
+        <p>/api/assets</p>
+      </td>
+      <td>
+        <p>Available</p>
+      </td>
+      <td>
+        <p>
+          Manages asset inventory records and internet-facing asset
+          suggestions.
+        </p>
+      </td>
+    </tr>
+  </table>
+  <h1><a name="_Toc240983539">6. Models</a></h1>
+  <h2><a name="_Toc240983540">6.1 Model Feature API Reference</a></h2>
+  <p>
+    <strong>Base router prefix:</strong> /api/model, mounted from
+    backend/app/features/model/router.py.
+  </p>
+  <table border="1" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>
+        <br />
+        <strong>Method</strong>
+      </td>
+      <td>
+        <p><strong>Endpoint</strong></p>
+      </td>
+      <td>
+        <p><strong>Description</strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>POST</p>
+      </td>
+      <td>
+        <p>/parse-connections/</p>
+      </td>
+      <td>
+        <p>Parses Azure stored evidence files</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/parse-connections/jobs/{job_id}</p>
+      </td>
+      <td>
+        <p>Polls the status of the parsing job</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>POST</p>
+      </td>
+      <td>
+        <p>/api/model/reconcile/</p>
+      </td>
+      <td>
+        <p>Runs the seed reconciliation job</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/model/reconcile/jobs/{job_id}</p>
+      </td>
+      <td>
+        <p>Polls the status of the reconciliation job</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>POST</p>
+      </td>
+      <td>
+        <p>/uploaded-seeds/load</p>
+      </td>
+      <td>
+        <p>Parses Azure based seed json files</p>
+      </td>
+    </tr>
+  </table>
+  <p>
+    <strong>Authentication, CSRF, and tenant scope</strong><br />
+    State-changing Models endpoints require the following headers:<br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <br />
+    GET endpoints do not require these CSRF headers. The tenant identifier,
+    client_id, is currently resolved by the development placeholder
+    _get_client_id(), which returns &quot;dev-client-001&quot; until
+    production authentication is integrated. Every request remains scoped to
+    the resolved client.
+  </p>
+  <h2><a name="_Toc240983541">6.2 Parse Connection Files</a></h2>
+  <p>
+    <strong>POST /api/model/parse-connections/</strong><br />
+    Parses network-discovery export files stored in Azure Blob Storage for the
+    authenticated client and imports the assets and connections they describe.
+    Supported inputs include .json, .pcap, .raw, switch or firewall
+    configurations, and .junos files. The API creates the job synchronously
+    and processes it in the background. Poll
+    <strong>GET /api/model/parse-connections/jobs/{job_id}</strong> for
+    progress and results.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body fields:</strong><br />
+    • files (array of 1–50 non-blank blob file-name strings, required)<br />
+    <br />
+    Files are read from the <strong>ASSETS_CONTAINER</strong> blob container
+    under the client prefix {client_id}/{file_name}. Blob names outside that
+    prefix are resolved relative to it, and parent-directory path segments are
+    rejected.<br />
+    <strong>Required fields and validation — ParseConnectionsRequest</strong>
+  </p>
+  <ul>
+    <li>
+      <strong>files:</strong> Required array containing 1–50 non-blank blob
+      file-name strings.
+    </li>
+    <li>
+      A 400 Bad Request response is returned when the list is empty, contains
+      more than 50 items, or includes a blank file name.
+    </li>
+  </ul>
+  <p>
+    <strong>Example request body</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;files&quot;: [&quot;pcap_assets.json&quot;,
+    &quot;switch-configs/core-sw1.cfg&quot;]<br />
+    }<br />
+    <strong>Example 202 Accepted response</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;id&quot;:
+    &quot;8d50718a-93f8-4b15-88bd-50a9df05cd2e&quot;,<br />
+    &nbsp;&nbsp;&quot;status&quot;: &quot;pending&quot;,<br />
+    &nbsp;&nbsp;&quot;total_files&quot;: 2,<br />
+    &nbsp;&nbsp;&quot;processed_files&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;connections_added&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;shadow_assets_added&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;error&quot;: &quot;&quot;,<br />
+    &nbsp;&nbsp;&quot;created_at&quot;: &quot;2026-09-21T08:30:00Z&quot;,<br />
+    &nbsp;&nbsp;&quot;updated_at&quot;: &quot;2026-09-21T08:30:00Z&quot;<br />
+    }<br />
+    <strong>Error response</strong><br />
+    <strong>400 Bad Request</strong> — The files list is invalid or empty.
+  </p>
+  <h2><a name="_Toc240983542">6.3 Get Parse Connection Job</a></h2>
+  <p>
+    <strong>GET /api/model/parse-connections/jobs/{job_id}</strong><br />
+    Polls the status of a previously created parse job for the authenticated
+    client. The status transitions from pending to running, then to completed
+    or failed. processed_files, connections_added, and shadow_assets_added are
+    updated incrementally after each file finishes. If parsing fails, error
+    contains the failing file name.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> job_id (string)<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <strong>Example 200 OK response</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;id&quot;:
+    &quot;8d50718a-93f8-4b15-88bd-50a9df05cd2e&quot;,<br />
+    &nbsp;&nbsp;&quot;status&quot;: &quot;completed&quot;,<br />
+    &nbsp;&nbsp;&quot;total_files&quot;: 2,<br />
+    &nbsp;&nbsp;&quot;processed_files&quot;: 2,<br />
+    &nbsp;&nbsp;&quot;connections_added&quot;: 14,<br />
+    &nbsp;&nbsp;&quot;shadow_assets_added&quot;: 6,<br />
+    &nbsp;&nbsp;&quot;error&quot;: &quot;&quot;,<br />
+    &nbsp;&nbsp;&quot;created_at&quot;: &quot;2026-09-21T08:30:00Z&quot;,<br />
+    &nbsp;&nbsp;&quot;updated_at&quot;: &quot;2026-09-21T08:30:05Z&quot;<br />
+    }<br />
+    <strong>Error response</strong><br />
+    <strong>404 Not Found</strong> — No job with the supplied id exists for
+    the authenticated client.<br />
+    {&quot;detail&quot;: &quot;Parse job not found&quot;}
+  </p>
+  <h2><a name="_Toc240983543">6.4 Start Reconciliation</a></h2>
+  <p>
+    <strong>POST /api/model/reconcile/</strong><br />
+    Starts a shadow-asset reconciliation run for the authenticated client. The
+    endpoint reads the client&rsquo;s existing tenant-scoped seed tables
+    directly from the database and runs the reconciliation engine as a
+    background task. Poll
+    <strong>GET /api/model/reconcile/jobs/{job_id}</strong> for progress and
+    results.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <strong>Input tables</strong>
+  </p>
+  <ul>
+    <li>asset_register_seed</li>
+    <li>flow_logs_seed</li>
+    <li>network_exclusions_seed</li>
+    <li>pcap_capture_meta</li>
+    <li>pcap_devices_seed</li>
+    <li>pcap_zones_seed</li>
+  </ul>
+  <p>
+    <strong>Example 202 Accepted response</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;id&quot;:
+    &quot;3f1c9e2a-6b7d-4a10-9c1e-2b6a7d4f9c11&quot;,<br />
+    &nbsp;&nbsp;&quot;client_id&quot;: &quot;dev-client-001&quot;,<br />
+    &nbsp;&nbsp;&quot;capture_id&quot;: null,<br />
+    &nbsp;&nbsp;&quot;status&quot;: &quot;pending&quot;,<br />
+    &nbsp;&nbsp;&quot;file_names&quot;:
+    [&quot;asset_register_seed.jsonl&quot;,
+    &quot;flow_logs_seed.jsonl&quot;],<br />
+    &nbsp;&nbsp;&quot;input_tables&quot;: [&quot;asset_register_seed&quot;,
+    &quot;flow_logs_seed&quot;, &quot;network_exclusions_seed&quot;,
+    &quot;pcap_capture_meta&quot;, &quot;pcap_devices_seed&quot;,
+    &quot;pcap_zones_seed&quot;],<br />
+    &nbsp;&nbsp;&quot;verdict_count&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;finding_count&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;queue_item_count&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;register_only_count&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;reduction_problem_count&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;error_message&quot;: null,<br />
+    &nbsp;&nbsp;&quot;created_at&quot;: &quot;2026-09-21T08:30:00Z&quot;,<br />
+    &nbsp;&nbsp;&quot;started_at&quot;: null,<br />
+    &nbsp;&nbsp;&quot;completed_at&quot;: null<br />
+    }
+  </p>
+  <h2><a name="_Toc240983544">6.5 Get Reconciliation Job</a></h2>
+  <p>
+    <strong>GET /api/model/reconcile/jobs/{job_id}</strong><br />
+    Polls the reconciliation job for the authenticated client. The status
+    transitions from pending to running, then to completed or failed. On
+    completion, verdict_count, finding_count, queue_item_count,
+    register_only_count, and reduction_problem_count summarize persisted
+    results. On failure, error_message is populated and truncated to 500
+    characters.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> job_id (string)<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <strong>Example 200 OK response</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;id&quot;:
+    &quot;3f1c9e2a-6b7d-4a10-9c1e-2b6a7d4f9c11&quot;,<br />
+    &nbsp;&nbsp;&quot;client_id&quot;: &quot;dev-client-001&quot;,<br />
+    &nbsp;&nbsp;&quot;capture_id&quot;: &quot;capture-2026-09-01&quot;,<br />
+    &nbsp;&nbsp;&quot;status&quot;: &quot;completed&quot;,<br />
+    &nbsp;&nbsp;&quot;file_names&quot;:
+    [&quot;asset_register_seed.jsonl&quot;,
+    &quot;flow_logs_seed.jsonl&quot;],<br />
+    &nbsp;&nbsp;&quot;input_tables&quot;: [&quot;asset_register_seed&quot;,
+    &quot;flow_logs_seed&quot;, &quot;network_exclusions_seed&quot;,
+    &quot;pcap_capture_meta&quot;, &quot;pcap_devices_seed&quot;,
+    &quot;pcap_zones_seed&quot;],<br />
+    &nbsp;&nbsp;&quot;verdict_count&quot;: 42,<br />
+    &nbsp;&nbsp;&quot;finding_count&quot;: 5,<br />
+    &nbsp;&nbsp;&quot;queue_item_count&quot;: 3,<br />
+    &nbsp;&nbsp;&quot;register_only_count&quot;: 7,<br />
+    &nbsp;&nbsp;&quot;reduction_problem_count&quot;: 0,<br />
+    &nbsp;&nbsp;&quot;error_message&quot;: null,<br />
+    &nbsp;&nbsp;&quot;created_at&quot;: &quot;2026-09-21T08:30:00Z&quot;,<br />
+    &nbsp;&nbsp;&quot;started_at&quot;: &quot;2026-09-21T08:30:01Z&quot;,<br />
+    &nbsp;&nbsp;&quot;completed_at&quot;: &quot;2026-09-21T08:30:04Z&quot;<br />
+    }<br />
+    <strong>Error response</strong><br />
+    <strong>404 Not Found</strong> — No job with the supplied id exists for
+    the authenticated client.<br />
+    {&quot;detail&quot;: &quot;Reconcile job not found&quot;}
+  </p>
+  <h2><a name="_Toc240983545">6.6 Load Uploaded Seed Files</a></h2>
+  <p>
+    <strong>POST /api/model/uploaded-seeds/load</strong><br />
+    Parses Azure Blob Storage seed JSON or JSONL files for the authenticated
+    client and loads them into the respective seed tables. This operation is
+    synchronous and does not create a background job. For each loaded table
+    and source combination, existing rows are replaced before new rows are
+    inserted.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body fields:</strong><br />
+    • files (array of up to 20 non-blank supported seed file names,
+    optional)<br />
+    If the request body is omitted or files is null, all known seed files are
+    loaded.<br />
+    Files are read from <strong>UPLOADED_SEEDS_CONTAINER</strong>. The service
+    first checks {client_id}/{file_name}, then falls back to the bare file
+    name.<br />
+    <strong>Request and validation — LoadUploadedSeedsRequest</strong>
+  </p>
+  <ul>
+    <li>
+      <strong>files:</strong> Optional array of up to 20 non-blank strings
+      identifying supported seed files.
+    </li>
+    <li>
+      Each name is matched case-insensitively by exact name or stem substring
+      to a known seed table.
+    </li>
+    <li>
+      If the request body is omitted or files is null, all known seed files
+      are loaded.
+    </li>
+  </ul>
+  <p>
+    <strong>Known seed files</strong><br />
+    asset_register_seed.jsonl<br />
+    flow_logs_seed.jsonl<br />
+    network_exclusions_seed.jsonl<br />
+    pcap_capture_meta.json<br />
+    pcap_devices_seed.jsonl<br />
+    pcap_zones_seed.jsonl<br />
+    <strong>Example request body — selected files</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;files&quot;: [&quot;asset_register_seed.jsonl&quot;,
+    &quot;pcap_devices_seed.jsonl&quot;]<br />
+    }<br />
+    <strong>Example request body — all known seed files</strong><br />
+    {}<br />
+    <strong>Example 200 OK response</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;container&quot;: &quot;uploaded-seeds&quot;,<br />
+    &nbsp;&nbsp;&quot;loaded&quot;: {<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&quot;asset_register_seed&quot;: 120,<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&quot;pcap_devices_seed&quot;: 48<br />
+    &nbsp;&nbsp;},<br />
+    &nbsp;&nbsp;&quot;total_rows&quot;: 168<br />
+    }<br />
+    <strong>Error response</strong><br />
+    <strong>400 Bad Request</strong> — Returned for an unsupported seed file
+    name, malformed JSON or JSONL, missing required row fields, row or size
+    limit violations, a missing blob, or an unconfigured Azure Blob Storage
+    account or uploaded-seeds container. Underlying causes may include
+    FileNotFoundError, RuntimeError, ValueError, or schema ValidationError.
+  </p>
+  <h1><a name="_Toc240983546">7. Zones</a></h1>
+  <h2>
+    <a name="_Toc240983547">7.1 Zones and Subnet Segmentation API Reference</a>
+  </h2>
+  <p>
+    <strong>Base router prefixes:</strong> /api/zones, /api/zone-rules, and
+    /api/conduits. <br />
+    The Zones feature manages tenant-scoped security zones, subnet rules, and
+    the conduits that connect zones.
+  </p>
+  <table border="1" cellspacing="0" cellpadding="0">
+    <tr>
+      <td valign="top">
+        <br />
+        <strong>Method</strong>
+      </td>
+      <td valign="top">
+        <p><strong>Endpoint</strong></p>
+      </td>
+      <td valign="top">
+        <p><strong>Description</strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/</p>
+      </td>
+      <td valign="top">
+        <p>Lists zones</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/{zone_id}</p>
+      </td>
+      <td valign="top">
+        <p>Gets a zone</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>POST</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/</p>
+      </td>
+      <td valign="top">
+        <p>Creates a zone</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>PATCH</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/{zone_id}</p>
+      </td>
+      <td valign="top">
+        <p>Updates a zone</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>PATCH</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/batch</p>
+      </td>
+      <td valign="top">
+        <p>Atomically updates multiple zones</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>POST / DELETE</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/{zone_id}/override/</p>
+      </td>
+      <td valign="top">
+        <p>Applies or clears an override</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/{zone_id}/delete-preview</p>
+      </td>
+      <td valign="top">
+        <p>Previews zone deletion impact</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>DELETE</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/{zone_id}</p>
+      </td>
+      <td valign="top">
+        <p>Deletes a zone</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/{zone_id}/air-gap-check</p>
+      </td>
+      <td valign="top">
+        <p>Checks air-gap consistency</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET / POST</p>
+      </td>
+      <td valign="top">
+        <p>/api/zones/{zone_id}/rules</p>
+      </td>
+      <td valign="top">
+        <p>Lists or creates subnet rules</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>DELETE</p>
+      </td>
+      <td valign="top">
+        <p>/api/zone-rules/{rule_id}</p>
+      </td>
+      <td valign="top">
+        <p>Deletes a subnet rule</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET / POST</p>
+      </td>
+      <td valign="top">
+        <p>/api/conduits/</p>
+      </td>
+      <td valign="top">
+        <p>Lists or creates conduits</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>DELETE</p>
+      </td>
+      <td valign="top">
+        <p>/api/conduits/{conduit_id}</p>
+      </td>
+      <td valign="top">
+        <p>Deletes a conduit</p>
+      </td>
+    </tr>
+  </table>
+  <p>
+    <strong>Authentication, CSRF, permissions, and tenant scope</strong><br />
+    The server derives client_id from the authenticated user; callers do not
+    send it. GET endpoints require authentication. Create, update, and
+    override operations require edit permission. Zone, rule, and conduit
+    deletion requires admin permission.<br />
+    <br />
+    Required headers for the endpoints in this section:<br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <br />
+    No endpoint accepts query parameters. Missing or invalid identity returns
+    401; insufficient permission returns 403; validation failures return 422;
+    and unknown resources generally return 404.
+  </p>
+  <h2><a name="_Toc240983548">7.2 List Zones</a></h2>
+  <p>
+    <strong>GET /api/zones/</strong><br />
+    Returns all zones for the authenticated client.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    [{&quot;id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;client_id&quot;:&quot;client-123&quot;,&quot;name&quot;:&quot;Level
+    2 Control&quot;,&quot;desc&quot;:&quot;PLC and controller
+    network&quot;,&quot;purdue_level&quot;:2,&quot;target_sl&quot;:3,&quot;criticality&quot;:4.0,&quot;exposure&quot;:2.0,&quot;air_gapped&quot;:false,&quot;created_at&quot;:&quot;2026-09-22T10:00:00Z&quot;}]
+  </p>
+  <h2><a name="_Toc240983549">7.3 Get a Zone</a></h2>
+  <p>
+    <strong>GET /api/zones/{zone_id}</strong><br />
+    Returns one zone for the authenticated client.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> zone_id (string)<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response:</strong> Uses the Zone response shape
+    shown above.<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Zone not
+    found&quot;}
+  </p>
+  <h2><a name="_Toc240983550">7.4 Create a Zone</a></h2>
+  <p>
+    <strong>POST /api/zones/</strong><br />
+    Creates a zone. Requires edit permission.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body fields:</strong> name (string). Other writable Zone
+    fields are optional.<br />
+    <br />
+    <strong>Example request body</strong><br />
+    {&quot;name&quot;:&quot;Level 2 Control&quot;,&quot;desc&quot;:&quot;PLC
+    and controller
+    network&quot;,&quot;purdue_level&quot;:2,&quot;target_sl&quot;:3,&quot;criticality&quot;:4.0,&quot;exposure&quot;:2.0,&quot;air_gapped&quot;:false}<br />
+    <br />
+    <strong>Example 201 Created response</strong><br />
+    {&quot;id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;client_id&quot;:&quot;client-123&quot;,&quot;name&quot;:&quot;Level
+    2 Control&quot;,&quot;desc&quot;:&quot;PLC and controller
+    network&quot;,&quot;purdue_level&quot;:2,&quot;target_sl&quot;:3,&quot;criticality&quot;:4.0,&quot;exposure&quot;:2.0,&quot;air_gapped&quot;:false,&quot;created_at&quot;:&quot;2026-09-22T10:00:00Z&quot;}<br />
+    <br />
+    A duplicate client-scoped zone name can return X-Duplicate-Name: true;
+    creation still succeeds.
+  </p>
+  <h2><a name="_Toc240983551">7.5 Update a Zone</a></h2>
+  <p>
+    <strong>PATCH /api/zones/{zone_id}</strong><br />
+    Updates a zone. Requires edit permission.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> zone_id (string)<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> Valid Zone update object; no individual
+    field is mandatory.<br />
+    <br />
+    <strong>Example request body</strong><br />
+    {&quot;target_sl&quot;:4,&quot;air_gapped&quot;:true}<br />
+    <br />
+    <strong>200 OK:</strong> Returns the updated Zone.<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Zone not
+    found&quot;}
+  </p>
+  <h2><a name="_Toc240983552">7.6 Batch Update Zones</a></h2>
+  <p>
+    <strong>PATCH /api/zones/batch</strong><br />
+    Atomically updates 1–100 zones. Requires edit permission.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body fields:</strong> updates array; each item requires
+    zone_id and changes.<br />
+    <br />
+    <strong>Example request body</strong><br />
+    {&quot;updates&quot;:[{&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;changes&quot;:{&quot;target_sl&quot;:3}},{&quot;zone_id&quot;:&quot;Z-E5F6A7B8&quot;,&quot;changes&quot;:{&quot;air_gapped&quot;:true,&quot;desc&quot;:&quot;Isolated
+    historian&quot;}}]}<br />
+    <br />
+    <strong>200 OK:</strong> {&quot;zones&quot;:[...updated zone
+    objects...]}<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;One or more
+    zones not found&quot;}. No partial update is committed.
+  </p>
+  <h2><a name="_Toc240983553">7.7 Apply or Clear an Override</a></h2>
+  <p>
+    <strong>POST /api/zones/{zone_id}/override/</strong><br />
+    Applies an override. Requires edit permission. The optional reason
+    supports up to 2,000 characters.<br />
+    <br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> zone_id path parameter and
+    valid JSON body.<br />
+    <strong>Example request:</strong> {&quot;reason&quot;:&quot;Approved
+    during maintenance window&quot;}<br />
+    <strong>201 Created:</strong>
+    {&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;override_applied&quot;:true,&quot;override_reason&quot;:&quot;Approved
+    during maintenance window&quot;}<br />
+    <br />
+    <strong>DELETE /api/zones/{zone_id}/override/</strong><br />
+    Clears the override. Requires edit permission.<br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> zone_id path parameter. No
+    body.<br />
+    <strong>Success:</strong> 204 No Content<br />
+    <strong>404 for either operation:</strong> {&quot;detail&quot;:&quot;Zone
+    not found&quot;}
+  </p>
+  <h2><a name="_Toc240983554">7.8 Preview or Delete a Zone</a></h2>
+  <p>
+    <strong>GET /api/zones/{zone_id}/delete-preview</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> zone_id path parameter. No
+    body.<br />
+    <strong>200 OK:</strong>
+    {&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;zone_name&quot;:&quot;Level
+    2 Control&quot;,&quot;asset_count&quot;:12,&quot;conduit_count&quot;:3}<br />
+    <br />
+    <strong>DELETE /api/zones/{zone_id}</strong><br />
+    Deletes the zone. Requires admin permission.<br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> zone_id path parameter. No
+    body.<br />
+    <strong>Success:</strong> 204 No Content. Associated conduits are removed
+    and mapped assets are detached.<br />
+    <strong>404 for either operation:</strong> {&quot;detail&quot;:&quot;Zone
+    not found&quot;}
+  </p>
+  <h2><a name="_Toc240983555">7.9 Check Air-Gap Consistency</a></h2>
+  <p>
+    <strong>GET /api/zones/{zone_id}/air-gap-check</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> zone_id path parameter. No
+    body.<br />
+    <strong>200 OK:</strong>
+    {&quot;air_gapped&quot;:true,&quot;contradictions&quot;:[&quot;Zone has an
+    active conduit despite being marked air-gapped.&quot;]}<br />
+    An empty contradictions array indicates no detected conflict.<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Zone not
+    found&quot;}
+  </p>
+  <h2><a name="_Toc240983556">7.10 List Zone Rules</a></h2>
+  <p>
+    <strong>GET /api/zones/{zone_id}/rules</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> zone_id path parameter. No
+    body.<br />
+    <strong>200 OK:</strong>
+    [{&quot;id&quot;:&quot;c50404f2-d4bd-4f2a-80e7-776ab02fd337&quot;,&quot;client_id&quot;:&quot;client-123&quot;,&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;cidr&quot;:&quot;10.20.0.0/24&quot;,&quot;name&quot;:&quot;Control
+    VLAN&quot;,&quot;created_at&quot;:&quot;2026-09-22T10:20:00Z&quot;}]<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Zone not
+    found&quot;}
+  </p>
+  <h2><a name="_Toc240983557">7.11 Create a Zone Rule</a></h2>
+  <p>
+    <strong>POST /api/zones/{zone_id}/rules</strong><br />
+    Creates a normalized CIDR rule. Requires edit permission.<br />
+    <br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> zone_id path parameter and
+    cidr body field. name is optional.<br />
+    <strong>Example request:</strong>
+    {&quot;cidr&quot;:&quot;10.20.0.14/24&quot;,&quot;name&quot;:&quot;Control
+    VLAN&quot;}<br />
+    <strong>201 Created:</strong>
+    {&quot;id&quot;:&quot;c50404f2-d4bd-4f2a-80e7-776ab02fd337&quot;,&quot;client_id&quot;:&quot;client-123&quot;,&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;cidr&quot;:&quot;10.20.0.0/24&quot;,&quot;name&quot;:&quot;Control
+    VLAN&quot;,&quot;created_at&quot;:&quot;2026-09-22T10:21:00Z&quot;}<br />
+    <strong>404:</strong> Zone not found.<br />
+    <strong>409:</strong> CIDR overlaps another zone&rsquo;s rule.<br />
+    <strong>422:</strong> CIDR is invalid, /0, or already mapped for the
+    client.
+  </p>
+  <h2><a name="_Toc240983558">7.12 Delete a Zone Rule</a></h2>
+  <p>
+    <strong>DELETE /api/zone-rules/{rule_id}</strong><br />
+    Requires admin permission.<br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> rule_id path parameter. No
+    body.<br />
+    <strong>Success:</strong> 204 No Content<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Zone rule not
+    found&quot;}
+  </p>
+  <h2><a name="_Toc240983559">7.13 List Conduits</a></h2>
+  <p>
+    <strong>GET /api/conduits/</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> No path parameters, query
+    parameters, or body.<br />
+    <strong>200 OK:</strong>
+    [{&quot;id&quot;:&quot;d0e8d2fe-098e-4d45-8f3b-9bba9b9e6e04&quot;,&quot;client_id&quot;:&quot;client-123&quot;,&quot;from_zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;to_zone_id&quot;:&quot;Z-E5F6A7B8&quot;,&quot;name&quot;:&quot;Historian
+    data flow&quot;,&quot;protocols&quot;:[&quot;OPC
+    UA&quot;,&quot;HTTPS&quot;],&quot;created_at&quot;:&quot;2026-09-22T10:30:00Z&quot;}]
+  </p>
+  <h2><a name="_Toc240983560">7.14 Create a Conduit</a></h2>
+  <p>
+    <strong>POST /api/conduits/</strong><br />
+    Requires edit permission.<br />
+    <strong>Required</strong><strong> headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> from_zone_id and to_zone_id
+    body fields.<br />
+    <strong>Example request:</strong>
+    {&quot;from_zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;to_zone_id&quot;:&quot;Z-E5F6A7B8&quot;,&quot;name&quot;:&quot;Historian
+    data flow&quot;,&quot;protocols&quot;:[&quot;OPC
+    UA&quot;,&quot;HTTPS&quot;]}<br />
+    <strong>201 Created:</strong> Returns the created Conduit.<br />
+    <strong>404:</strong> Either zone does not exist for the client.<br />
+    <strong>422:</strong> Source and destination are identical, or the pair
+    already has a conduit.
+  </p>
+  <h2><a name="_Toc240983561">7.15 Delete a Conduit</a></h2>
+  <p>
+    <strong>DELETE /api/conduits/{conduit_id}</strong><br />
+    Requires admin permission.<br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Other mandatory parameters:</strong> conduit_id path parameter. No
+    body.<br />
+    <strong>Success:</strong> 204 No Content<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Conduit not
+    found&quot;}
+  </p>
+  <h1>8. Evidence</h1>
+  <h2>8.1 Evidence API Reference</h2>
+  <p>
+    <strong>Base router prefix:</strong> /api/model/evidence.<br />
+    The Evidence feature manages the tenant-scoped evidence checklist,
+    findings, blind spots, group summaries, and evidence-drop scans.
+  </p>
+  <table border="1" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>
+        <br />
+        <strong>Method</strong>
+      </td>
+      <td>
+        <p><strong>Endpoint</strong></p>
+      </td>
+      <td>
+        <p><strong>Description</strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/model/evidence/</p>
+      </td>
+      <td>
+        <p>Lists the evidence checklist and progress</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/model/evidence/findings/</p>
+      </td>
+      <td>
+        <p>Lists evidence findings and blind spots</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>PUT</p>
+      </td>
+      <td>
+        <p>/api/model/evidence/{item_id}/</p>
+      </td>
+      <td>
+        <p>Updates an evidence item</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/model/evidence/groups/</p>
+      </td>
+      <td>
+        <p>Lists evidence group summaries</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>POST</p>
+      </td>
+      <td>
+        <p>/api/model/evidence/scan/</p>
+      </td>
+      <td>
+        <p>Scans all evidence groups</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>POST</p>
+      </td>
+      <td>
+        <p>/api/model/evidence/scan/{group_id}/</p>
+      </td>
+      <td>
+        <p>Scans one evidence group</p>
+      </td>
+    </tr>
+  </table>
+  <p>
+    <strong>Authentication, CSRF, permissions, and client scope</strong><br />
+    Evidence reads use the authenticated user's client scope. Evidence writes
+    require the edit permission. Invalid or missing authentication returns
+    401; authenticated users without edit receive 403.<br />
+    <br />
+    There are no query parameters on these routes. All non-GET requests
+    require both CSRF headers:<br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Evidence values</strong><br />
+    <strong>status:</strong> pending, received, unavailable, or na. A status
+    update is optional when quality is supplied.<br />
+    <strong>quality:</strong> complete or partial. Setting quality
+    automatically sets status to received.<br />
+    <br />
+    Evidence groups are docs, inv, network, access, ops, and people.
+  </p>
+  <h2>8.2 List Evidence Checklist</h2>
+  <p>
+    <strong>GET /api/model/evidence/</strong><br />
+    Returns the evidence checklist for the authenticated client, divided into
+    received and missing items, with overall progress information.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None beyond authenticated access<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;received&quot;:
+    [{&quot;id&quot;:&quot;net-diagram&quot;,&quot;group&quot;:&quot;docs&quot;,&quot;name&quot;:&quot;Network
+    diagrams + IP/VLAN
+    scheme&quot;,&quot;owner&quot;:&quot;IT&quot;,&quot;effort&quot;:&quot;30
+    min&quot;,&quot;core&quot;:false,&quot;fallback&quot;:&quot;Reconstruct
+    from switch and firewall
+    configs.&quot;,&quot;finding&quot;:null,&quot;evidences&quot;:[&quot;FR5&quot;],&quot;quality&quot;:&quot;complete&quot;}],<br />
+    &nbsp;&nbsp;&quot;missing&quot;:
+    [{&quot;id&quot;:&quot;asset-inventory&quot;,&quot;group&quot;:&quot;inv&quot;,&quot;name&quot;:&quot;Asset
+    inventory&quot;,&quot;owner&quot;:&quot;Controls /
+    IT&quot;,&quot;status&quot;:&quot;pending&quot;}],<br />
+    &nbsp;&nbsp;&quot;progress&quot;:
+    {&quot;total&quot;:16,&quot;received&quot;:1,&quot;unavailable&quot;:0,&quot;na&quot;:0,&quot;resolved&quot;:1,&quot;pending&quot;:15,&quot;pct&quot;:6,&quot;core_missing&quot;:[&quot;asset-inventory&quot;]}<br />
+    }<br />
+    <br />
+    The catalogue item fields are sourced from the shared domain
+    configuration. The exact catalogue can grow without changing this route.
+  </p>
+  <h2>8.3 List Evidence Findings and Blind Spots</h2>
+  <p>
+    <strong>GET /api/model/evidence/findings/</strong><br />
+    Returns evidence findings and blind spots for the authenticated client.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None beyond authenticated access<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;findings&quot;:
+    [{&quot;id&quot;:&quot;network-config&quot;,&quot;name&quot;:&quot;Network
+    configuration&quot;,&quot;finding&quot;:&quot;Network configuration
+    evidence is
+    unavailable.&quot;,&quot;evidences&quot;:[&quot;FR5&quot;]}],<br />
+    &nbsp;&nbsp;&quot;blind_spots&quot;:
+    [{&quot;id&quot;:&quot;training-records&quot;,&quot;name&quot;:&quot;Training
+    records&quot;,&quot;fallback&quot;:&quot;Confirm the process with the
+    controls owner.&quot;}]<br />
+    }
+  </p>
+  <h2>8.4 Update an Evidence Item</h2>
+  <p>
+    <strong>PUT /api/model/evidence/{item_id}/</strong><br />
+    Updates the status or quality of an evidence item. Requires edit
+    permission.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    Content-Type: application/json<br />
+    <strong>Required path parameters:</strong> item_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body fields:</strong> At least one of status or
+    quality<br />
+    <br />
+    <strong>Example request body</strong><br />
+    {&quot;status&quot;:&quot;received&quot;,&quot;quality&quot;:&quot;partial&quot;}<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {&quot;item_id&quot;:&quot;network-config&quot;,&quot;status&quot;:&quot;received&quot;,&quot;quality&quot;:&quot;partial&quot;}<br />
+    <br />
+    A quality update sets the item status to received. If a status other than
+    received is set, any existing quality is cleared.<br />
+    <br />
+    <strong>404 Not Found:</strong> item_id is not in the evidence
+    catalogue.<br />
+    <strong>422 Unprocessable Entity:</strong> Invalid status, invalid
+    quality, or neither field supplied.
+  </p>
+  <h2>8.5 List Evidence Groups</h2>
+  <p>
+    <strong>GET /api/model/evidence/groups/</strong><br />
+    Returns the six evidence group tiles and their current progress and scan
+    states.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None beyond authenticated access<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {<br />
+    &nbsp;&nbsp;&quot;groups&quot;:
+    [{&quot;id&quot;:&quot;docs&quot;,&quot;name&quot;:&quot;Documentation
+    &amp; architecture&quot;,&quot;owner&quot;:&quot;IT /
+    Compliance&quot;,&quot;total&quot;:3,&quot;received&quot;:1,&quot;pct&quot;:33,&quot;coreTotal&quot;:1,&quot;corePending&quot;:0,&quot;priority&quot;:true,&quot;changed&quot;:false,&quot;running&quot;:false,&quot;conflicts&quot;:[],&quot;lastScannedAt&quot;:null,&quot;items&quot;:[]}],<br />
+    &nbsp;&nbsp;&quot;progress&quot;: {},<br />
+    &nbsp;&nbsp;&quot;empty&quot;: false<br />
+    }<br />
+    <br />
+    The items array contains the catalogue item fields plus the current status
+    and quality. lastScannedAt is an ISO 8601 timestamp or null.
+  </p>
+  <h2>8.6 Scan All Evidence Groups</h2>
+  <p>
+    <strong>POST /api/model/evidence/scan/</strong><br />
+    Starts a background scan for all evidence groups. Requires edit
+    permission.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {&quot;started&quot;:true,&quot;groups&quot;:{&quot;docs&quot;:{&quot;group_id&quot;:&quot;docs&quot;,&quot;running&quot;:true},&quot;inv&quot;:{&quot;group_id&quot;:&quot;inv&quot;,&quot;running&quot;:true}}}<br />
+    <br />
+    If a scan is already running or inside the cooldown window, the request is
+    idempotent and returns 200 OK with started set to false and the current
+    group state.
+  </p>
+  <h2>8.7 Scan One Evidence Group</h2>
+  <p>
+    <strong>POST /api/model/evidence/scan/{group_id}/</strong><br />
+    Starts a background scan for one evidence group. Requires edit
+    permission.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> group_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    Valid group IDs are docs, inv, network, access, ops, and people. The
+    response has the same shape as scan-all, limited to the requested
+    group.<br />
+    <br />
+    <strong>404 Not Found:</strong> group_id is not an evidence group.
+  </p>
+  <h1>9. Compliance</h1>
+  <h2>9.1 Compliance API Reference</h2>
+  <p>
+    <strong>Base router prefix:</strong> /api/compliance.<br />
+    The Compliance feature manages IEC 62443 functional requirements, system
+    requirements, assessment statuses, summaries, diagrams, and applicable
+    requirements for zones and conduits.
+  </p>
+  <table border="1" cellspacing="0" cellpadding="0">
+    <tr>
+      <td>
+        <br />
+        <strong>Method</strong>
+      </td>
+      <td>
+        <p><strong>Endpoint</strong></p>
+      </td>
+      <td>
+        <p><strong>Description</strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/compliance/fr</p>
+      </td>
+      <td>
+        <p>Lists functional requirements</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/compliance/sr</p>
+      </td>
+      <td>
+        <p>Lists system requirements</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/compliance/status</p>
+      </td>
+      <td>
+        <p>Lists SR statuses</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>PUT</p>
+      </td>
+      <td>
+        <p>/api/compliance/status/{zone_id}/{sr_id}</p>
+      </td>
+      <td>
+        <p>Sets an SR status</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/compliance/summary</p>
+      </td>
+      <td>
+        <p>Gets compliance summaries</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/compliance/diagram</p>
+      </td>
+      <td>
+        <p>Gets the compliance diagram</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/compliance/zones/{zone_id}/requirements</p>
+      </td>
+      <td>
+        <p>Gets applicable zone requirements</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>GET</p>
+      </td>
+      <td>
+        <p>/api/compliance/conduits/{conduit_id}/requirements</p>
+      </td>
+      <td>
+        <p>Gets applicable conduit requirements</p>
+      </td>
+    </tr>
+  </table>
+  <p>
+    <strong>Authentication, request headers, and client scope</strong><br />
+    The current compliance router uses the development client ID
+    dev-client-001 internally and does not currently declare an authentication
+    or permission dependency. Production authentication should be added before
+    these routes are exposed as tenant-isolated APIs.<br />
+    <br />
+    The current routes do not require CSRF headers because the router does not
+    use the shared edit-user dependency. The status update is a PUT operation
+    and should be protected when production authentication is added. Optional
+    query parameters are documented per endpoint.<br />
+    <strong>Data models</strong><br />
+    <strong>Functional requirement:</strong> fr (string identifier such as
+    FR1); name (string).<br />
+    <strong>System requirement:</strong> id (string); fr (parent functional
+    requirement); name (string); min_sl (integer); is_enhancement (boolean);
+    parent_sr_id (string or null).<br />
+    <strong>Status:</strong> client_id (string); zone_id (string); sr_id
+    (string); status (intended values: met, partial, missing, or blocked);
+    evidence_refs (string array, default []); assessed_at (server-generated
+    ISO 8601 datetime); assessed_by (currently consultant).
+  </p>
+  <h2>9.2 List Functional Requirements</h2>
+  <p>
+    <strong>GET /api/compliance/fr</strong><br />
+    Returns the IEC 62443 functional-requirement catalogue.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    [{&quot;fr&quot;:&quot;FR1&quot;,&quot;name&quot;:&quot;Identification and
+    authentication control&quot;}]
+  </p>
+  <h2>9.3 List System Requirements</h2>
+  <p>
+    <strong>GET /api/compliance/sr?fr=FR1</strong><br />
+    Returns the system-requirement catalogue. The optional fr query parameter
+    filters requirements by functional requirement.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None; fr is optional<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    [{&quot;id&quot;:&quot;SR1.1&quot;,&quot;fr&quot;:&quot;FR1&quot;,&quot;name&quot;:&quot;Human
+    user identification and
+    authentication&quot;,&quot;min_sl&quot;:1,&quot;is_enhancement&quot;:false,&quot;parent_sr_id&quot;:null}]
+  </p>
+  <h2>9.4 List SR Statuses</h2>
+  <p>
+    <strong>GET /api/compliance/status?zone_id=Z-A1B2C3D4</strong><br />
+    Returns system-requirement assessment statuses. The optional zone_id query
+    parameter filters statuses to one zone.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None; zone_id is optional<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    [{&quot;client_id&quot;:&quot;dev-client-001&quot;,&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;sr_id&quot;:&quot;SR1.1&quot;,&quot;status&quot;:&quot;met&quot;,&quot;evidence_refs&quot;:[&quot;network-config&quot;],&quot;assessed_at&quot;:&quot;2026-09-23T10:00:00Z&quot;,&quot;assessed_by&quot;:&quot;consultant&quot;}]
+  </p>
+  <h2>9.5 Set an SR Status</h2>
+  <p>
+    <strong>PUT /api/compliance/status/{zone_id}/{sr_id}</strong><br />
+    Creates or updates an assessment status for a system requirement in a
+    zone.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    Content-Type: application/json<br />
+    <strong>Required path parameters:</strong> zone_id and sr_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body fields:</strong> status; evidence_refs is optional
+    and defaults to []<br />
+    <br />
+    <strong>Example request body</strong><br />
+    {&quot;status&quot;:&quot;partial&quot;,&quot;evidence_refs&quot;:[&quot;network-config&quot;,&quot;firewall-rules&quot;]}<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {&quot;client_id&quot;:&quot;dev-client-001&quot;,&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;sr_id&quot;:&quot;SR1.1&quot;,&quot;status&quot;:&quot;partial&quot;,&quot;evidence_refs&quot;:[&quot;network-config&quot;,&quot;firewall-rules&quot;],&quot;assessed_at&quot;:&quot;2026-09-23T10:05:00Z&quot;,&quot;assessed_by&quot;:&quot;consultant&quot;}<br />
+    <br />
+    The current model types status as a string and does not enforce the
+    intended values. Clients should use met, partial, missing, or blocked. The
+    route currently does not require CSRF headers but should be protected
+    before production use.
+  </p>
+  <h2>9.6 Get Compliance Summary</h2>
+  <p>
+    <strong>GET /api/compliance/summary</strong><br />
+    Returns one compliance summary per zone.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    [{&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;zone_name&quot;:&quot;Level
+    2
+    Control&quot;,&quot;target_sl&quot;:3,&quot;achieved_sl&quot;:2,&quot;coverage_pct&quot;:67,&quot;met_count&quot;:12,&quot;partial_count&quot;:3,&quot;missing_count&quot;:4,&quot;total_required&quot;:19}]<br />
+    <br />
+    achieved_sl is derived from requirements marked met. coverage_pct is the
+    percentage of applicable requirements marked met.
+  </p>
+  <h2>9.7 Get Compliance Diagram</h2>
+  <p>
+    <strong>GET /api/compliance/diagram</strong><br />
+    Returns zones, conduits, and current system-requirement statuses for
+    diagram rendering.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {&quot;zones&quot;:[{&quot;id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;name&quot;:&quot;Level
+    2 Control&quot;,&quot;desc&quot;:&quot;PLC and controller
+    network&quot;,&quot;purdue_level&quot;:2,&quot;target_sl&quot;:3,&quot;actual_sl&quot;:2,&quot;criticality&quot;:4.0,&quot;exposure&quot;:2.0,&quot;internet_facing&quot;:false,&quot;air_gapped&quot;:false}],&quot;conduits&quot;:[{&quot;id&quot;:&quot;d0e8d2fe-098e-4d45-8f3b-9bba9b9e6e04&quot;,&quot;name&quot;:&quot;Historian
+    data
+    flow&quot;,&quot;from&quot;:&quot;Z-A1B2C3D4&quot;,&quot;to&quot;:&quot;Z-E5F6A7B8&quot;,&quot;protocols&quot;:[&quot;OPC
+    UA&quot;]}],&quot;statuses&quot;:[{&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;sr_id&quot;:&quot;SR1.1&quot;,&quot;status&quot;:&quot;met&quot;}]}
+  </p>
+  <h2>9.8 Get Zone Requirements</h2>
+  <p>
+    <strong>GET /api/compliance/zones/{zone_id}/requirements</strong><br />
+    Returns the applicable requirements for a zone, grouped by
+    functional-requirement theme.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> zone_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;zone_name&quot;:&quot;Level
+    2
+    Control&quot;,&quot;target_sl&quot;:3,&quot;achieved_sl&quot;:2,&quot;themes&quot;:[{&quot;fr&quot;:&quot;FR1&quot;,&quot;name&quot;:&quot;Identification
+    and authentication
+    control&quot;,&quot;achieved_sl&quot;:2,&quot;requirements&quot;:[{&quot;id&quot;:&quot;SR1.1&quot;,&quot;name&quot;:&quot;Human
+    user identification and
+    authentication&quot;,&quot;fr&quot;:&quot;FR1&quot;,&quot;min_sl&quot;:1,&quot;is_enhancement&quot;:false,&quot;parent_sr_id&quot;:null,&quot;status&quot;:&quot;met&quot;,&quot;evidence_refs&quot;:[&quot;network-config&quot;]}]}]}<br />
+    <br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Zone not
+    found&quot;}
+  </p>
+  <h2>9.9 Get Conduit Requirements</h2>
+  <p>
+    <strong>GET /api/compliance/conduits/{conduit_id}/requirements</strong><br />
+    Returns the applicable requirements for a conduit.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> conduit_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    {&quot;conduit_id&quot;:&quot;d0e8d2fe-098e-4d45-8f3b-9bba9b9e6e04&quot;,&quot;conduit_name&quot;:&quot;Historian
+    data
+    flow&quot;,&quot;target_sl&quot;:3,&quot;achieved_sl&quot;:2,&quot;themes&quot;:[]}<br />
+    <br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Conduit not
+    found&quot;}
+  </p>
+  <p>&nbsp;</p>
+  <h1>10. Assets</h1>
+  <h2>10.1 Assets API Reference</h2>
+  <p>
+    <strong>Base router prefix:</strong> /api/assets. <br />
+    The Assets feature manages tenant-scoped asset inventory records and
+    internet-facing asset suggestions.
+  </p>
+  <table border="1" cellspacing="0" cellpadding="0" width="100%">
+    <tr>
+      <td valign="top">
+        <br />
+        <strong>Method</strong>
+      </td>
+      <td valign="top">
+        <p><strong>Endpoint</strong></p>
+      </td>
+      <td valign="top">
+        <p><strong>Description</strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET</p>
+      </td>
+      <td valign="top">
+        <p>/api/assets/</p>
+      </td>
+      <td valign="top">
+        <p>Lists assets, optionally filtered by zone</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET</p>
+      </td>
+      <td valign="top">
+        <p>/api/assets/{asset_id}</p>
+      </td>
+      <td valign="top">
+        <p>Gets an asset</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>POST</p>
+      </td>
+      <td valign="top">
+        <p>/api/assets/</p>
+      </td>
+      <td valign="top">
+        <p>Creates an asset</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>PATCH</p>
+      </td>
+      <td valign="top">
+        <p>/api/assets/{asset_id}</p>
+      </td>
+      <td valign="top">
+        <p>Updates an asset</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>DELETE</p>
+      </td>
+      <td valign="top">
+        <p>/api/assets/{asset_id}</p>
+      </td>
+      <td valign="top">
+        <p>Deletes an asset</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>GET</p>
+      </td>
+      <td valign="top">
+        <p>/api/assets/internet-facing-suggestions/</p>
+      </td>
+      <td valign="top">
+        <p>Lists internet-facing suggestions</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>POST</p>
+      </td>
+      <td valign="top">
+        <p>/api/assets/internet-facing-suggestions/{asset_id}/confirm/</p>
+      </td>
+      <td valign="top">
+        <p>Confirms an internet-facing suggestion</p>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">
+        <p>POST</p>
+      </td>
+      <td valign="top">
+        <p>/api/assets/internet-facing-suggestions/{asset_id}/dismiss/</p>
+      </td>
+      <td valign="top">
+        <p>Dismisses an internet-facing suggestion</p>
+      </td>
+    </tr>
+  </table>
+  <p>
+    <strong>Authentication, CSRF, permissions, and client scope</strong><br />
+    Asset reads use the authenticated user's client scope. Asset writes
+    require the edit permission; deletions require the admin permission.
+    Invalid or missing authentication returns 401; authenticated users without
+    the required permission receive 403.<br />
+    <br />
+    There are no query parameters except where noted. All non-GET requests
+    require both CSRF headers:<br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Asset data model</strong><br />
+    <strong>id:</strong> string; server-generated and returned only.<br />
+    <strong>client_id:</strong> string; server-derived and returned only.<br />
+    <strong>zone_id:</strong> string or null; defaults to null.<br />
+    <strong>zone_assign_method:</strong> string or null; returned only.<br />
+    <strong>zone_unplaced_code:</strong> string or null; returned only.<br />
+    <strong>hostname:</strong> string; defaults to an empty string; maximum
+    255 characters.<br />
+    <strong>ip:</strong> IPv4 or IPv6 string; defaults to an empty string;
+    maximum 45 characters.<br />
+    <strong>vendor, model, firmware, os:</strong> strings; default to empty
+    strings; maximum 255 characters each.<br />
+    <strong>device_type:</strong> string; defaults to an empty string; maximum
+    100 characters.<br />
+    <strong>purdue_level:</strong> integer from 0 to 5; defaults to 3.<br />
+    <strong>confidence:</strong> integer from 0 to 100; defaults to 0.<br />
+    <strong>shadow:</strong> boolean; defaults to false.<br />
+    <strong>internet_facing:</strong> boolean; defaults to false.<br />
+    <br />
+    PATCH requests accept any subset of writable fields. Omitted properties
+    remain unchanged.
+  </p>
+  <h2>10.2 List Assets</h2>
+  <p>
+    <strong>GET /api/assets/?zone_id=Z-A1B2C3D4</strong><br />
+    Returns assets for the authenticated client. The optional zone_id query
+    parameter limits results to assets assigned to that zone.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None beyond authenticated access<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None; zone_id is optional<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    [{&quot;id&quot;:&quot;asset-001&quot;,&quot;client_id&quot;:&quot;client-123&quot;,&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;zone_assign_method&quot;:&quot;rule&quot;,&quot;zone_unplaced_code&quot;:null,&quot;hostname&quot;:&quot;plc-01&quot;,&quot;ip&quot;:&quot;10.20.30.40&quot;,&quot;vendor&quot;:&quot;Siemens&quot;,&quot;model&quot;:&quot;S7-1200&quot;,&quot;firmware&quot;:&quot;3.0.1&quot;,&quot;device_type&quot;:&quot;PLC&quot;,&quot;os&quot;:&quot;&quot;,&quot;purdue_level&quot;:2,&quot;confidence&quot;:85,&quot;shadow&quot;:false,&quot;internet_facing&quot;:false}]
+  </p>
+  <h2>10.3 Get an Asset</h2>
+  <p>
+    <strong>GET /api/assets/{asset_id}</strong><br />
+    Returns one asset for the authenticated client.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None beyond authenticated access<br />
+    <strong>Required path parameters:</strong> asset_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>200 OK:</strong> Returns one asset using the list-response
+    shape.<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Asset not
+    found&quot;}
+  </p>
+  <h2>10.4 Create an Asset</h2>
+  <p>
+    <strong>POST /api/assets/</strong><br />
+    Creates an asset. Requires edit permission. All body fields are optional
+    and use the defaults documented in the asset data model.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    Content-Type: application/json<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> A JSON object; no individual field is
+    required<br />
+    <br />
+    <strong>Example request body</strong><br />
+    {&quot;hostname&quot;:&quot;historian-01&quot;,&quot;ip&quot;:&quot;10.20.40.50&quot;,&quot;vendor&quot;:&quot;Aspen
+    Tech&quot;,&quot;model&quot;:&quot;InfoPlus.21&quot;,&quot;device_type&quot;:&quot;Historian&quot;,&quot;purdue_level&quot;:2,&quot;confidence&quot;:90,&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;}<br />
+    <br />
+    <strong>201 Created:</strong> Returns the new asset object.
+  </p>
+  <h2>10.5 Update an Asset</h2>
+  <p>
+    <strong>PATCH /api/assets/{asset_id}</strong><br />
+    Updates an asset. Requires edit permission. Supply only the fields to
+    update.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    Content-Type: application/json<br />
+    <strong>Required path parameters:</strong> asset_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> A JSON object; no individual field is
+    required<br />
+    <br />
+    <strong>Example request body</strong><br />
+    {&quot;confidence&quot;:95,&quot;internet_facing&quot;:false}<br />
+    <br />
+    <strong>200 OK:</strong> Returns the updated asset object.<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Asset not
+    found&quot;}
+  </p>
+  <h2>10.6 Delete an Asset</h2>
+  <p>
+    <strong>DELETE /api/assets/{asset_id}</strong><br />
+    Deletes an asset. Requires admin permission.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> asset_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Success:</strong> 204 No Content<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Asset not
+    found&quot;}
+  </p>
+  <h2>10.7 List Internet-Facing Suggestions</h2>
+  <p>
+    <strong>GET /api/assets/internet-facing-suggestions/</strong><br />
+    Returns asset suggestions that may be internet-facing.<br />
+    <br />
+    The current implementation uses a development client ID placeholder rather
+    than the authenticated user's client. Production authentication should be
+    added before this route is exposed.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong> None<br />
+    <strong>Required path parameters:</strong> None<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Example 200 OK response</strong><br />
+    [{&quot;id&quot;:&quot;asset-042&quot;,&quot;hostname&quot;:&quot;gateway-01&quot;,&quot;kind&quot;:&quot;dns-lookups&quot;,&quot;device_type&quot;:&quot;Network
+    appliance&quot;,&quot;zone_id&quot;:&quot;Z-A1B2C3D4&quot;,&quot;purdue_level&quot;:1}]<br />
+    <br />
+    The kind field identifies how the suggestion was derived, such as
+    dns-lookups or traffic-pattern.
+  </p>
+  <h2>10.8 Confirm an Internet-Facing Suggestion</h2>
+  <p>
+    <strong>POST
+      /api/assets/internet-facing-suggestions/{asset_id}/confirm/</strong><br />
+    Confirms a suggestion and marks the asset as internet-facing. The current
+    route uses a development client ID placeholder and should receive
+    production authentication before exposure.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> asset_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>200 OK:</strong> Returns the updated asset object with
+    internet_facing set to true.<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Asset not
+    found&quot;}
+  </p>
+  <h2>10.9 Dismiss an Internet-Facing Suggestion</h2>
+  <p>
+    <strong>POST
+      /api/assets/internet-facing-suggestions/{asset_id}/dismiss/</strong><br />
+    Dismisses an internet-facing suggestion. The current route uses a
+    development client ID placeholder and should receive production
+    authentication before exposure.<br />
+    <br />
+    <strong>Mandatory parameters</strong><br />
+    <strong>Required headers:</strong><br />
+    Cookie: csrftoken={csrf-token}<br />
+    x-csrftoken: {csrf-token}<br />
+    <strong>Required path parameters:</strong> asset_id<br />
+    <strong>Required query parameters:</strong> None<br />
+    <strong>Required body:</strong> None<br />
+    <br />
+    <strong>Success:</strong> 204 No Content<br />
+    <strong>404 Not Found:</strong> {&quot;detail&quot;:&quot;Asset not
+    found&quot;}
+  </p>
+  <p>&nbsp;</p>
+</body>
+
+</html>
