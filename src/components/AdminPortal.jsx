@@ -1359,14 +1359,8 @@ export default function AdminPortal({ onExit, currentUser }) {
           <div className="kpmg-header-row kpmg-header-flex">
             <h1 className="kpmg-title">{NAV.find(n => n.id === tab)?.label}</h1>
 
-            {/* Right side action container with floating DEMO text */}
+            {/* Right side action container */}
             <div className="kpmg-header-action-col">
-              <span
-                title="This portal has no real access control — demo UI scaffolding"
-                className="kpmg-tag-illustrative kpmg-tag-demo-float"
-              >
-                DEMO ONLY — NOT REAL ACCESS CONTROL
-              </span>
 
               {tab === 'clients' && (
                 <Btn onClick={() => setShowAddClient(true)} className="kpmg-btn-admin-action">

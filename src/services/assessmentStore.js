@@ -1136,12 +1136,15 @@ export function useAssessment() {
         if (list.length > 0) {
           const normalized = list.map(a => ({
             id: a.id || a.asset_id || a.name,
-            name: a.name || a.asset_name,
+            name: a.name || a.asset_name || a.hostname || 'Host',
             zone: a.zone || a.zone_id || '',
             ip: a.ip || a.ip_address || '',
             deviceType: a.deviceType || a.device_type || a.type || 'Host',
             level: a.level ?? a.purdue_level ?? 2,
             confidence: a.confidence ?? 100,
+            vendor: a.vendor || '',
+            model: a.model || '',
+            firmware: a.firmware || '',
             ...a
           }));
           setAssets(normalized);
@@ -1149,6 +1152,26 @@ export function useAssessment() {
         }
       })
       .catch(err => console.warn('Live backend /assets/ not available, using store:', err.message));
+
+    // Fetch live conduits from backend: GET /api/conduits/
+    api.get('/conduits/')
+      .then(res => {
+        const raw = res.data;
+        const list = Array.isArray(raw) ? raw : (raw?.items || raw?.conduits || []);
+        if (list.length > 0) {
+          const normalized = list.map(c => ({
+            id: c.id,
+            from: c.from || c.from_zone_id,
+            to: c.to || c.to_zone_id,
+            name: c.name || 'Conduit',
+            protocols: c.protocols || [],
+            ...c
+          }));
+          setConduits(normalized);
+          write(CDKEY, normalized);
+        }
+      })
+      .catch(err => console.warn('Live backend /conduits/ not available:', err.message));
 
     // Fetch live compliance status: GET /api/compliance/status
     setLoadingCompliance(true);
@@ -1210,55 +1233,209 @@ export function useAssessment() {
   }, []);
 
   const setCompany = useCallback((patch)=>{ const next={...read(CKEY,COMPANY_SEED),...patch}; write(CKEY,next); setCompanyState(next); }, []);
-  const addConduit = useCallback((from,to,name)=>{ const next=[...read(CDKEY,CONDUIT_SEED),{id:'C-'+Date.now().toString(36),from,to,name:name||'Conduit'}]; write(CDKEY,next); setConduits(next); }, []);
-  const removeConduit = useCallback((id)=>{ const next=read(CDKEY,CONDUIT_SEED).filter(c=>c.id!==id); write(CDKEY,next); setConduits(next); }, []);
-  const rescan = useCallback(()=>{ window.dispatchEvent(new Event('assessment-change')); }, []);
+
+  const addConduit = useCallback((from, to, name, protocols = []) => {
+    const tempId = 'C-' + Date.now().toString(36);
+    const next = [...read(CDKEY, CONDUIT_SEED), { id: tempId, from, to, name: name || 'Conduit', protocols }];
+    write(CDKEY, next);
+    setConduits(next);
+
+    // Live API call: POST /api/conduits/
+    api.post('/conduits/', {
+      from_zone_id: from,
+      to_zone_id: to,
+      name: name || 'Conduit',
+      protocols: Array.isArray(protocols) ? protocols : []
+    }).then(res => {
+      if (res.data?.id && res.data.id !== tempId) {
+        const synced = read(CDKEY, CONDUIT_SEED).map(c => c.id === tempId ? { ...c, id: res.data.id } : c);
+        write(CDKEY, synced);
+        setConduits(synced);
+      }
+    }).catch(err => console.warn('POST /conduits/ error:', err.message));
+  }, []);
+
+  const removeConduit = useCallback((id) => {
+    const next = read(CDKEY, CONDUIT_SEED).filter(c => c.id !== id);
+    write(CDKEY, next);
+    setConduits(next);
+
+    // Live API call: DELETE /api/conduits/{conduit_id}
+    api.delete(`/conduits/${id}`).catch(err => console.warn('DELETE /conduits/ error:', err.message));
+  }, []);
+
+  const rescan = useCallback(() => { window.dispatchEvent(new Event('assessment-change')); }, []);
 
   const addZone = useCallback((z) => {
-    const id = 'Z-' + Date.now().toString(36).toUpperCase();
-    const next = [...readZones(), { id, name:z.name||'New zone', slT:z.slT??2, desc:z.desc||'', conf:0 }];
-    write(ZKEY, next); setZones(next);
-    return id;
+    const tempId = 'Z-' + Date.now().toString(36).toUpperCase();
+    const newZone = {
+      id: tempId,
+      name: z.name || 'New zone',
+      slT: z.slT ?? z.target_sl ?? 2,
+      target_sl: z.slT ?? z.target_sl ?? 2,
+      desc: z.desc || '',
+      purdue_level: z.purdue_level ?? z.level ?? 2,
+      criticality: z.criticality ?? 4.0,
+      exposure: z.exposure ?? 2.0,
+      air_gapped: Boolean(z.air_gapped),
+      conf: 0
+    };
+    const next = [...readZones(), newZone];
+    write(ZKEY, next);
+    setZones(next);
+
+    // Live API call: POST /api/zones/
+    api.post('/zones/', {
+      name: newZone.name,
+      desc: newZone.desc,
+      purdue_level: newZone.purdue_level,
+      target_sl: newZone.target_sl,
+      criticality: newZone.criticality,
+      exposure: newZone.exposure,
+      air_gapped: newZone.air_gapped
+    }).then(res => {
+      if (res.data?.id && res.data.id !== tempId) {
+        const synced = readZones().map(item => item.id === tempId ? { ...item, id: res.data.id } : item);
+        write(ZKEY, synced);
+        setZones(synced);
+      }
+    }).catch(err => console.warn('POST /zones/ error:', err.message));
+
+    return tempId;
   }, []);
+
   const updateZone = useCallback((id, patch) => {
-    const next = readZones().map(z => z.id===id ? { ...z, ...patch } : z);
-    write(ZKEY, next); setZones(next);
+    const next = readZones().map(z => z.id === id ? { ...z, ...patch } : z);
+    write(ZKEY, next);
+    setZones(next);
+
+    // Live API call: PATCH /api/zones/{zone_id}
+    const patchBody = {};
+    if (patch.name !== undefined) patchBody.name = patch.name;
+    if (patch.desc !== undefined) patchBody.desc = patch.desc;
+    if (patch.slT !== undefined || patch.target_sl !== undefined) patchBody.target_sl = patch.slT ?? patch.target_sl;
+    if (patch.purdue_level !== undefined || patch.level !== undefined) patchBody.purdue_level = patch.purdue_level ?? patch.level;
+    if (patch.air_gapped !== undefined) patchBody.air_gapped = patch.air_gapped;
+
+    api.patch(`/zones/${id}`, patchBody).catch(err => console.warn('PATCH /zones/ error:', err.message));
   }, []);
+
   const removeZone = useCallback((id) => {
-    write(ZKEY, readZones().filter(z => z.id!==id)); setZones(readZones());
+    write(ZKEY, readZones().filter(z => z.id !== id));
+    setZones(readZones());
     const doomed = new Set(readAssets().filter(a => a.zone === id).map(a => a.id));
-    writeAssets(readAssets().filter(a => a.zone !== id)); setAssets(readAssets());
+    writeAssets(readAssets().filter(a => a.zone !== id));
+    setAssets(readAssets());
     if (doomed.size) removeConnectionsFor(doomed);
+
+    // Live API call: DELETE /api/zones/{zone_id}
+    api.delete(`/zones/${id}`).catch(err => console.warn('DELETE /zones/ error:', err.message));
   }, []);
+
   const addEvidence = useCallback((zoneId, fr, filename) => {
     const e = readEvidence();
     const entry = { id:'EV-'+Date.now().toString(36), zone:zoneId, fr, filename, uploaded_by:'Consultant', uploaded_at:new Date().toISOString() };
     const next = { docs:[entry, ...(e.docs||[])] };
     write(EKEY, next); setEvidence(next);
   }, []);
+
   const removeEvidence = useCallback((docId) => {
     const next = { docs:(readEvidence().docs||[]).filter(d=>d.id!==docId) };
     write(EKEY, next); setEvidence(next);
   }, []);
+
   // Consultant confirms / overrides a classified Purdue level
   const confirmAssetLevel = useCallback((assetId, level) => {
-    const next = readAssets().map(a => a.id===assetId ? { ...a, level, confidence:100, source:'confirmed' } : a);
-    writeAssets(next); setAssets(next);
+    const next = readAssets().map(a => a.id === assetId ? { ...a, level, confidence: 100, source: 'confirmed' } : a);
+    writeAssets(next);
+    setAssets(next);
+
+    // Live API call: PATCH /api/assets/{asset_id}
+    api.patch(`/assets/${assetId}`, {
+      purdue_level: level,
+      confidence: 100
+    }).catch(err => console.warn('PATCH /assets/ error:', err.message));
   }, []);
+
   const addAsset = useCallback((zoneId, fields) => {
     const f = typeof fields === 'string' ? { name: fields } : (fields || {});
-    const entry = { id:'A-'+Date.now().toString(36), zone:zoneId, name:f.name||'New asset', level:f.level??3,
-      confidence:100, source:'confirmed', deviceType:f.deviceType||'Manual entry',
-      kind:f.kind||'hardware', ip:f.ip||'', os:f.os||'', version:f.version||'', host:f.host||'', uploadedToDir:true };
-    const next = [...readAssets(), entry]; writeAssets(next); setAssets(next); return entry;
+    const tempId = 'A-' + Date.now().toString(36);
+    const entry = {
+      id: tempId,
+      zone: zoneId,
+      zone_id: zoneId,
+      name: f.name || f.hostname || 'New asset',
+      hostname: f.hostname || f.name || 'New asset',
+      level: f.level ?? f.purdue_level ?? 3,
+      purdue_level: f.level ?? f.purdue_level ?? 3,
+      confidence: f.confidence ?? 100,
+      source: 'confirmed',
+      deviceType: f.deviceType || f.device_type || 'Host',
+      device_type: f.device_type || f.deviceType || 'Host',
+      kind: f.kind || 'hardware',
+      ip: f.ip || '',
+      vendor: f.vendor || '',
+      model: f.model || '',
+      os: f.os || '',
+      version: f.version || '',
+      host: f.host || '',
+      uploadedToDir: true
+    };
+    const next = [...readAssets(), entry];
+    writeAssets(next);
+    setAssets(next);
+
+    // Live API call: POST /api/assets/
+    api.post('/assets/', {
+      hostname: entry.hostname,
+      ip: entry.ip,
+      vendor: entry.vendor,
+      model: entry.model,
+      device_type: entry.device_type,
+      purdue_level: entry.purdue_level,
+      confidence: entry.confidence,
+      zone_id: zoneId
+    }).then(res => {
+      if (res.data?.id && res.data.id !== tempId) {
+        const synced = readAssets().map(a => a.id === tempId ? { ...a, id: res.data.id } : a);
+        writeAssets(synced);
+        setAssets(synced);
+      }
+    }).catch(err => console.warn('POST /assets/ error:', err.message));
+
+    return entry;
   }, []);
+
   const updateAsset = useCallback((assetId, patch) => {
-    const next = readAssets().map(a => a.id===assetId ? { ...a, ...patch } : a); writeAssets(next); setAssets(next);
+    const next = readAssets().map(a => a.id === assetId ? { ...a, ...patch } : a);
+    writeAssets(next);
+    setAssets(next);
+
+    // Live API call: PATCH /api/assets/{asset_id}
+    const patchBody = {};
+    if (patch.hostname !== undefined || patch.name !== undefined) patchBody.hostname = patch.hostname || patch.name;
+    if (patch.ip !== undefined) patchBody.ip = patch.ip;
+    if (patch.vendor !== undefined) patchBody.vendor = patch.vendor;
+    if (patch.model !== undefined) patchBody.model = patch.model;
+    if (patch.device_type !== undefined || patch.deviceType !== undefined) patchBody.device_type = patch.device_type || patch.deviceType;
+    if (patch.purdue_level !== undefined || patch.level !== undefined) patchBody.purdue_level = patch.purdue_level ?? patch.level;
+    if (patch.confidence !== undefined) patchBody.confidence = patch.confidence;
+    if (patch.zone_id !== undefined || patch.zone !== undefined) patchBody.zone_id = patch.zone_id || patch.zone;
+    if (patch.internet_facing !== undefined) patchBody.internet_facing = patch.internet_facing;
+
+    api.patch(`/assets/${assetId}`, patchBody).catch(err => console.warn('PATCH /assets/ error:', err.message));
   }, []);
+
   const removeAsset = useCallback((assetId) => {
-    const next = readAssets().filter(a => a.id!==assetId); writeAssets(next); setAssets(next);
+    const next = readAssets().filter(a => a.id !== assetId);
+    writeAssets(next);
+    setAssets(next);
     removeConnectionsFor(new Set([assetId]));
+
+    // Live API call: DELETE /api/assets/{asset_id}
+    api.delete(`/assets/${assetId}`).catch(err => console.warn('DELETE /assets/ error:', err.message));
   }, []);
+
   // Consultant manually sets a requirement's status (met/partial/missing/blocked)
   const setSrStatus = useCallback((zoneId, itemId, status) => {
     const s = readSR();
@@ -1277,12 +1454,18 @@ export function useAssessment() {
     writeComplianceMeta(meta);
     setComplianceMeta(meta);
 
-    // Sync status change to backend API if available
-    api.post('/compliance/status', {
-      zone_id: zoneId,
-      sr_id: itemId,
-      status: status
-    }).catch(err => console.warn('Compliance status sync to backend failed:', err.message));
+    // Sync status change to backend API: PUT /api/compliance/status/{zone_id}/{sr_id}
+    api.put(`/compliance/status/${zoneId}/${itemId}`, {
+      status: status,
+      evidence_refs: []
+    }).catch(() => {
+      // Fallback in case backend uses POST /compliance/status
+      api.post('/compliance/status', {
+        zone_id: zoneId,
+        sr_id: itemId,
+        status: status
+      }).catch(err => console.warn('Compliance status sync to backend failed:', err.message));
+    });
   }, []);
 
   return { zones, srSeed, evidence, assets, company, conduits,

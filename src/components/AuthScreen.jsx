@@ -1,7 +1,6 @@
-// src/components/AuthScreen.jsx
 import React, { useState } from 'react';
 import './AuthScreen.scss';
-import { loginWithMicrosoft, DEFAULT_USER } from '../services/authService';
+import { loginWithMicrosoft } from '../services/authService';
 
 // Microsoft 4-Color Logo
 const MicrosoftIcon = () => (
@@ -57,15 +56,6 @@ export default function AuthScreen({ onLoginSuccess }) {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Offline / local development bypass
-  const handleDevBypass = () => {
-    localStorage.setItem('ot_auth_user', JSON.stringify(DEFAULT_USER));
-    localStorage.setItem('ot_auth_token', 'demo_dev_token');
-    if (onLoginSuccess) {
-      onLoginSuccess(DEFAULT_USER);
     }
   };
 
@@ -127,23 +117,10 @@ export default function AuthScreen({ onLoginSuccess }) {
           </button>
         </div>
 
-        {/* Tenant Details note */}
+        {/* Single Sign-On Info */}
         <div className="kpmg-auth-disclaimer">
           Single Sign-On is managed through Microsoft Entra ID. No separate username or password is required.
         </div>
-
-        {/* Local development bypass helper */}
-        <div className="kpmg-auth-dev-fallback">
-          <button
-            type="button"
-            className="kpmg-auth-dev-btn"
-            onClick={handleDevBypass}
-            title="Use local demo account for offline testing"
-          >
-            Offline Demo Mode (Lead Analyst) →
-          </button>
-        </div>
-
       </div>
     </div>
   );
