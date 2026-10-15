@@ -17,20 +17,6 @@ const AUTH_USER_KEY = 'ot_auth_user';
 const AUTH_TOKEN_KEY = 'ot_auth_token';
 export const AUTH_CHANGE_EVENT = 'ot_auth_state_changed';
 
-// Fallback demo user for local offline preview if needed
-export const DEFAULT_USER = {
-  id: 'u1',
-  user_id: 'u1',
-  name: 'Lead Analyst',
-  email: 'analyst@acmeindustrial.com',
-  role: 'Lead Analyst',
-  isAdmin: true,
-  is_admin: true,
-  status: 'active',
-  department: 'OT Security & Resilience',
-  avatarInitials: 'LA',
-};
-
 /**
  * Get active auth token from storage
  */
@@ -43,12 +29,32 @@ export const getAuthToken = () => {
 };
 
 /**
- * Get currently logged-in user object from storage
+ * Get currently logged-in user object from storage.
+ * Automatically purges legacy dummy/dev users so unauthenticated sessions always see the login screen.
  */
 export const getCurrentUser = () => {
   try {
     const raw = localStorage.getItem(AUTH_USER_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+
+    // Purge legacy dummy / dev user if present in localStorage
+    const isLegacyDummy =
+      parsed.id === 'u1' ||
+      parsed.user_id === 'u1' ||
+      parsed.email === 'analyst@acmeindustrial.com' ||
+      parsed.email === 'dev@local.test' ||
+      parsed.name === 'Local Dev Analyst' ||
+      (parsed.name === 'Lead Analyst' && parsed.email?.includes('acmeindustrial'));
+
+    if (isLegacyDummy) {
+      localStorage.removeItem(AUTH_USER_KEY);
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      return null;
+    }
+
+    return parsed;
   } catch {
     return null;
   }
@@ -182,7 +188,9 @@ export const loginWithMicrosoft = async () => {
 };
 
 /**
- * Logout function
+ * Logout function:
+ * Completely clears all user and auth tokens from localStorage, sessionStorage, and MSAL
+ * so the user is guaranteed to land back on the Microsoft Login screen.
  */
 export const logout = async () => {
   const user = getCurrentUser();
@@ -190,16 +198,47 @@ export const logout = async () => {
     addLog(LOG_TYPES.LOGOUT || 'logout', `User logged out: ${user.email}`);
   }
 
-  localStorage.removeItem(AUTH_USER_KEY);
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem('ot_csrf_token');
+  // 1. Wipe all local application authentication tokens and caches
+  try {
+    localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem('ot_csrf_token');
+
+    // Wipe any Azure AD / MSAL cached tokens in localStorage
+    Object.keys(localStorage).forEach(key => {
+      if (
+        key.startsWith('msal.') ||
+        key.includes('login.microsoftonline.com') ||
+        key.startsWith('authority')
+      ) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    // Wipe sessionStorage
+    sessionStorage.clear();
+  } catch (storageErr) {
+    console.warn('Storage wipe warning:', storageErr);
+  }
+
+  // 2. Dispatch event so UI state drops currentUser immediately
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 
+  // 3. Clean query and hash params so OAuth tokens are not left in URL bar
+  try {
+    if (window.location.search || window.location.hash) {
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  } catch {}
+
+  // 4. Perform MSAL popup logout if an active account is registered
   try {
     await ensureMsalInitialized();
-    const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
-    if (account) {
-      await msalInstance.logoutPopup({ account });
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      const account = msalInstance.getActiveAccount() || accounts[0];
+      await msalInstance.logoutPopup({ account }).catch(() => {});
     }
   } catch (err) {
     console.warn('MSAL logout error:', err.message);
@@ -207,13 +246,12 @@ export const logout = async () => {
 };
 
 /**
- * Initialize session on app boot (call once when app mounts)
+ * Initialize session on app boot (call once when app mounts).
+ * If user is not logged in, NO API calls are executed.
  */
 export const initializeAuthSession = async () => {
-  // Always trigger CSRF initialization on first page view
-  initCsrfToken().catch(() => {});
-
   // 0. Extract token from URL query or hash if returning from Microsoft OAuth redirect
+  let tokenFromUrl = false;
   try {
     const searchParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -221,6 +259,7 @@ export const initializeAuthSession = async () => {
                      hashParams.get('token') || hashParams.get('access_token');
     if (urlToken) {
       localStorage.setItem(AUTH_TOKEN_KEY, urlToken);
+      tokenFromUrl = true;
       // Clean query params from URL so sensitive token is not left in browser history
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, document.title, cleanUrl);
@@ -229,51 +268,45 @@ export const initializeAuthSession = async () => {
     console.warn('URL token parsing failed:', err.message);
   }
 
-  // 1. Fetch user profile from backend /api/auth/me (works via Bearer token or HttpOnly Cookie)
-  try {
-    const user = await fetchUserProfileFromApi();
-    if (user) return user;
-  } catch (err) {
-    // If not auto-authenticated by backend, check local dev bypass or MSAL
+  // 1. If valid cached user already exists, initialize CSRF and return user
+  const cached = getCurrentUser();
+  if (cached) {
+    initCsrfToken().catch(() => {});
+    return cached;
   }
 
-  // 2. If pointing to local backend (127.0.0.1 / localhost), auto-login dev user so UI never blocks on MSAL
-  const apiBase = process.env.REACT_APP_API_BASE || '';
-  const isLocalDev = apiBase.includes('127.0.0.1') || apiBase.includes('localhost');
-  if (isLocalDev) {
-    const cached = getCurrentUser();
-    if (cached) return cached;
-    const devUser = {
-      ...DEFAULT_USER,
-      name: 'Local Dev Analyst',
-      email: 'dev@local.test',
-      role: 'Lead Analyst',
-      isAdmin: true,
-      is_admin: true,
-    };
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(devUser));
-    localStorage.setItem(AUTH_TOKEN_KEY, 'local_dev_token');
-    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
-    return devUser;
-  }
-
-  // 3. Normal MSAL session check for deployed environments
+  // 2. Check if Bearer token or MSAL accounts exist
+  const token = getAuthToken();
+  let hasMsalAccount = false;
   try {
     await ensureMsalInitialized();
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length > 0) {
+      hasMsalAccount = true;
       const active = msalInstance.getActiveAccount() || accounts[0];
       msalInstance.setActiveAccount(active);
+    }
+  } catch {}
 
-      // If user is already cached, return it to avoid unnecessary /auth/me calls
-      const cached = getCurrentUser();
-      if (cached) return cached;
+  // CRITICAL: If no credentials exist, user is NOT logged in.
+  // DO NOT call /api/auth/me or any backend API!
+  if (!token && !hasMsalAccount && !tokenFromUrl) {
+    return null;
+  }
 
-      // Otherwise fetch profile from /api/auth/me once
-      return await fetchUserProfileFromApi();
+  // 3. User has credentials: fetch profile from backend /api/auth/me
+  try {
+    const user = await fetchUserProfileFromApi();
+    if (user) {
+      initCsrfToken().catch(() => {});
+      return user;
     }
   } catch (err) {
-    console.warn('Auto auth session init error:', err.message);
+    // If token expired or was invalid, wipe stale storage
+    localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
   }
-  return getCurrentUser();
+
+  return null;
 };

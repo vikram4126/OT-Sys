@@ -14,7 +14,7 @@ import AdminPortal from './components/AdminPortal';
 import AuthScreen from './components/AuthScreen';
 import { seedDemoLogs, addLog, LOG_TYPES } from './services/logService';
 import { hasBaseline, SNAPSHOT_EVENT } from './services/snapshotService';
-import { useAssessment } from './services/assessmentStore';
+import { useAssessment, syncBackendData } from './services/assessmentStore';
 import { getCurrentUser, logout, AUTH_CHANGE_EVENT, initializeAuthSession } from './services/authService';
 import { checkBackendHealth } from './api/client';
 
@@ -109,19 +109,39 @@ export default function App() {
     setTab(newTab);
   };
 
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    syncBackendData();
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setCurrentUser(null);
+  };
+
   useEffect(() => {
     seedDemoLogs();
-    addLog(LOG_TYPES.LOGIN, 'User session started');
-    // Silently restore session or initialize CSRF on first page load
+    // Silently restore session ONLY if valid credentials exist
     initializeAuthSession().then(u => {
-      if (u) setCurrentUser(u);
+      if (u) {
+        setCurrentUser(u);
+        addLog(LOG_TYPES.LOGIN, `User session restored: ${u.email}`);
+        syncBackendData();
+      }
     }).catch(() => {});
+  }, []);
 
-    // Check live backend API health status
+  // Only check backend API health when user is actively logged in
+  useEffect(() => {
+    if (!currentUser) {
+      setHealth(null);
+      return;
+    }
     checkBackendHealth()
       .then(res => setHealth(res.data))
       .catch(err => console.warn('Backend health check error:', err.message));
-  }, []);
+  }, [currentUser]);
+
   useEffect(() => {
     const sync = () => setBaselineDone(hasBaseline());
     window.addEventListener(SNAPSHOT_EVENT, sync);
@@ -136,7 +156,7 @@ export default function App() {
 
   // Auth gate: render auth screen if not logged in
   if (!currentUser) {
-    return <AuthScreen onLoginSuccess={(u) => setCurrentUser(u)} />;
+    return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
   }
 
   // Admin gate: only is_admin can access the Admin Portal
@@ -241,7 +261,7 @@ export default function App() {
               </div>
             </div>
             <button
-              onClick={() => logout()}
+              onClick={handleLogout}
               title="Sign out / Log out"
               className="kpmg-sidebar-logout-btn"
               aria-label="Sign out"

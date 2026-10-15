@@ -13,6 +13,7 @@
 //    self-aware-agent pipeline reading the SharePoint evidence.
 import { useState, useEffect, useCallback } from 'react';
 import api from '../api/client';
+import { isAuthenticated } from './authService';
 
 const ZKEY = 'ot_assess_zones_v2';
 const SKEY = 'ot_assess_srstatus_v2';
@@ -1081,6 +1082,11 @@ let lastSyncTimestamp = 0;
 const SYNC_COOLDOWN_MS = 60000; // 60s cooldown
 
 export function syncBackendData() {
+  // Never fire API calls if the user is unauthenticated
+  if (!isAuthenticated()) {
+    return Promise.resolve();
+  }
+
   const now = Date.now();
   if (inFlightSync) return inFlightSync;
   if (now - lastSyncTimestamp < SYNC_COOLDOWN_MS) {
@@ -1237,8 +1243,10 @@ export function useAssessment() {
     window.addEventListener('assessment-change', refresh);
     window.addEventListener('storage', refresh);
 
-    // Initial sync with backend (deduplicated across all components)
-    syncBackendData();
+    // Initial sync with backend (only when authenticated, deduplicated across all components)
+    if (isAuthenticated()) {
+      syncBackendData();
+    }
 
     return () => {
       window.removeEventListener('assessment-change', refresh);
