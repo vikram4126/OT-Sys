@@ -1075,41 +1075,23 @@ export function techniqueExposure(srSeed, zones, technique) {
   return 'cool';
 }
 
-// ── React hook with zone CRUD ────────────────────────────────────────────────
-// 📌 REAL API INTEGRATION NOTICE:
-// Abhi yeh hook saara data (zones, assets, evidence, company, conduits)
-// localStorage se le raha hai taaki testing smoothly chal sake.
-// Jab backend team FastAPI ka link degi, toh is hook ke useEffect (Line 1081)
-// me api.get('/zones/'), etc. call karke setZones(res.data) karna hai.
-// Complete Guide & line-by-line replacement ke liye dekhein: API_INTEGRATION_GUIDE.md
-export function useAssessment() {
-  const [zones, setZones] = useState(readZones);
-  const [srSeed, setSrSeed] = useState(readSR);
-  const [evidence, setEvidence] = useState(readEvidence);
-  const [assets, setAssets] = useState(readAssets);
-  const [company, setCompanyState] = useState(()=>read(CKEY, COMPANY_SEED));
-  const [conduits, setConduits] = useState(()=>read(CDKEY, CONDUIT_SEED));
-  const [complianceMeta, setComplianceMeta] = useState(readComplianceMeta);
-  const [loadingCompliance, setLoadingCompliance] = useState(false);
-  const [complianceError, setComplianceError] = useState(null);
-  const [liveComplianceCount, setLiveComplianceCount] = useState(0);
+// Module-level deduplication to prevent multiple tabs/components from firing duplicate API calls in a loop
+let inFlightSync = null;
+let lastSyncTimestamp = 0;
+const SYNC_COOLDOWN_MS = 60000; // 60s cooldown
 
-  useEffect(() => {
-    const refresh = () => {
-      setZones(readZones());
-      setSrSeed(readSR());
-      setEvidence(readEvidence());
-      setAssets(readAssets());
-      setCompanyState(read(CKEY,COMPANY_SEED));
-      setConduits(read(CDKEY,CONDUIT_SEED));
-      setComplianceMeta(readComplianceMeta());
-    };
-    window.addEventListener('assessment-change', refresh);
-    window.addEventListener('storage', refresh);
+export function syncBackendData() {
+  const now = Date.now();
+  if (inFlightSync) return inFlightSync;
+  if (now - lastSyncTimestamp < SYNC_COOLDOWN_MS) {
+    return Promise.resolve();
+  }
 
-    // Fetch live zones from backend: GET /api/zones/
-    api.get('/zones/')
-      .then(res => {
+  inFlightSync = (async () => {
+    try {
+      // 1. Fetch live zones: GET /api/zones/
+      try {
+        const res = await api.get('/zones/');
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : (raw?.items || raw?.zones || []);
         if (list.length > 0) {
@@ -1117,20 +1099,21 @@ export function useAssessment() {
             id: z.id || z.zone_id || `Z-${z.name}`,
             name: z.name || z.zone_name,
             slT: z.slT ?? z.sl_t ?? z.target_sl ?? 2,
+            target_sl: z.slT ?? z.sl_t ?? z.target_sl ?? 2,
             desc: z.desc || z.description || '',
             conf: z.conf || 0,
             subnets: z.subnets || [],
             ...z
           }));
-          setZones(normalized);
           write(ZKEY, normalized);
         }
-      })
-      .catch(err => console.warn('Live backend /zones/ not available, using store:', err.message));
+      } catch (err) {
+        console.warn('Live backend /zones/ not available, using store:', err.message);
+      }
 
-    // Fetch live assets from backend: GET /api/assets/
-    api.get('/assets/')
-      .then(res => {
+      // 2. Fetch live assets: GET /api/assets/
+      try {
+        const res = await api.get('/assets/');
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : (raw?.items || raw?.assets || []);
         if (list.length > 0) {
@@ -1138,24 +1121,26 @@ export function useAssessment() {
             id: a.id || a.asset_id || a.name,
             name: a.name || a.asset_name || a.hostname || 'Host',
             zone: a.zone || a.zone_id || '',
+            zone_id: a.zone_id || a.zone || '',
             ip: a.ip || a.ip_address || '',
             deviceType: a.deviceType || a.device_type || a.type || 'Host',
             level: a.level ?? a.purdue_level ?? 2,
+            purdue_level: a.purdue_level ?? a.level ?? 2,
             confidence: a.confidence ?? 100,
             vendor: a.vendor || '',
             model: a.model || '',
             firmware: a.firmware || '',
             ...a
           }));
-          setAssets(normalized);
           writeAssets(normalized);
         }
-      })
-      .catch(err => console.warn('Live backend /assets/ not available, using store:', err.message));
+      } catch (err) {
+        console.warn('Live backend /assets/ not available, using store:', err.message);
+      }
 
-    // Fetch live conduits from backend: GET /api/conduits/
-    api.get('/conduits/')
-      .then(res => {
+      // 3. Fetch live conduits: GET /api/conduits/
+      try {
+        const res = await api.get('/conduits/');
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : (raw?.items || raw?.conduits || []);
         if (list.length > 0) {
@@ -1167,21 +1152,18 @@ export function useAssessment() {
             protocols: c.protocols || [],
             ...c
           }));
-          setConduits(normalized);
           write(CDKEY, normalized);
         }
-      })
-      .catch(err => console.warn('Live backend /conduits/ not available:', err.message));
+      } catch (err) {
+        console.warn('Live backend /conduits/ not available:', err.message);
+      }
 
-    // Fetch live compliance status: GET /api/compliance/status
-    setLoadingCompliance(true);
-    setComplianceError(null);
-    api.get('/compliance/status')
-      .then(res => {
+      // 4. Fetch live compliance status: GET /api/compliance/status
+      try {
+        const res = await api.get('/compliance/status');
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : (raw?.items || raw?.status || []);
         if (list.length > 0) {
-          setLiveComplianceCount(list.length);
           const complianceMap = {};
           const metaMap = {};
 
@@ -1210,21 +1192,53 @@ export function useAssessment() {
             };
           });
 
-          // Merge with any existing zone structures and update store
           const current = readSR();
           const merged = { ...current, ...complianceMap };
-          setSrSeed(merged);
           write(SKEY, merged);
-
-          setComplianceMeta(metaMap);
           writeComplianceMeta(metaMap);
         }
-      })
-      .catch(err => {
+      } catch (err) {
         console.warn('Live backend /compliance/status not available, using store:', err.message);
-        setComplianceError(err.message);
-      })
-      .finally(() => setLoadingCompliance(false));
+      }
+
+      lastSyncTimestamp = Date.now();
+      window.dispatchEvent(new Event('assessment-change'));
+    } finally {
+      inFlightSync = null;
+    }
+  })();
+
+  return inFlightSync;
+}
+
+// ── React hook with zone CRUD ────────────────────────────────────────────────
+export function useAssessment() {
+  const [zones, setZones] = useState(readZones);
+  const [srSeed, setSrSeed] = useState(readSR);
+  const [evidence, setEvidence] = useState(readEvidence);
+  const [assets, setAssets] = useState(readAssets);
+  const [company, setCompanyState] = useState(() => read(CKEY, COMPANY_SEED));
+  const [conduits, setConduits] = useState(() => read(CDKEY, CONDUIT_SEED));
+  const [complianceMeta, setComplianceMeta] = useState(readComplianceMeta);
+  const [loadingCompliance, setLoadingCompliance] = useState(false);
+  const [complianceError, setComplianceError] = useState(null);
+  const [liveComplianceCount, setLiveComplianceCount] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => {
+      setZones(readZones());
+      setSrSeed(readSR());
+      setEvidence(readEvidence());
+      setAssets(readAssets());
+      setCompanyState(read(CKEY, COMPANY_SEED));
+      setConduits(read(CDKEY, CONDUIT_SEED));
+      setComplianceMeta(readComplianceMeta());
+    };
+    window.addEventListener('assessment-change', refresh);
+    window.addEventListener('storage', refresh);
+
+    // Initial sync with backend (deduplicated across all components)
+    syncBackendData();
 
     return () => {
       window.removeEventListener('assessment-change', refresh);

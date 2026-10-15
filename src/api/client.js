@@ -131,8 +131,23 @@ export async function initCsrfToken() {
 // instead of only whichever screen happened to apply the edit.
 function resolveVulns(list) {
   const deleted = new Set(getDeletedVulnIds());
+  const rawList = Array.isArray(list) ? list : (list?.items || list?.vulnerabilities || []);
+  const normalized = rawList.map(v => {
+    const item = {
+      ...v,
+      vuln_id: v.vuln_id || v.id,
+      id: v.id || v.vuln_id,
+      asset_label: v.asset_label || v.asset_name || (Array.isArray(v.assets) ? v.assets[0] : '') || '',
+      assets: v.assets || (v.asset_label ? [v.asset_label] : []),
+      zones: v.zones || (v.zone_id ? [v.zone_id] : []),
+    };
+    if (item.risk_score == null) {
+      return scoreVulnerability(item);
+    }
+    return item;
+  });
   const withExtra = [
-    ...(list || []),
+    ...normalized,
     ...getAcceptedComplementaryVulns().map(scoreVulnerability),
     ...getManuallyAddedVulns().map(scoreVulnerability),
   ];
