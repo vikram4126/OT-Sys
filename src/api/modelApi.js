@@ -2,7 +2,7 @@
  * modelApi.js — API client connector for all 36 Model endpoints
  * Based on the backend specifications from public/api-links.html
  * 
- * Base URL: https://arc.customappsteam.co.uk/api
+ * Base URL: http://localhost:8000/api
  * All requests automatically attach:
  * - Authorization: Bearer <msal_token>
  * - X-CSRFToken / X-CSRF-Token (on mutating requests)

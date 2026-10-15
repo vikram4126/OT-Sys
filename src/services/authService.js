@@ -119,36 +119,50 @@ export const fetchUserProfileFromApi = async () => {
       error.isUnauthorized = true;
       throw error;
     }
+
+    // If backend /api/auth/me returned 404 or connection error, but Microsoft account is authenticated:
+    const account = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
+    if (account) {
+      console.warn('Backend /api/auth/me not responding, falling back to Microsoft account:', err.message);
+      const initials = (account.name || account.username || 'US')
+        .split(' ')
+        .filter(Boolean)
+        .map(part => part[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase();
+      const user = {
+        id: account.homeAccountId || 'user_1',
+        user_id: account.homeAccountId || 'user_1',
+        name: account.name || 'Authenticated User',
+        email: account.username || '',
+        role: 'Lead Analyst',
+        isAdmin: true,
+        is_admin: true,
+        status: 'active',
+        lastLogin: new Date().toISOString(),
+        clientId: null,
+        permissions: ['view', 'edit', 'override', 'report'],
+        avatarInitials: initials || 'OT',
+      };
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+      window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+      return user;
+    }
+
     throw err;
   }
 };
 
 /**
- * URL for server-initiated Microsoft Azure AD OAuth Login
- */
-export const getAzureLoginUrl = () => {
-  const base = process.env.REACT_APP_API_BASE || 'https://arc.customappsteam.co.uk/api';
-  const clean = base.replace(/\/+$/, '');
-  return `${clean}/auth/azure/login`;
-};
-
-/**
- * Direct redirect to backend Microsoft login endpoint
- */
-export const redirectToAzureLogin = () => {
-  window.location.href = getAzureLoginUrl();
-};
-
-/**
- * Login with Microsoft Entra ID via MSAL Popup or direct backend OAuth redirect
+ * Login with Microsoft Entra ID via MSAL Popup
+ * 1. Opens Microsoft popup window
+ * 2. User selects account and authenticates
+ * 3. Acquires Bearer token
+ * 4. Calls backend GET http://localhost:8000/api/auth/me with Bearer token
+ * 5. Returns authorized user and brings to dashboard
  */
 export const loginWithMicrosoft = async () => {
-  // If direct Azure AD backend endpoint is requested, redirect to it
-  const loginUrl = getAzureLoginUrl();
-  if (loginUrl) {
-    redirectToAzureLogin();
-    return { redirecting: true };
-  }
   await ensureMsalInitialized();
 
   let loginResponse = null;

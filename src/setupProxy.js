@@ -4,7 +4,7 @@ module.exports = function(app) {
   app.use(
     '/api',
     createProxyMiddleware({
-      target: 'https://arc.customappsteam.co.uk',
+      target: 'http://localhost:8000',
       changeOrigin: true,
       secure: false,
       cookieDomainRewrite: 'localhost',

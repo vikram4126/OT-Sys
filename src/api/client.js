@@ -28,8 +28,8 @@ export function setCsrfToken(token) {
 }
 
 // Absolute URL — overridable via REACT_APP_API_BASE (.env)
-// Normalizes URL so both http://127.0.0.1:8000 and http://127.0.0.1:8000/api work seamlessly
-const rawBase = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
+// Normalizes URL so both http://localhost:8000 and http://localhost:8000/api work seamlessly
+const rawBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000/api';
 const baseURL = (rawBase.endsWith('/api') || rawBase.endsWith('/api/'))
   ? rawBase.replace(/\/+$/, '')
   : rawBase.replace(/\/+$/, '') + '/api';
