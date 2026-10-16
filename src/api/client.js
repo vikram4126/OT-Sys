@@ -55,9 +55,8 @@ api.interceptors.request.use(async (config) => {
   if (['post', 'put', 'patch', 'delete'].includes(method)) {
     const csrf = getCsrfToken();
     if (csrf) {
-      // Set both standard headers for 100% backend compatibility
-      config.headers['X-CSRFToken'] = csrf;
-      config.headers['X-CSRF-Token'] = csrf;
+      // FastAPI CORSMiddleware expects lowercase 'x-csrftoken' without hyphens
+      config.headers['x-csrftoken'] = csrf;
     }
   }
 

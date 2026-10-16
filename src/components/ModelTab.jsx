@@ -26,6 +26,7 @@ import {
 } from '../services/assessmentStore';
 import { getVulnerabilities, generateZoneModelPdf, generateZoneModelDocx } from '../api/client';
 import * as modelApi from '../api/modelApi';
+import { runApiDiagnostics } from '../api/apiDiagnostics';
 import { getBaseline, saveSnapshot, computeMetrics } from '../services/snapshotService';
 import { addLog, LOG_TYPES } from '../services/logService';
 
@@ -65,9 +66,6 @@ function BaselineBar({ a }) {
   const [analysing, setAnalysing] = useState(false);
   useEffect(() => {
     getVulnerabilities().then(r => setVulns(r.data || [])).catch(() => setVulns([]));
-    modelApi.getModelBaseline().then(remote => {
-      if (remote) setBaseline(remote);
-    }).catch(() => {});
   }, []);
   const { zones, srSeed, assets, company } = a;
   const prog = collectionProgress();
@@ -88,11 +86,6 @@ function BaselineBar({ a }) {
       findings_from_gaps: findings.length, vulns_total: vulns.length,
       kev_total: vulns.filter(v => v.in_kev).length,
     };
-    try {
-      await modelApi.captureModelBaseline(enriched);
-    } catch (e) {
-      console.warn('Backend captureModelBaseline fallback:', e.message);
-    }
     const snap = saveSnapshot('baseline', 'Initial baseline', enriched);
     addLog(LOG_TYPES.LOGIN || 'baseline.capture',
       `Initial analysis complete — ${assets.length} assets across ${zones.length} zones, ${vulns.length} findings (${enriched.kev_total} KEV), risk ${enriched.overall_risk}/10, ${enriched.coverage ?? '—'}% compliance. Baseline saved; analysis unlocked.`);
@@ -163,20 +156,7 @@ function SectionScope({ company, setCompany, onSaved }) {
 
   useEffect(() => {
     setF({ name: company.name || '', industry: company.industry || '', scale: company.scale || '', site: company.primarySite || '' });
-    modelApi.getModelScope().then(remoteScope => {
-      if (remoteScope && (remoteScope.name || remoteScope.industry)) {
-        setCompany(remoteScope);
-        setF({
-          name: remoteScope.name || '',
-          industry: remoteScope.industry || '',
-          scale: remoteScope.scale || remoteScope.size || '',
-          site: remoteScope.primarySite || remoteScope.site || ''
-        });
-        if (remoteScope.tooling) setTools(remoteScope.tooling);
-        if (remoteScope.link) setLink(remoteScope.link);
-      }
-    }).catch(() => {});
-  }, [company, setCompany]);
+  }, [company]);
 
   const toggleTool = id => setTools(prev => {
     if (id === 'none') return prev.includes('none') ? [] : ['none'];
@@ -195,11 +175,6 @@ function SectionScope({ company, setCompany, onSaved }) {
       tooling: tools,
       link: link
     };
-    try {
-      await modelApi.saveModelScope(payload);
-    } catch (err) {
-      console.warn('Backend saveModelScope fallback:', err.message);
-    }
     setCompany(payload);
     setDrop({ ...getDrop(), tooling: tools, link });
     onSaved();
@@ -820,9 +795,19 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
 
   const toggleAirGapped = () => { a.updateZone(zone.id, { airGapped: !zone.airGapped }); bump(); };
 
+  const [conError, setConError] = useState('');
+
   const addCon = () => {
     if (!conOther) return;
     const [from, to] = conDir === 'out' ? [zone.id, conOther] : [conOther, zone.id];
+    const exists = conduits.some(c =>
+      (c.from === from && c.to === to) || (c.from === to && c.to === from)
+    );
+    if (exists) {
+      setConError('A conduit already connects these two zones.');
+      return;
+    }
+    setConError('');
     a.addConduit(from, to, conName || 'Conduit');
     setConOther(''); setConName(''); bump();
   };
@@ -1026,6 +1011,11 @@ function ZoneDetailModal({ zone, assets, rules, conduits, onRulesChange, onDelet
               Add Conduit
             </Btn>
           </div>
+          {conError && (
+            <div style={{ color: '#D92D20', fontSize: '12px', marginTop: '4px', marginBottom: '8px' }}>
+              {conError}
+            </div>
+          )}
 
           {/* Conduits List Cards */}
           <div className="kpmg-flex-col kpmg-gap-8">
@@ -1695,6 +1685,7 @@ function SectionZones({ a, onNavigate }) {
   const [addingAsset, setAddingAsset] = useState(false);
 
   useEffect(() => {
+    runApiDiagnostics().catch(() => {});
     modelApi.getModelZones().then(remoteZones => {
       if (Array.isArray(remoteZones) && remoteZones.length > 0) {
         // sync with assessment store if remote zones returned

@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Untitled Document</title>
+</head>
+
+<body>
+  <h1>Proposed APIs</h1>
+  <h2>Model</h2>
+  <table border="1" cellspacing="0" cellpadding="0" width="910">
+    <tr>
+      <td width="91" valign="top">
+        <p><strong>Method</strong></p>
+      </td>
+      <td width="287" valign="top">
+        <p><strong>Path</strong></p>
+      </td>
+      <td width="299" valign="top">
+        <p><strong>Purpose</strong></p>
+      </td>
+      <td width="234" valign="top">
+        <p><strong>Response </strong></p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/scope/</p>
+      </td>
+      <td width="299">
+        <p>
+          Load company/site scope (name, industry, scale, tooling, SL-T,
+          notes).
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → ScopeResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>PUT</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/scope/</p>
+      </td>
+      <td width="299">
+        <p>Save the scope form (upsert; audit-logged).</p>
+      </td>
+      <td width="234">
+        <p>200 → ScopeResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/baseline/</p>
+      </td>
+      <td width="299">
+        <p>
+          Latest captured baseline snapshot for the &quot;Capture
+          baseline&quot; bar.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → BaselineResponse | null</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/baseline/</p>
+      </td>
+      <td width="299">
+        <p>Capture a new baseline from current metrics.</p>
+      </td>
+      <td width="234">
+        <p>201 → BaselineResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/evidence/groups/</p>
+      </td>
+      <td width="299">
+        <p>
+          Evidence groups + per-group progress for the Model inputs panel.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → { items: EvidenceGroup[] }</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/evidence/</p>
+      </td>
+      <td width="299">
+        <p>
+          Evidence items with status/quality/notes; supports group_id, status.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → { items: EvidenceItem[], total }</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>PUT</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/evidence/{item_id}/</p>
+      </td>
+      <td width="299">
+        <p>
+          Update an evidence item (status, received quality, notes, file
+          refs).
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → EvidenceItem · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/evidence/findings/</p>
+      </td>
+      <td width="299">
+        <p>
+          Findings derived from evidence gaps (drives the &quot;issues&quot;
+          list).
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → { items: EvidenceFinding[] }</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/evidence/scan/</p>
+      </td>
+      <td width="299">
+        <p>Trigger a full evidence-drop scan (all groups).</p>
+      </td>
+      <td width="234">
+        <p>200 → { groups_scanned, items_updated }</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/evidence/scan/{group_id}/</p>
+      </td>
+      <td width="299">
+        <p>Scan a single evidence group.</p>
+      </td>
+      <td width="234">
+        <p>200 → { items_updated }</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/parse-connections/</p>
+      </td>
+      <td width="299">
+        <p>
+          Kick off async parse of pcap/log blobs into shadow assets +
+          connections.
+        </p>
+      </td>
+      <td width="234">
+        <p>202 → ParseJobResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/parse-connections/jobs/{job_id}</p>
+      </td>
+      <td width="299">
+        <p>Poll parse-job progress/results.</p>
+      </td>
+      <td width="234">
+        <p>200 → ParseJobResponse · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/reconcile/</p>
+      </td>
+      <td width="299">
+        <p>Kick off shadow-asset reconciliation for the current client.</p>
+      </td>
+      <td width="234">
+        <p>202 → ReconcileJobResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/reconcile/jobs/{job_id}</p>
+      </td>
+      <td width="299">
+        <p>Poll reconcile-job progress/results.</p>
+      </td>
+      <td width="234">
+        <p>200 → ReconcileJobResponse · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/zones/</p>
+      </td>
+      <td width="299">
+        <p>
+          List zones for the Zone modeller (name, SL-T,subnets, purdue, asset
+          count).
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → ZoneResponse[]</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/zones/{zone_id}</p>
+      </td>
+      <td width="299">
+        <p>Fetch one zone for the edit panel.</p>
+      </td>
+      <td width="234">
+        <p>200 → ZoneResponse · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/zones/</p>
+      </td>
+      <td width="299">
+        <p>Create a zone (manual residue after subnet-derived zones).</p>
+      </td>
+      <td width="234">
+        <p>201 → ZoneResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>PATCH</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/zones/{zone_id}</p>
+      </td>
+      <td width="299">
+        <p>Edit a zone (name, SL-T, purdue, description).</p>
+      </td>
+      <td width="234">
+        <p>200 → ZoneResponse · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/zones/{zone_id}/delete-preview</p>
+      </td>
+      <td width="299">
+        <p>Preview assets/conduits/rules impacted by deleting a zone.</p>
+      </td>
+      <td width="234">
+        <p>200 → ZoneDeletePreview · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>DELETE</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/zones/{zone_id}</p>
+      </td>
+      <td width="299">
+        <p>Delete a zone.</p>
+      </td>
+      <td width="234">
+        <p>204 · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/zones/{zone_id}/air-gap-check</p>
+      </td>
+      <td width="299">
+        <p>Air-gap contradictions for a zone (conduits vs claim).</p>
+      </td>
+      <td width="234">
+        <p>200 → AirGapCheckResponse · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api//model/subnets/zones/{zone_id}/rules</p>
+      </td>
+      <td width="299">
+        <p>List subnet rules driving auto-assignment for a zone.</p>
+      </td>
+      <td width="234">
+        <p>200 → ZoneRuleResponse[]</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/subnets/zones/{zone_id}/rules</p>
+      </td>
+      <td width="299">
+        <p>Add a CIDR (subnet) rule to a zone.</p>
+      </td>
+      <td width="234">
+        <p>201 → ZoneRuleResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>DELETE</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/subnets/zone-rules/{rule_id}</p>
+      </td>
+      <td width="299">
+        <p>Remove a subnet rule.</p>
+      </td>
+      <td width="234">
+        <p>204 · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/zones/assets/auto-assign/</p>
+      </td>
+      <td width="299">
+        <p>
+          Re-run auto-assignment across all assets from current subnet rules.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → { reassigned, unplaced, by_method }</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong><strong> </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/modelzones/{zone_id}/assets/{asset_id}/override/</p>
+      </td>
+      <td width="299">
+        <p>
+          Manually pin an asset to a zone (records
+          zone_assign_method='manual').
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → AssetResponse · 404</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/coverage</p>
+      </td>
+      <td width="299">
+        <p>Retrieve the coverage calculations</p>
+      </td>
+      <td width="234">
+        <p>200 -&gt; coverage response</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/assets/unassigned/</p>
+      </td>
+      <td width="299">
+        <p>List assets that are not currently assigned to any zone.</p>
+      </td>
+      <td width="234">
+        <p>200 → { items: AssetResponse[], total }</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/assets/internet-facing/</p>
+      </td>
+      <td width="299">
+        <p>
+          Return suggested internet-facing assets identified during modelling.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → { items: InternetFacingAssetResponse[] }</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/evidence/plan/</p>
+      </td>
+      <td width="299">
+        <p>
+          Retrieve the generated evidence collection plan used by the
+          &quot;Copy Evidence Plan&quot; action.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → EvidencePlanResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/62443/evidence-summary/</p>
+      </td>
+      <td width="299">
+        <p>
+          Retrieve IEC 62443 evidence directory metrics (prefillable, policy
+          answers required, walkthrough samples, conduits pending review).
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → EvidenceSummaryResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>POST</strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/62443/prefill/</p>
+      </td>
+      <td width="299">
+        <p>
+          Apply available evidence-derived prefill recommendations to IEC
+          62443 requirements.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → PrefillResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/62443/folder-plan/</p>
+      </td>
+      <td width="299">
+        <p>
+          Retrieve the generated IEC 62443 evidence folder structure plan.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → FolderPlanResponse</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/workshop-confirmation/pdf/</p>
+      </td>
+      <td width="299">
+        <p>Download workshop confirmation document as PDF.</p>
+      </td>
+      <td width="234">
+        <p>200 → application/pdf</p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET </strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/workshop-confirmation/docx/</p>
+      </td>
+      <td width="299">
+        <p>Download workshop confirmation document as DOCX.</p>
+      </td>
+      <td width="234">
+        <p>
+          200 →
+          application/vnd.openxmlformats-officedocument.wordprocessingml.document
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td width="91">
+        <p><strong>GET</strong></p>
+      </td>
+      <td width="287">
+        <p>/api/model/compliance-summary/</p>
+      </td>
+      <td width="299">
+        <p>
+          Retrieve overall modelling/compliance progress displayed in the
+          header badge.
+        </p>
+      </td>
+      <td width="234">
+        <p>200 → ComplianceSummaryResponse</p>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>

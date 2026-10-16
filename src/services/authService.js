@@ -11,7 +11,7 @@
 import { addLog, LOG_TYPES } from './logService';
 import { msalInstance, ensureMsalInitialized, apiLoginRequest, getFreshBearerToken } from '../authConfig';
 import { apiGetCurrentUser } from '../api/authApi';
-import { initCsrfToken } from '../api/client';
+import api, { initCsrfToken } from '../api/client';
 
 const AUTH_USER_KEY = 'ot_auth_user';
 const AUTH_TOKEN_KEY = 'ot_auth_token';
@@ -155,56 +155,39 @@ export const fetchUserProfileFromApi = async () => {
 };
 
 /**
- * Login with Microsoft Entra ID via MSAL Popup
- * 1. Opens Microsoft popup window
- * 2. User selects account and authenticates
- * 3. Acquires Bearer token
- * 4. Calls backend GET http://localhost:8000/api/auth/me with Bearer token
- * 5. Returns authorized user and brings to dashboard
+ * URL for server-initiated Microsoft Azure AD OAuth Login
+ */
+export const getAzureLoginUrl = () => {
+  const base = process.env.REACT_APP_API_BASE || 'http://localhost:8000/api';
+  const clean = base.replace(/\/+$/, '');
+  return `${clean}/auth/azure/login`;
+};
+
+/**
+ * Direct redirect to backend Microsoft login endpoint
+ */
+export const redirectToAzureLogin = () => {
+  window.location.href = getAzureLoginUrl();
+};
+
+/**
+ * Login with Microsoft Entra ID
+ * Initiates backend Azure OAuth flow (http://localhost:8000/api/auth/azure/login)
  */
 export const loginWithMicrosoft = async () => {
-  await ensureMsalInitialized();
-
-  let loginResponse = null;
+  // Clear logged out flag so fresh login can proceed
   try {
-    // Attempt loginPopup first for best UX
-    loginResponse = await msalInstance.loginPopup(apiLoginRequest);
-  } catch (popupErr) {
-    // If popup was blocked or failed, attempt loginRedirect
-    if (popupErr.name === 'BrowserAuthError' && popupErr.errorCode === 'popup_window_error') {
-      await msalInstance.loginRedirect(apiLoginRequest);
-      return;
-    }
-    throw popupErr;
-  }
-
-  if (loginResponse && loginResponse.account) {
-    msalInstance.setActiveAccount(loginResponse.account);
-    if (loginResponse.accessToken) {
-      localStorage.setItem(AUTH_TOKEN_KEY, loginResponse.accessToken);
-    }
-  }
-
-  // Retrieve token if not in loginResponse
-  const token = await getFreshBearerToken();
-  if (token) {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
-  }
-
-  // Initialize CSRF token from backend
-  await initCsrfToken().catch(() => {});
-
-  // Call /api/auth/me once to retrieve backend user profile & is_admin status
-  const user = await fetchUserProfileFromApi();
-
-  addLog(LOG_TYPES.LOGIN || 'login', `Microsoft SSO login: ${user.email} (is_admin: ${user.is_admin})`);
-  return { success: true, user };
+    localStorage.removeItem('ot_logged_out');
+  } catch {}
+  redirectToAzureLogin();
+  return { redirecting: true };
 };
 
 /**
  * Logout function:
- * Completely clears all user and auth tokens from localStorage, sessionStorage, and MSAL
- * so the user is guaranteed to land back on the Microsoft Login screen.
+ * Completely clears all user and auth tokens from localStorage, sessionStorage, cookies,
+ * and calls backend logout so the session is terminated server-side.
+ * Sets 'ot_logged_out' flag to ensure hard refresh never re-logs in automatically.
  */
 export const logout = async () => {
   const user = getCurrentUser();
@@ -212,8 +195,9 @@ export const logout = async () => {
     addLog(LOG_TYPES.LOGOUT || 'logout', `User logged out: ${user.email}`);
   }
 
-  // 1. Wipe all local application authentication tokens and caches
+  // 1. Mark session as explicitly logged out
   try {
+    localStorage.setItem('ot_logged_out', 'true');
     localStorage.removeItem(AUTH_USER_KEY);
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem('ot_csrf_token');
@@ -235,10 +219,22 @@ export const logout = async () => {
     console.warn('Storage wipe warning:', storageErr);
   }
 
-  // 2. Dispatch event so UI state drops currentUser immediately
+  // 2. Clear non-HttpOnly client cookies
+  try {
+    document.cookie.split(';').forEach(c => {
+      document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+    });
+  } catch {}
+
+  // 3. Inform backend to terminate server session / invalidate cookies
+  try {
+    await api.post('/auth/logout').catch(() => api.get('/auth/logout')).catch(() => {});
+  } catch {}
+
+  // 4. Dispatch event so UI state drops currentUser immediately
   window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
 
-  // 3. Clean query and hash params so OAuth tokens are not left in URL bar
+  // 5. Clean query and hash params so OAuth tokens are not left in URL bar
   try {
     if (window.location.search || window.location.hash) {
       const cleanUrl = window.location.origin + window.location.pathname;
@@ -246,7 +242,7 @@ export const logout = async () => {
     }
   } catch {}
 
-  // 4. Perform MSAL popup logout if an active account is registered
+  // 6. Perform MSAL popup logout if an active account is registered
   try {
     await ensureMsalInitialized();
     const accounts = msalInstance.getAllAccounts();
@@ -261,9 +257,16 @@ export const logout = async () => {
 
 /**
  * Initialize session on app boot (call once when app mounts).
- * If user is not logged in, NO API calls are executed.
+ * If user has explicitly logged out, stays on login screen.
  */
 export const initializeAuthSession = async () => {
+  // If user explicitly clicked logout, DO NOT auto-restore session on refresh
+  try {
+    if (localStorage.getItem('ot_logged_out') === 'true') {
+      return null;
+    }
+  } catch {}
+
   // 0. Extract token from URL query or hash if returning from Microsoft OAuth redirect
   let tokenFromUrl = false;
   try {
@@ -289,26 +292,7 @@ export const initializeAuthSession = async () => {
     return cached;
   }
 
-  // 2. Check if Bearer token or MSAL accounts exist
-  const token = getAuthToken();
-  let hasMsalAccount = false;
-  try {
-    await ensureMsalInitialized();
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length > 0) {
-      hasMsalAccount = true;
-      const active = msalInstance.getActiveAccount() || accounts[0];
-      msalInstance.setActiveAccount(active);
-    }
-  } catch {}
-
-  // CRITICAL: If no credentials exist, user is NOT logged in.
-  // DO NOT call /api/auth/me or any backend API!
-  if (!token && !hasMsalAccount && !tokenFromUrl) {
-    return null;
-  }
-
-  // 3. User has credentials: fetch profile from backend /api/auth/me
+  // 2. Check session with backend /api/auth/me (authenticates via Cookie or Bearer token)
   try {
     const user = await fetchUserProfileFromApi();
     if (user) {
@@ -316,10 +300,9 @@ export const initializeAuthSession = async () => {
       return user;
     }
   } catch (err) {
-    // If token expired or was invalid, wipe stale storage
+    // Not authenticated or session expired — clear storage and show login screen
     localStorage.removeItem(AUTH_USER_KEY);
     localStorage.removeItem(AUTH_TOKEN_KEY);
-    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
   }
 
   return null;

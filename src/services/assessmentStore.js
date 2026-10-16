@@ -1112,6 +1112,31 @@ export function syncBackendData() {
             ...z
           }));
           write(ZKEY, normalized);
+
+          // 1b. Fetch subnet rules for each zone: GET /api/zones/{zone_id}/rules
+          try {
+            const rulesResults = await Promise.allSettled(
+              normalized.map(z => api.get(`/zones/${z.id}/rules`).then(r => ({ zoneId: z.id, rules: r.data })))
+            );
+            const liveRules = [];
+            rulesResults.forEach(res => {
+              if (res.status === 'fulfilled' && Array.isArray(res.value?.rules)) {
+                res.value.rules.forEach(r => {
+                  liveRules.push({
+                    id: r.id,
+                    zone: r.zone_id || res.value.zoneId,
+                    cidr: r.cidr,
+                    name: r.name || ''
+                  });
+                });
+              }
+            });
+            if (liveRules.length > 0) {
+              saveZoneRules(liveRules);
+            }
+          } catch (rErr) {
+            console.warn('Live backend zone rules fetch error:', rErr.message);
+          }
         }
       } catch (err) {
         console.warn('Live backend /zones/ not available, using store:', err.message);
@@ -2548,8 +2573,29 @@ export function evidenceBlindSpots() {
 const ZRKEY = 'ot_zone_rules_v1';
 export function getZoneRules() { try { return JSON.parse(localStorage.getItem(ZRKEY) || '[]'); } catch { return []; } }
 export function saveZoneRules(rules) { localStorage.setItem(ZRKEY, JSON.stringify(rules)); return rules; }
-export function addZoneRule(rule) { const r = getZoneRules(); r.push({ id:`R${Date.now()}`, ...rule }); return saveZoneRules(r); }
-export function removeZoneRule(id) { return saveZoneRules(getZoneRules().filter(r => r.id !== id)); }
+export function addZoneRule(rule) {
+  const tempId = `R${Date.now()}`;
+  const r = getZoneRules();
+  r.push({ id: tempId, ...rule });
+  saveZoneRules(r);
+  if (rule.zone && rule.cidr) {
+    api.post(`/zones/${rule.zone}/rules`, { cidr: rule.cidr, name: rule.name || '' }).then(res => {
+      if (res.data?.id) {
+        const updated = getZoneRules().map(item => item.id === tempId ? { ...item, id: res.data.id } : item);
+        saveZoneRules(updated);
+      }
+    }).catch(err => console.warn('POST /zones/{id}/rules error:', err.message));
+  }
+  return r;
+}
+export function removeZoneRule(id) {
+  const next = getZoneRules().filter(r => r.id !== id);
+  saveZoneRules(next);
+  if (id && !String(id).startsWith('R')) {
+    api.delete(`/zone-rules/${id}`).catch(err => console.warn('DELETE /zone-rules/{id} error:', err.message));
+  }
+  return next;
+}
 
 // IP → CIDR containment, no dependencies.
 function ipToInt(ip) {
