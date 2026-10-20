@@ -17,6 +17,7 @@ import {
   Modal,
   Bar2,
   DeleteConfirmModal,
+  Pagination,
 } from './UI';
 import { Network, AlertCircle, Refresh, PageIcon } from './Icons';
 import { DynamicSegmentedBar } from './AssetsTab';
@@ -510,7 +511,7 @@ const QUALITY = [
     color: C.high,
     bg: '#FEF2E8',
   },
-  { k: RECEIVED_QUALITY.NA, label: 'N/A', color: C.muted, bg: '#F1F1EF' },
+  // N/A button skipped per backend developer instruction
 ];
 const MISSING_MARK = [
   {
@@ -519,7 +520,7 @@ const MISSING_MARK = [
     color: C.high,
     bg: '#FEF2E8',
   },
-  { k: EVIDENCE_STATUS.NA, label: 'N/A here', color: C.muted, bg: '#F1F1EF' },
+  // N/A button skipped per backend developer instruction
 ];
 
 function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
@@ -655,7 +656,12 @@ function EvidenceSlideDrawer({ g, onClose, bump }) {
               item={it}
               marks={QUALITY}
               current={it.quality}
-              onMark={(q) => {
+              onMark={async (q) => {
+                try {
+                  await modelApi.updateEvidenceItem(it.id, { quality: q });
+                } catch (e) {
+                  console.warn('Backend updateEvidenceItem quality:', e.message);
+                }
                 setEvidenceQuality(it.id, q);
                 bump();
               }}
@@ -668,7 +674,12 @@ function EvidenceSlideDrawer({ g, onClose, bump }) {
               marks={MISSING_MARK}
               current={it.status}
               showFallback
-              onMark={(m) => {
+              onMark={async (m) => {
+                try {
+                  await modelApi.updateEvidenceItem(it.id, { status: m });
+                } catch (e) {
+                  console.warn('Backend updateEvidenceItem status:', e.message);
+                }
                 setEvidenceStatus(it.id, m);
                 bump();
               }}
@@ -680,7 +691,7 @@ function EvidenceSlideDrawer({ g, onClose, bump }) {
   );
 }
 
-function EvidenceTile({ g, bump }) {
+function EvidenceTile({ g, bump, onScan }) {
   const [openDrawer, setOpenDrawer] = useState(false);
 
   const ratio = g.total > 0 ? g.received / g.total : 0;
@@ -701,7 +712,16 @@ function EvidenceTile({ g, bump }) {
             <span className="kpmg-model-tile-name">{g.name}</span>
             <span className="kpmg-model-tile-owner">{g.owner}</span>
           </div>
-          <span className="kpmg-model-priority-tag">Priority</span>
+          <button
+            type="button"
+            className="kpmg-model-priority-tag"
+            style={{ cursor: onScan ? 'pointer' : 'default', border: 'none' }}
+            disabled={g.running}
+            onClick={() => onScan && onScan(g.id)}
+            title="Scan this evidence group"
+          >
+            {g.running ? 'Scanning…' : 'Scan'}
+          </button>
         </div>
 
         {/* Big Score Fraction */}
@@ -741,6 +761,30 @@ function SectionInputs({ onNavigate }) {
   const bump = () => force((n) => n + 1);
   const [scanning, setScanning] = useState(false);
   const [retryStates, setRetryStates] = useState({});
+  const [liveEvidence, setLiveEvidence] = useState(null);
+  const [liveFindings, setLiveFindings] = useState(null);
+  const [liveGroups, setLiveGroups] = useState(null);
+
+  const fetchEvidenceData = async () => {
+    try {
+      const [evRes, findRes, grpRes] = await Promise.allSettled([
+        modelApi.getModelEvidence(),
+        modelApi.getEvidenceFindings(),
+        modelApi.getEvidenceGroups(),
+      ]);
+      if (evRes.status === 'fulfilled' && evRes.value) {
+        setLiveEvidence(evRes.value);
+      }
+      if (findRes.status === 'fulfilled' && findRes.value) {
+        setLiveFindings(findRes.value);
+      }
+      if (grpRes.status === 'fulfilled' && grpRes.value) {
+        setLiveGroups(grpRes.value);
+      }
+    } catch (e) {
+      console.warn('Live evidence fetch fallback:', e.message);
+    }
+  };
 
   const handleRetry = (idx) => {
     setRetryStates((prev) => ({ ...prev, [idx]: true }));
@@ -750,6 +794,7 @@ function SectionInputs({ onNavigate }) {
   };
 
   useEffect(() => {
+    fetchEvidenceData();
     // Ensure initial sample data is populated if state is empty
     const st = getEvidenceState();
     if (Object.keys(st).length === 0) {
@@ -758,22 +803,69 @@ function SectionInputs({ onNavigate }) {
     }
   }, []);
 
-  const { received, missing } = evidenceSplit();
-  const prog = collectionProgress();
-  const findings = evidenceFindings();
-  const groups = evidenceGroupSummary();
+  const localSplit = evidenceSplit();
+  const received = liveEvidence?.received || localSplit.received;
+  const missing = liveEvidence?.missing || localSplit.missing;
+  const prog = liveEvidence?.progress != null
+    ? { pct: liveEvidence.progress }
+    : collectionProgress();
+  const findings = liveFindings?.findings || evidenceFindings();
+  const groups = liveGroups?.groups || evidenceGroupSummary();
 
-  const scanAll = () => {
+  const scanAll = async () => {
     setScanning(true);
-    setTimeout(() => {
+    try {
+      await modelApi.scanAllEvidence();
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        try {
+          const res = await modelApi.getEvidenceGroups();
+          if (res) {
+            setLiveGroups(res);
+            const isAnyRunning = (res.groups || []).some((g) => g.running);
+            if (!isAnyRunning || attempts > 20) {
+              clearInterval(poll);
+              setScanning(false);
+              fetchEvidenceData();
+            }
+          }
+        } catch {
+          clearInterval(poll);
+          setScanning(false);
+        }
+      }, 1500);
+    } catch {
       scanEvidenceDrop();
       bump();
       setScanning(false);
-    }, 500);
+    }
   };
-  const demo = () => {
-    simulateClientUpload();
-    bump();
+
+  const scanOneGroup = async (groupId) => {
+    try {
+      await modelApi.scanEvidenceGroup(groupId);
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        try {
+          const res = await modelApi.getEvidenceGroups();
+          if (res) {
+            setLiveGroups(res);
+            const grp = (res.groups || []).find((x) => x.id === groupId);
+            if (!grp?.running || attempts > 20) {
+              clearInterval(poll);
+              fetchEvidenceData();
+            }
+          }
+        } catch {
+          clearInterval(poll);
+        }
+      }, 1500);
+    } catch {
+      scanEvidenceGroup(groupId);
+      bump();
+    }
   };
 
   return (
@@ -832,7 +924,7 @@ function SectionInputs({ onNavigate }) {
           <EvidenceTile
             key={g.id}
             g={g}
-            onScan={scanEvidenceGroup}
+            onScan={scanOneGroup}
             bump={bump}
           />
         ))}
@@ -1101,7 +1193,7 @@ function ZoneDetailModal({
 
   const [conError, setConError] = useState('');
 
-  const addCon = () => {
+  const addCon = async () => {
     if (!conOther) return;
     const [from, to] =
       conDir === 'out' ? [zone.id, conOther] : [conOther, zone.id];
@@ -1114,6 +1206,17 @@ function ZoneDetailModal({
       return;
     }
     setConError('');
+    try {
+      await modelApi.createConduit({
+        from_zone_id: from,
+        to_zone_id: to,
+        name: conName || 'Conduit',
+        protocols: [],
+      });
+      await getConduits();
+    } catch (err) {
+      console.warn('Backend createConduit fallback:', err.message);
+    }
     a.addConduit(from, to, conName || 'Conduit');
     setConOther('');
     setConName('');
@@ -1564,14 +1667,60 @@ function AddUnassignedAssetModal({ isOpen, onClose, onAdd }) {
 
 function UnassignedAssetsCard({ assets, rules, a, bump }) {
   const [adding, setAdding] = useState(false);
-  const unassigned = assets.filter((x) => !x.zone);
+  const [liveUnassigned, setLiveUnassigned] = useState(null);
 
-  const assignTo = (assetId, zoneId) => {
+  const loadUnassigned = () => {
+    modelApi
+      .getUnassignedAssets()
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.items || [];
+        setLiveUnassigned(list);
+      })
+      .catch(() => setLiveUnassigned(null));
+  };
+
+  useEffect(() => {
+    loadUnassigned();
+  }, []);
+
+  const unassigned =
+    liveUnassigned !== null
+      ? liveUnassigned.map((u) => ({
+          id: u.id,
+          name: u.hostname || u.name || u.id,
+          ip: u.ip || '',
+          version: u.version || '',
+          deviceType: u.device_type || u.deviceType || 'Hardware',
+          kind: u.kind,
+          reason: u.reason || u.reason_code,
+        }))
+      : assets.filter((x) => !x.zone);
+
+  const assignTo = async (assetId, zoneId) => {
+    try {
+      await modelApi.assignAssetZone(assetId, zoneId);
+      loadUnassigned();
+    } catch (e) {
+      console.warn('Backend assignAssetZone fallback:', e.message);
+    }
     setManualAssignment(assetId, zoneId);
     a.updateAsset(assetId, { zone: zoneId });
+    getAssets();
     bump();
   };
-  const addAsset = (f) => {
+  const addAsset = async (f) => {
+    try {
+      await modelApi.createAsset({
+        hostname: f.name.trim(),
+        kind: f.kind || 'device',
+        device_type: f.deviceType,
+        ip: f.ip,
+      });
+      getAssets();
+      loadUnassigned();
+    } catch (e) {
+      console.warn('Backend createAsset fallback:', e.message);
+    }
     a.addAsset('', {
       name: f.name.trim(),
       ip: f.ip,
@@ -1660,7 +1809,31 @@ const COV_TONE = {
 
 function CoveragePanel({ assets, rules, zones }) {
   const [open, setOpen] = useState(false);
-  const cov = networkCoverage({ assets, rules, zones });
+  const [liveCov, setLiveCov] = useState(null);
+  const [covNotFound, setCovNotFound] = useState(false);
+
+  useEffect(() => {
+    modelApi
+      .getModelCoverage()
+      .then((data) => {
+        if (!data) setCovNotFound(true);
+        else {
+          setLiveCov(data);
+          setCovNotFound(false);
+        }
+      })
+      .catch((err) => {
+        if (err.status === 404 || err.response?.status === 404) {
+          setCovNotFound(true);
+        }
+      });
+  }, [zones.length]);
+
+  if (covNotFound || zones.length === 0) {
+    return null;
+  }
+
+  const cov = liveCov || networkCoverage({ assets, rules, zones });
   const countColor = cov.bounded === cov.total ? '#039855' : '#D9251B';
 
   return (
@@ -2034,31 +2207,67 @@ function ConnectionsFromLogsCard({ a, rules, onNavigate }) {
   const [, force] = useState(0);
   const bump = () => force((n) => n + 1);
   const [result, setResult] = useState(null);
+  const [liveSuggestions, setLiveSuggestions] = useState(null);
   const available = logEvidenceAvailable();
   const last = lastLogParse();
-  const suggestions = suggestedConduits(a.assets, a.conduits);
+
+  const loadSuggestions = () => {
+    modelApi
+      .getConduitSuggestions()
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.items || [];
+        setLiveSuggestions(list);
+      })
+      .catch(() => setLiveSuggestions(null));
+  };
+
+  useEffect(() => {
+    loadSuggestions();
+  }, []);
+
+  const suggestions =
+    liveSuggestions !== null
+      ? liveSuggestions.map((s) => ({
+          key: s.key || `${s.from_zone_id}|${s.to_zone_id}`,
+          from: s.from_zone_id,
+          to: s.to_zone_id,
+          count: s.count || 1,
+          protos: s.protocols || [],
+        }))
+      : suggestedConduits(a.assets, a.conduits);
 
   const parse = () => {
     setResult(parseConnectionLogs(a.assets, a.zones, rules));
     bump();
   };
-  const accept = (s) => {
+  const accept = async (s) => {
+    try {
+      await modelApi.acceptConduitSuggestion(s.key);
+      await getConduits();
+      loadSuggestions();
+    } catch (e) {
+      console.warn('Backend acceptConduitSuggestion fallback:', e.message);
+    }
     a.addConduit(s.from, s.to, 'Suggested from parsed logs');
     a.addEvidence(
       s.from,
       'FR5',
-      `Conduit accepted from parsed logs — ${s.count
-      } connection(s) observed (${s.protos.join(', ')})`
+      `Conduit accepted from parsed logs — ${s.count} connection(s) observed (${s.protos.join(', ')})`
     );
     a.addEvidence(
       s.to,
       'FR5',
-      `Conduit accepted from parsed logs — ${s.count
-      } connection(s) observed (${s.protos.join(', ')})`
+      `Conduit accepted from parsed logs — ${s.count} connection(s) observed (${s.protos.join(', ')})`
     );
     bump();
   };
-  const dismiss = (s) => {
+  const dismiss = async (s) => {
+    try {
+      await modelApi.dismissConduitSuggestion(s.key);
+      loadSuggestions();
+    } catch (e) {
+      console.warn('Backend dismissConduitSuggestion fallback:', e.message);
+    }
     dismissConduitSuggestion(s.key);
     bump();
   };
@@ -2146,13 +2355,54 @@ function ConnectionsFromLogsCard({ a, rules, onNavigate }) {
    pattern as the conduit suggestions above — never asked for one by one
    across hundreds of assets. */
 function InternetFacingSuggestionsCard({ a, bump }) {
-  const suggestions = suggestInternetFacingAssets(a.assets);
+  const [liveSuggestions, setLiveSuggestions] = useState(null);
+
+  const loadSuggestions = () => {
+    modelApi
+      .getInternetFacingSuggestions()
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.items || [];
+        setLiveSuggestions(list);
+      })
+      .catch(() => setLiveSuggestions(null));
+  };
+
+  useEffect(() => {
+    loadSuggestions();
+  }, []);
+
+  const suggestions =
+    liveSuggestions !== null
+      ? liveSuggestions.map((s) => ({
+          id: s.id,
+          name: s.hostname || s.name || s.id,
+          ip: s.ip || '',
+          zone: s.zone_id || s.zone,
+          level: s.purdue_level ?? s.level ?? 2,
+          deviceType: s.device_type || s.deviceType || 'Device',
+        }))
+      : suggestInternetFacingAssets(a.assets);
+
   const zName = (id) => (a.zones.find((z) => z.id === id) || {}).name || id;
-  const confirm = (asset) => {
+
+  const confirm = async (asset) => {
+    try {
+      await modelApi.confirmInternetFacingSuggestion(asset.id);
+      loadSuggestions();
+    } catch (e) {
+      console.warn('Backend confirmInternetFacingSuggestion fallback:', e.message);
+    }
     a.updateAsset(asset.id, { internetFacing: true });
     bump();
   };
-  const dismiss = (asset) => {
+
+  const dismiss = async (asset) => {
+    try {
+      await modelApi.dismissInternetFacingSuggestion(asset.id);
+      loadSuggestions();
+    } catch (e) {
+      console.warn('Backend dismissInternetFacingSuggestion fallback:', e.message);
+    }
     dismissInternetFacingSuggestion(asset.id);
     bump();
   };
@@ -2333,6 +2583,8 @@ function SectionZones({ a, onNavigate }) {
   const [subError, setSubError] = useState('');
   const [addingSub, setAddingSub] = useState(false);
   const [airGapped, setAirGapped] = useState(false);
+  const [zonePage, setZonePage] = useState(1);
+  const ZONES_PER_PAGE = 10;
 
   const [addingAsset, setAddingAsset] = useState(false);
 
@@ -2505,63 +2757,80 @@ function SectionZones({ a, onNavigate }) {
               </tr>
             </thead>
             <tbody>
-              {a.zones.map((z) => {
-                const subnets = getSubnetsForZone(z, rules, a.assets);
-                const zoneConduitsCount = a.conduits
-                  ? a.conduits.filter((c) => c.from === z.id || c.to === z.id)
-                    .length
-                  : 0;
-                const slMeta = SL_META.find((m) => m.sl === z.slT);
-                const slText = slMeta
-                  ? `SL-T ${z.slT} - ${slMeta.label}`
-                  : `SL-T ${z.slT}`;
-
-                return (
-                  <tr key={z.id}>
-                    <td className="kpmg-model-td-name">{z.name}</td>
-                    <td className="kpmg-model-td-desc" title={z.desc || '—'}>
-                      <div className="kpmg-model-ellipsis-2lines">
-                        {z.desc || '—'}
-                      </div>
-                    </td>
-                    <td className="kpmg-model-td-sl">{slText}</td>
-                    <td className="kpmg-model-td-cell">{zoneConduitsCount}</td>
-                    <td className="kpmg-model-td-cell">
-                      {subnets.length > 0 ? (
-                        <div className="kpmg-d-flex kpmg-gap-6 kpmg-flex-wrap kpmg-items-center">
-                          {subnets.slice(0, 2).map((s) => (
-                            <span key={s} className="kpmg-model-sub-pill-blue">
-                              {s}
-                            </span>
-                          ))}
-                          {subnets.length > 2 && (
-                            <span
-                              title={subnets.slice(2).join(', ')}
-                              className="kpmg-model-subnet-more"
-                            >
-                              +{subnets.length - 2} more
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="kpmg-model-td-action">
-                      <button
-                        onClick={() => setOpenZone(z)}
-                        title="Edit zone"
-                        className="kpmg-model-edit-btn"
-                      >
-                        <PageIcon name="Edit.svg" size={16} />
-                      </button>
-                    </td>
-                  </tr>
+              {(() => {
+                const totalZones = a.zones.length;
+                const totalPages = Math.ceil(totalZones / ZONES_PER_PAGE) || 1;
+                const currentPage = Math.min(zonePage, totalPages);
+                const pagedZones = a.zones.slice(
+                  (currentPage - 1) * ZONES_PER_PAGE,
+                  currentPage * ZONES_PER_PAGE
                 );
-              })}
+
+                return pagedZones.map((z) => {
+                  const subnets = getSubnetsForZone(z, rules, a.assets);
+                  const zoneConduitsCount = a.conduits
+                    ? a.conduits.filter((c) => c.from === z.id || c.to === z.id)
+                      .length
+                    : 0;
+                  const slMeta = SL_META.find((m) => m.sl === z.slT);
+                  const slText = slMeta
+                    ? `SL-T ${z.slT} - ${slMeta.label}`
+                    : `SL-T ${z.slT}`;
+
+                  return (
+                    <tr key={z.id}>
+                      <td className="kpmg-model-td-name">{z.name}</td>
+                      <td className="kpmg-model-td-desc" title={z.desc || '—'}>
+                        <div className="kpmg-model-ellipsis-2lines">
+                          {z.desc || '—'}
+                        </div>
+                      </td>
+                      <td className="kpmg-model-td-sl">{slText}</td>
+                      <td className="kpmg-model-td-cell">{zoneConduitsCount}</td>
+                      <td className="kpmg-model-td-cell">
+                        {subnets.length > 0 ? (
+                          <div className="kpmg-d-flex kpmg-gap-6 kpmg-flex-wrap kpmg-items-center">
+                            {subnets.slice(0, 2).map((s) => (
+                              <span key={s} className="kpmg-model-sub-pill-blue">
+                                {s}
+                              </span>
+                            ))}
+                            {subnets.length > 2 && (
+                              <span
+                                title={subnets.slice(2).join(', ')}
+                                className="kpmg-model-subnet-more"
+                              >
+                                +{subnets.length - 2} more
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="kpmg-model-td-action">
+                        <button
+                          onClick={() => setOpenZone(z)}
+                          title="Edit zone"
+                          className="kpmg-model-edit-btn"
+                        >
+                          <PageIcon name="Edit.svg" size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={Math.min(zonePage, Math.ceil(a.zones.length / ZONES_PER_PAGE) || 1)}
+          total={a.zones.length}
+          perPage={ZONES_PER_PAGE}
+          onChange={(p) => setZonePage(p)}
+        />
       </Card>
 
       {/* 2. Coverage Panel (Did we get the whole network?) */}

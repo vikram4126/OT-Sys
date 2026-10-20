@@ -227,6 +227,7 @@ export const deleteConduit = (conduitId) =>
 export const getEvidenceList = () =>
   api.get('/model/evidence/').then((r) => r.data);
 export const getEvidenceItems = getEvidenceList; // Alias
+export const getModelEvidence = getEvidenceList; // Alias
 
 /**
  * 8.3 GET /api/model/evidence/findings/
@@ -392,3 +393,54 @@ export const dismissInternetFacingSuggestion = (assetId) =>
   api
     .post(`/assets/internet-facing-suggestions/${assetId}/dismiss/`)
     .then((r) => r.data);
+
+/**
+ * Coverage Panel: GET /api/model/coverage/
+ * 404 means no zones yet -> return null
+ */
+export const getModelCoverage = () =>
+  api
+    .get('/model/coverage/')
+    .then((r) => r.data)
+    .catch((err) => {
+      if (err.status === 404 || err.response?.status === 404) return null;
+      throw err;
+    });
+
+/**
+ * Unassigned Assets: GET /api/assets/unassigned/
+ */
+export const getUnassignedAssets = () =>
+  api.get('/assets/unassigned/').then((r) => r.data);
+
+/**
+ * Assign Asset to Zone: PUT /api/assets/{asset_id}/zone/
+ */
+export const assignAssetZone = (assetId, zoneId) =>
+  api
+    .put(`/assets/${assetId}/zone/`, { zone_id: zoneId })
+    .then((r) => r.data);
+
+/**
+ * Suggested Conduits: GET /api/conduits/suggestions/
+ */
+export const getConduitSuggestions = () =>
+  api.get('/conduits/suggestions/').then((r) => r.data);
+
+/**
+ * Accept Conduit Suggestion: POST /api/conduits/suggestions/{key}/accept/
+ * Key has '|' character, URL encoded
+ */
+export const acceptConduitSuggestion = (key) =>
+  api
+    .post(`/conduits/suggestions/${encodeURIComponent(key)}/accept/`)
+    .then((r) => r.data);
+
+/**
+ * Dismiss Conduit Suggestion: POST /api/conduits/suggestions/{key}/dismiss/
+ */
+export const dismissConduitSuggestion = (key) =>
+  api
+    .post(`/conduits/suggestions/${encodeURIComponent(key)}/dismiss/`)
+    .then((r) => r.data);
+
