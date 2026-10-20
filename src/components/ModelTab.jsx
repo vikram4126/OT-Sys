@@ -75,6 +75,7 @@ import {
   postZoneRule,
   apiDeleteZoneRule,
   getAssets,
+  getConduits,
 } from '../api/client';
 import * as modelApi from '../api/modelApi';
 import { runApiDiagnostics } from '../api/apiDiagnostics';
@@ -528,7 +529,7 @@ function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
     <div className="kpmg-model-evidence-card">
       {/* Top row: Tags */}
       <div className="kpmg-model-evidence-tags">
-        <span className="kpmg-subhint-11-muted">Controls</span>
+        <span className="kpmg-subhint-11-muted">{item.owner || 'Controls'}</span>
         {item.core && (
           <span className="kpmg-model-evidence-core-badge">Core</span>
         )}
@@ -628,10 +629,18 @@ function EvidenceSlideItem({ item, marks, current, onMark, showFallback }) {
   );
 }
 
-function EvidenceSlideDrawer({ g, onClose, bump }) {
-  const { received, missing } = evidenceSplit();
-  const groupReceived = received.filter((it) => it.group === g.id);
-  const groupMissing = missing.filter((it) => it.group === g.id);
+function EvidenceSlideDrawer({ g, onClose, bump, onUpdate }) {
+  let groupReceived = [];
+  let groupMissing = [];
+
+  if (Array.isArray(g.items) && g.items.length > 0) {
+    groupReceived = g.items.filter((it) => it.status === 'received');
+    groupMissing = g.items.filter((it) => it.status !== 'received');
+  } else {
+    const { received, missing } = evidenceSplit();
+    groupReceived = received.filter((it) => it.group === g.id);
+    groupMissing = missing.filter((it) => it.group === g.id);
+  }
 
   return (
     <div className="kpmg-slide-overlay" onClick={onClose}>
@@ -658,6 +667,7 @@ function EvidenceSlideDrawer({ g, onClose, bump }) {
               onMark={async (q) => {
                 try {
                   await modelApi.updateEvidenceItem(it.id, { quality: q });
+                  if (onUpdate) await onUpdate();
                 } catch (e) {
                   console.warn('Backend updateEvidenceItem quality:', e.message);
                 }
@@ -676,6 +686,7 @@ function EvidenceSlideDrawer({ g, onClose, bump }) {
               onMark={async (m) => {
                 try {
                   await modelApi.updateEvidenceItem(it.id, { status: m });
+                  if (onUpdate) await onUpdate();
                 } catch (e) {
                   console.warn('Backend updateEvidenceItem status:', e.message);
                 }
@@ -690,7 +701,7 @@ function EvidenceSlideDrawer({ g, onClose, bump }) {
   );
 }
 
-function EvidenceTile({ g, bump, onScan }) {
+function EvidenceTile({ g, bump, onScan, onUpdate }) {
   const [openDrawer, setOpenDrawer] = useState(false);
 
   const ratio = g.total > 0 ? g.received / g.total : 0;
@@ -749,6 +760,7 @@ function EvidenceTile({ g, bump, onScan }) {
           g={g}
           onClose={() => setOpenDrawer(false)}
           bump={bump}
+          onUpdate={onUpdate}
         />
       )}
     </>
@@ -937,6 +949,7 @@ function SectionInputs({ onNavigate }) {
             g={g}
             onScan={scanOneGroup}
             bump={bump}
+            onUpdate={fetchEvidenceData}
           />
         ))}
       </div>
@@ -1224,7 +1237,7 @@ function ZoneDetailModal({
         name: conName || 'Conduit',
         protocols: [],
       });
-      await modelApi.getConduits();
+      await getConduits();
     } catch (err) {
       console.warn('Backend createConduit fallback:', err.message);
     }
@@ -1234,7 +1247,18 @@ function ZoneDetailModal({
     bump();
   };
 
-  const saveZone = () => {
+  const saveZone = async () => {
+    try {
+      await modelApi.patchZone(zone.id, {
+        name: zname.trim(),
+        target_sl: Number(tsl),
+        desc: desc.trim(),
+        air_gapped: !!zone.airGapped,
+      });
+      await getZones();
+    } catch (e) {
+      console.warn('Backend patchZone fallback:', e.message);
+    }
     a.updateZone(zone.id, {
       name: zname.trim(),
       slT: Number(tsl),
@@ -3322,7 +3346,13 @@ function SectionZones({ a, onNavigate }) {
             })?`}
           warningMessage="This action cannot be undone."
           onClose={() => setDeleteConfirmTarget(null)}
-          onConfirm={() => {
+          onConfirm={async () => {
+            try {
+              await modelApi.deleteConduit(deleteConfirmTarget.item.id);
+              await getConduits();
+            } catch (e) {
+              console.warn('Backend deleteConduit fallback:', e.message);
+            }
             a.removeConduit(deleteConfirmTarget.item.id);
             setDeleteConfirmTarget(null);
             bump();
@@ -3345,7 +3375,7 @@ export default function ModelTab({ onNavigate = () => { } }) {
   useEffect(() => {
     getZones();
     getAllZoneRules();
-    modelApi.getConduits();
+    getConduits();
     getAssets();
   }, []);
   const prog = collectionProgress();
