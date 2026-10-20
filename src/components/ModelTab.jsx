@@ -75,7 +75,6 @@ import {
   postZoneRule,
   apiDeleteZoneRule,
   getAssets,
-  getConduits,
 } from '../api/client';
 import * as modelApi from '../api/modelApi';
 import { runApiDiagnostics } from '../api/apiDiagnostics';
@@ -1237,7 +1236,7 @@ function ZoneDetailModal({
         name: conName || 'Conduit',
         protocols: [],
       });
-      await getConduits();
+      await modelApi.getConduits();
     } catch (err) {
       console.warn('Backend createConduit fallback:', err.message);
     }
@@ -3349,7 +3348,7 @@ function SectionZones({ a, onNavigate }) {
           onConfirm={async () => {
             try {
               await modelApi.deleteConduit(deleteConfirmTarget.item.id);
-              await getConduits();
+              await modelApi.getConduits();
             } catch (e) {
               console.warn('Backend deleteConduit fallback:', e.message);
             }
@@ -3375,7 +3374,7 @@ export default function ModelTab({ onNavigate = () => { } }) {
   useEffect(() => {
     getZones();
     getAllZoneRules();
-    getConduits();
+    modelApi.getConduits();
     getAssets();
   }, []);
   const prog = collectionProgress();
