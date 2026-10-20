@@ -71,7 +71,6 @@ import {
   generateZoneModelDocx,
   getZones,
   getAllZoneRules,
-  getConduits,
   postZone,
   postZoneRule,
   apiDeleteZoneRule,
@@ -101,7 +100,7 @@ const SECTION_KEY = 'ot_model_section_v1';
 function SectionNav({ section, setSection, company, prog, zonesCount }) {
   const badges = {
     scope: company.name && company.industry && company.scale ? '✓' : null,
-    inputs: `${prog.pct}%`,
+    inputs: `${typeof prog?.pct === 'object' ? (prog.pct?.pct ?? 0) : (prog?.pct ?? 0)}%`,
     zones: zonesCount || null,
   };
   return (
@@ -804,11 +803,21 @@ function SectionInputs({ onNavigate }) {
   }, []);
 
   const localSplit = evidenceSplit();
-  const received = liveEvidence?.received || localSplit.received;
-  const missing = liveEvidence?.missing || localSplit.missing;
-  const prog = liveEvidence?.progress != null
-    ? { pct: liveEvidence.progress }
-    : collectionProgress();
+  const received = Array.isArray(liveEvidence?.received) ? liveEvidence.received : localSplit.received;
+  const missing = Array.isArray(liveEvidence?.missing) ? liveEvidence.missing : localSplit.missing;
+  const prog = (() => {
+    if (!liveEvidence?.progress) return collectionProgress();
+    if (typeof liveEvidence.progress === 'object') {
+      const p = liveEvidence.progress;
+      const rawPct = typeof p.pct === 'object' ? p.pct?.pct : p.pct;
+      return {
+        ...collectionProgress(),
+        ...p,
+        pct: typeof rawPct === 'number' ? rawPct : Number(rawPct) || 0,
+      };
+    }
+    return { ...collectionProgress(), pct: Number(liveEvidence.progress) || 0 };
+  })();
   const findings = liveFindings?.findings || evidenceFindings();
   const groups = liveGroups?.groups || evidenceGroupSummary();
 
@@ -914,7 +923,9 @@ function SectionInputs({ onNavigate }) {
 
         <Card className="kpmg-model-metric-card">
           <div className="kpmg-model-metric-title">Resolved</div>
-          <div className="kpmg-model-metric-val green">{prog.pct}%</div>
+          <div className="kpmg-model-metric-val green">
+            {typeof prog?.pct === 'object' ? (prog.pct?.pct ?? 0) : (prog?.pct ?? 0)}%
+          </div>
         </Card>
       </div>
 
@@ -1213,7 +1224,7 @@ function ZoneDetailModal({
         name: conName || 'Conduit',
         protocols: [],
       });
-      await getConduits();
+      await modelApi.getConduits();
     } catch (err) {
       console.warn('Backend createConduit fallback:', err.message);
     }
@@ -2243,7 +2254,7 @@ function ConnectionsFromLogsCard({ a, rules, onNavigate }) {
   const accept = async (s) => {
     try {
       await modelApi.acceptConduitSuggestion(s.key);
-      await getConduits();
+      await modelApi.getConduits();
       loadSuggestions();
     } catch (e) {
       console.warn('Backend acceptConduitSuggestion fallback:', e.message);
@@ -3334,7 +3345,7 @@ export default function ModelTab({ onNavigate = () => { } }) {
   useEffect(() => {
     getZones();
     getAllZoneRules();
-    getConduits();
+    modelApi.getConduits();
     getAssets();
   }, []);
   const prog = collectionProgress();
