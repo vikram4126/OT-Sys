@@ -190,9 +190,17 @@ export default function DashboardTab({ onNavigate }) {
   const overallCov = overallCoverage(srSeed, zones);
   const topAssets = topRiskAssets(assets, vulns, 5);
 
-  // Available zones for radar dropdown
-  const zoneOptions = zones.length > 0 ? zones.map(z => z.name) : ['Enterprise', 'Safety (SIS)', 'OT DMZ', 'Operations', 'Control', 'Test 1'];
-  const activeZoneObj = zones.find(z => z.name === selectedZone) || zones[0];
+  // Available zones for radar dropdown - sanitize HTML/XSS tags and eliminate duplicates
+  const rawZoneNames = zones.length > 0 ? zones.map(z => z.name) : ['Enterprise', 'Safety (SIS)', 'OT DMZ', 'Operations', 'Control', 'Test 1'];
+  const zoneOptions = Array.from(
+    new Set(
+      rawZoneNames
+        .filter(name => typeof name === 'string' && name.trim().length > 0 && !name.includes('<') && !name.includes('>'))
+        .map(name => name.trim())
+    )
+  );
+  const activeZoneName = zoneOptions.includes(selectedZone) ? selectedZone : (zoneOptions[0] || 'Safety (SIS)');
+  const activeZoneObj = zones.find(z => z.name === activeZoneName) || zones[0];
 
   const radarData = FRS.map(f => {
     const achieved = activeZoneObj ? slaForFR(srSeed, activeZoneObj, f.fr) : (f.fr === 'FR1' ? 4 : f.fr === 'FR3' ? 4 : f.fr === 'FR5' ? 4 : 2);
@@ -393,7 +401,7 @@ export default function DashboardTab({ onNavigate }) {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="kpmg-dash-zone-dropdown-btn"
               >
-                <span>{selectedZone}</span>
+                <span>{activeZoneName}</span>
                 <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
               </button>
 
@@ -406,7 +414,7 @@ export default function DashboardTab({ onNavigate }) {
                         setSelectedZone(z);
                         setDropdownOpen(false);
                       }}
-                      className={`kpmg-dash-zone-dropdown-item ${z === selectedZone ? 'active' : ''}`}
+                      className={`kpmg-dash-zone-dropdown-item ${z === activeZoneName ? 'active' : ''}`}
                     >
                       {z}
                     </div>

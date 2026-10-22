@@ -2390,27 +2390,41 @@ export function syncBackendData() {
         );
       }
 
-      // 2. Fetch live assets: GET /api/assets/
+      // 2. Fetch live assets: GET /api/assets/ (fetch all with limit: 500)
       try {
-        const res = await api.get('/assets/');
+        const res = await api.get('/assets/', { params: { limit: 500 } });
         const raw = res.data;
         const list = Array.isArray(raw) ? raw : raw?.items || raw?.assets || [];
         if (list.length > 0) {
-          const normalized = list.map((a) => ({
-            id: a.id || a.asset_id || a.name,
-            name: a.name || a.asset_name || a.hostname || 'Host',
-            zone: a.zone || a.zone_id || '',
-            zone_id: a.zone_id || a.zone || '',
-            ip: a.ip || a.ip_address || '',
-            deviceType: a.deviceType || a.device_type || a.type || 'Host',
-            level: a.level ?? a.purdue_level ?? 2,
-            purdue_level: a.purdue_level ?? a.level ?? 2,
-            confidence: a.confidence ?? 100,
-            vendor: a.vendor || '',
-            model: a.model || '',
-            firmware: a.firmware || '',
-            ...a,
-          }));
+          const normalized = list.map((a) => {
+            const assignedZone = a.zone_id || a.zone || '';
+            const assetName = a.name || a.asset_name || a.hostname || 'Host';
+            return {
+              ...a,
+              id: a.id || a.asset_id || assetName,
+              name: assetName,
+              hostname: a.hostname || assetName,
+              zone: assignedZone,
+              zone_id: assignedZone,
+              ip: a.ip || a.ip_address || '',
+              deviceType: a.device_type || a.deviceType || a.type || 'Host',
+              device_type: a.device_type || a.deviceType || a.type || 'Host',
+              level: a.purdue_level ?? a.level ?? 2,
+              purdue_level: a.purdue_level ?? a.level ?? 2,
+              confidence: a.confidence ?? 100,
+              vendor: a.vendor || '',
+              model: a.model || '',
+              os: a.os || '',
+              version: a.version || '',
+              firmware: a.firmware || '',
+              kind: a.kind || 'hardware',
+              internetFacing: !!(a.internet_facing ?? a.internetFacing),
+              internet_facing: !!(a.internet_facing ?? a.internetFacing),
+              shadow: !!a.shadow,
+              observed: !!a.observed,
+              source: a.source || 'register',
+            };
+          });
           writeAssets(normalized);
         }
       } catch (err) {
@@ -2714,19 +2728,26 @@ export function useAssessment() {
       .catch((err) => console.warn('PATCH /assets/ error:', err.message));
   }, []);
 
-  const addAsset = useCallback((zoneId, fields) => {
+  const addAsset = useCallback((zoneIdOrFields, maybeFields) => {
+    let zoneId = zoneIdOrFields;
+    let fields = maybeFields;
+    if (typeof zoneIdOrFields === 'object' && !maybeFields) {
+      zoneId = zoneIdOrFields.zone || zoneIdOrFields.zone_id || '';
+      fields = zoneIdOrFields;
+    }
     const f = typeof fields === 'string' ? { name: fields } : fields || {};
     const tempId = 'A-' + Date.now().toString(36);
+    const assetName = (f.name || f.hostname || 'New asset').trim();
     const entry = {
       id: tempId,
       zone: zoneId,
       zone_id: zoneId,
-      name: f.name || f.hostname || 'New asset',
-      hostname: f.hostname || f.name || 'New asset',
-      level: f.level ?? f.purdue_level ?? 3,
-      purdue_level: f.level ?? f.purdue_level ?? 3,
+      name: assetName,
+      hostname: f.hostname || assetName,
+      level: Number(f.level ?? f.purdue_level ?? 3),
+      purdue_level: Number(f.level ?? f.purdue_level ?? 3),
       confidence: f.confidence ?? 100,
-      source: 'confirmed',
+      source: f.source || 'confirmed',
       deviceType: f.deviceType || f.device_type || 'Host',
       device_type: f.device_type || f.deviceType || 'Host',
       kind: f.kind || 'hardware',
@@ -2736,6 +2757,8 @@ export function useAssessment() {
       os: f.os || '',
       version: f.version || '',
       host: f.host || '',
+      internetFacing: !!(f.internetFacing ?? f.internet_facing),
+      internet_facing: !!(f.internetFacing ?? f.internet_facing),
       uploadedToDir: true,
     };
     const next = [...readAssets(), entry];
@@ -2749,10 +2772,13 @@ export function useAssessment() {
         ip: entry.ip,
         vendor: entry.vendor,
         model: entry.model,
+        os: entry.os,
+        kind: entry.kind,
         device_type: entry.device_type,
         purdue_level: entry.purdue_level,
         confidence: entry.confidence,
-        zone_id: zoneId,
+        zone_id: zoneId || undefined,
+        internet_facing: entry.internet_facing,
       })
       .then((res) => {
         if (res.data?.id && res.data.id !== tempId) {
@@ -2782,6 +2808,9 @@ export function useAssessment() {
     if (patch.ip !== undefined) patchBody.ip = patch.ip;
     if (patch.vendor !== undefined) patchBody.vendor = patch.vendor;
     if (patch.model !== undefined) patchBody.model = patch.model;
+    if (patch.os !== undefined) patchBody.os = patch.os;
+    if (patch.version !== undefined) patchBody.version = patch.version;
+    if (patch.kind !== undefined) patchBody.kind = patch.kind;
     if (patch.device_type !== undefined || patch.deviceType !== undefined)
       patchBody.device_type = patch.device_type || patch.deviceType;
     if (patch.purdue_level !== undefined || patch.level !== undefined)
@@ -2789,8 +2818,8 @@ export function useAssessment() {
     if (patch.confidence !== undefined) patchBody.confidence = patch.confidence;
     if (patch.zone_id !== undefined || patch.zone !== undefined)
       patchBody.zone_id = patch.zone_id || patch.zone;
-    if (patch.internet_facing !== undefined)
-      patchBody.internet_facing = patch.internet_facing;
+    if (patch.internet_facing !== undefined || patch.internetFacing !== undefined)
+      patchBody.internet_facing = patch.internet_facing ?? patch.internetFacing;
 
     api
       .patch(`/assets/${assetId}`, patchBody)

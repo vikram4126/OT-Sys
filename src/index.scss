@@ -4868,7 +4868,26 @@ h3 {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   z-index: 10;
   min-width: 160px;
-  overflow: hidden;
+  max-width: 260px;
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Clean subtle scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #F9FAFB;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #D0D5DD;
+    border-radius: 4px;
+    &:hover {
+      background: #98A2B3;
+    }
+  }
 }
 
 .kpmg-dash-zone-dropdown-item {
