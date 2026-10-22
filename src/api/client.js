@@ -9,19 +9,38 @@ import {
 } from '../services/assessmentStore';
 import { getFreshBearerToken } from '../authConfig';
 
+// Helper to read a cookie by name
+export function getCookie(name) {
+  if (typeof document === 'undefined') return '';
+  const match = document.cookie.match(
+    new RegExp('(?:^|;\\s*)' + name + '=([^;]+)', 'i')
+  );
+  return match ? decodeURIComponent(match[1].trim()) : '';
+}
+
 // CSRF Token Management
-// Can be received from response body, response headers (x-csrftoken), or cookies
+// Double Submit Cookie pattern: Header value MUST match the server-issued cookie.
+// Live document.cookie has 1st priority; localStorage is only a fallback.
 export function getCsrfToken() {
+  // 1. Live document.cookie (Primary source of truth matching backend Set-Cookie)
+  try {
+    const cookieToken =
+      getCookie('csrftoken') ||
+      getCookie('csrf_token') ||
+      getCookie('fastapi-csrf-token') ||
+      getCookie('XSRF-TOKEN');
+    if (cookieToken) {
+      try {
+        localStorage.setItem('ot_csrf_token', cookieToken);
+      } catch { }
+      return cookieToken;
+    }
+  } catch { }
+
+  // 2. Fallback to localStorage if cookie is inaccessible
   try {
     const stored = localStorage.getItem('ot_csrf_token');
     if (stored) return stored;
-  } catch { }
-
-  try {
-    const match = document.cookie.match(
-      /(?:csrftoken|csrf_token|XSRF-TOKEN)=([^;]+)/i
-    );
-    if (match) return decodeURIComponent(match[1]);
   } catch { }
 
   return '';
@@ -61,9 +80,15 @@ api.interceptors.request.use(async (config) => {
   // 2. Attach CSRF token on mutating methods (POST, PUT, PATCH, DELETE)
   const method = (config.method || '').toLowerCase();
   if (['post', 'put', 'patch', 'delete'].includes(method)) {
-    const csrf = getCsrfToken();
+    let csrf = getCsrfToken();
+    if (!csrf) {
+      // Auto-fetch fresh token via /health if none present
+      try {
+        csrf = await initCsrfToken();
+      } catch { }
+    }
     if (csrf) {
-      // FastAPI expects lowercase 'x-csrftoken'
+      // Backend CORS whitelist only allows lowercase 'x-csrftoken' without hyphens
       config.headers['x-csrftoken'] = csrf;
     }
   }
@@ -98,7 +123,24 @@ api.interceptors.response.use(
     return res;
   },
   (err) => {
-    // Capture CSRF token even on error response if present
+    // If CSRF validation failed (403), remove stale token so next request re-fetches
+    const detail =
+      err.response?.data?.detail ||
+      err.response?.data?.message ||
+      err.message ||
+      '';
+    const isCsrfError =
+      err.response?.status === 403 &&
+      typeof detail === 'string' &&
+      detail.toLowerCase().includes('csrf');
+
+    if (isCsrfError) {
+      try {
+        localStorage.removeItem('ot_csrf_token');
+      } catch { }
+    }
+
+    // Capture fresh CSRF token even on error response if present
     try {
       const headerToken =
         err.response?.headers?.['x-csrftoken'] ||
@@ -107,15 +149,11 @@ api.interceptors.response.use(
     } catch { }
 
     const status = err.response?.status;
-    const rawDetail =
-      err.response?.data?.detail ||
-      err.response?.data?.message ||
-      err.message ||
-      'Request failed';
-    const detail = Array.isArray(rawDetail)
+    const rawDetail = detail || 'Request failed';
+    const formattedDetail = Array.isArray(rawDetail)
       ? rawDetail.map((d) => d.msg || JSON.stringify(d)).join('; ')
       : rawDetail;
-    const error = new Error(detail);
+    const error = new Error(formattedDetail);
     error.status = status;
     error.response = err.response;
     return Promise.reject(error);
@@ -127,8 +165,16 @@ api.interceptors.response.use(
  */
 export async function initCsrfToken() {
   try {
-    const existing = getCsrfToken();
-    if (existing) return existing;
+    // Check if live cookie already exists
+    const liveCookie =
+      getCookie('csrftoken') ||
+      getCookie('csrf_token') ||
+      getCookie('fastapi-csrf-token') ||
+      getCookie('XSRF-TOKEN');
+    if (liveCookie) {
+      setCsrfToken(liveCookie);
+      return liveCookie;
+    }
 
     // Ping health endpoint to trigger initial Set-Cookie: csrftoken
     const res = await api.get('/health');

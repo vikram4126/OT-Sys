@@ -1216,8 +1216,10 @@ function ZoneDetailModal({
 
   const [conError, setConError] = useState('');
 
+  const [isAddingCon, setIsAddingCon] = useState(false);
+
   const addCon = async () => {
-    if (!conOther) return;
+    if (!conOther || isAddingCon) return;
     const [from, to] =
       conDir === 'out' ? [zone.id, conOther] : [conOther, zone.id];
     const exists = conduits.some(
@@ -1229,39 +1231,24 @@ function ZoneDetailModal({
       return;
     }
     setConError('');
+    setIsAddingCon(true);
     try {
-      await modelApi.createConduit({
-        from_zone_id: from,
-        to_zone_id: to,
-        name: conName || 'Conduit',
-        protocols: [],
-      });
-      await modelApi.getConduits();
-    } catch (err) {
-      console.warn('Backend createConduit fallback:', err.message);
+      // a.addConduit manages state and makes a single POST /api/conduits/ call
+      a.addConduit(from, to, conName || 'Conduit');
+      setConOther('');
+      setConName('');
+      bump();
+    } finally {
+      setIsAddingCon(false);
     }
-    a.addConduit(from, to, conName || 'Conduit');
-    setConOther('');
-    setConName('');
-    bump();
   };
 
-  const saveZone = async () => {
-    try {
-      await modelApi.patchZone(zone.id, {
-        name: zname.trim(),
-        target_sl: Number(tsl),
-        desc: desc.trim(),
-        air_gapped: !!zone.airGapped,
-      });
-      await getZones();
-    } catch (e) {
-      console.warn('Backend patchZone fallback:', e.message);
-    }
+  const saveZone = () => {
     a.updateZone(zone.id, {
       name: zname.trim(),
       slT: Number(tsl),
       desc: desc.trim(),
+      air_gapped: !!zone.airGapped,
     });
     onClose();
   };
@@ -1481,10 +1468,10 @@ function ZoneDetailModal({
             <Btn
               variant="outline"
               onClick={addCon}
-              disabled={!conOther}
+              disabled={!conOther || isAddingCon}
               className="kpmg-model-btn-add-conduit"
             >
-              Add Conduit
+              {isAddingCon ? 'Adding...' : 'Add Conduit'}
             </Btn>
           </div>
           {conError && (
@@ -1730,31 +1717,12 @@ function UnassignedAssetsCard({ assets, rules, a, bump }) {
         }))
       : assets.filter((x) => !x.zone);
 
-  const assignTo = async (assetId, zoneId) => {
-    try {
-      await modelApi.assignAssetZone(assetId, zoneId);
-      loadUnassigned();
-    } catch (e) {
-      console.warn('Backend assignAssetZone fallback:', e.message);
-    }
+  const assignTo = (assetId, zoneId) => {
     setManualAssignment(assetId, zoneId);
     a.updateAsset(assetId, { zone: zoneId });
-    getAssets();
     bump();
   };
-  const addAsset = async (f) => {
-    try {
-      await modelApi.createAsset({
-        hostname: f.name.trim(),
-        kind: f.kind || 'device',
-        device_type: f.deviceType,
-        ip: f.ip,
-      });
-      getAssets();
-      loadUnassigned();
-    } catch (e) {
-      console.warn('Backend createAsset fallback:', e.message);
-    }
+  const addAsset = (f) => {
     a.addAsset('', {
       name: f.name.trim(),
       ip: f.ip,
@@ -2275,14 +2243,18 @@ function ConnectionsFromLogsCard({ a, rules, onNavigate }) {
     bump();
   };
   const accept = async (s) => {
+    let acceptedRemotely = false;
     try {
       await modelApi.acceptConduitSuggestion(s.key);
       await modelApi.getConduits();
       loadSuggestions();
+      acceptedRemotely = true;
     } catch (e) {
       console.warn('Backend acceptConduitSuggestion fallback:', e.message);
     }
-    a.addConduit(s.from, s.to, 'Suggested from parsed logs');
+    if (!acceptedRemotely) {
+      a.addConduit(s.from, s.to, 'Suggested from parsed logs');
+    }
     a.addEvidence(
       s.from,
       'FR5',
@@ -2420,13 +2392,17 @@ function InternetFacingSuggestionsCard({ a, bump }) {
   const zName = (id) => (a.zones.find((z) => z.id === id) || {}).name || id;
 
   const confirm = async (asset) => {
+    let confirmedRemotely = false;
     try {
       await modelApi.confirmInternetFacingSuggestion(asset.id);
       loadSuggestions();
+      confirmedRemotely = true;
     } catch (e) {
       console.warn('Backend confirmInternetFacingSuggestion fallback:', e.message);
     }
-    a.updateAsset(asset.id, { internetFacing: true });
+    if (!confirmedRemotely) {
+      a.updateAsset(asset.id, { internetFacing: true });
+    }
     bump();
   };
 
@@ -2609,6 +2585,22 @@ function SectionZones({ a, onNavigate }) {
   const [deleteConfirmTarget, setDeleteConfirmTarget] = useState(null);
   const [pendingSlT, setPendingSlT] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isSavingZone, setIsSavingZone] = useState(false);
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = (message, type = 'info', duration = 6000) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    if (duration > 0) {
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, duration);
+    }
+  };
+
+  const removeToast = (id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
   const [zname, setZname] = useState('');
   const [tsl, setTsl] = useState(2);
   const [zdesc, setZdesc] = useState('');
@@ -2622,27 +2614,10 @@ function SectionZones({ a, onNavigate }) {
 
   const [addingAsset, setAddingAsset] = useState(false);
 
-  useEffect(() => {
-    runApiDiagnostics().catch(() => { });
-    modelApi
-      .getModelZones()
-      .then((remoteZones) => {
-        if (Array.isArray(remoteZones) && remoteZones.length > 0) {
-          // sync with assessment store if remote zones returned
-        }
-      })
-      .catch(() => { });
-  }, []);
-
-  const saveChanges = async () => {
+  const saveChanges = () => {
     for (const [id, slT] of Object.entries(pendingSlT)) {
       const zone = a.zones.find((z) => z.id === id);
       if (zone && zone.slT !== slT) {
-        try {
-          await modelApi.patchModelZone(id, { sl_t: slT, slT });
-        } catch (err) {
-          console.warn('Backend patchModelZone fallback:', err.message);
-        }
         a.updateZone(id, { slT });
       }
     }
@@ -2669,44 +2644,68 @@ function SectionZones({ a, onNavigate }) {
   };
 
   const createZone = async () => {
-    if (!zname.trim()) return;
+    if (!zname.trim() || isSavingZone) return;
     const pending = (subInput || '').trim();
     const finalSubnets =
       pending && !zsubnets.includes(pending)
         ? [...zsubnets, pending]
         : zsubnets;
+
+    setIsSavingZone(true);
+    let zoneCreated = false;
+    const createdZoneName = zname.trim();
+
     try {
       const newZone = (
         await postZone({
-          name: zname.trim(),
+          name: createdZoneName,
           slT: Number(tsl),
           desc: zdesc.trim(),
           air_gapped: airGapped,
         })
       ).data;
+
       if (newZone && newZone.id) {
+        zoneCreated = true;
+        const subnetErrors = [];
+
         for (const cidr of finalSubnets) {
           try {
             await postZoneRule(newZone.id, { cidr, name: '' });
           } catch (e) {
-            alert(`${cidr}: ${e.message || 'not added'}`);
+            subnetErrors.push(`${cidr}: ${e.message || 'Subnet conflict'}`);
           }
+        }
+
+        if (subnetErrors.length > 0) {
+          showToast(
+            `Zone "${createdZoneName}" created, but subnet failed: ${subnetErrors.join(' | ')}`,
+            'error',
+            8000
+          );
+        } else {
+          showToast(`Zone "${createdZoneName}" created successfully!`, 'success', 4000);
         }
       }
     } catch (e) {
-      alert(e.message || 'Save failed');
+      showToast(e.message || 'Failed to create zone', 'error', 6000);
+    } finally {
+      setIsSavingZone(false);
     }
-    await getZones();
-    await getAllZoneRules();
-    getAssets();
-    setZname('');
-    setZdesc('');
-    setZsubnets([]);
-    setSubInput('');
-    setAddingSub(false);
-    setAirGapped(false);
-    setShowCreateModal(false);
-    bump();
+
+    if (zoneCreated) {
+      await getZones();
+      await getAllZoneRules();
+      getAssets();
+      setZname('');
+      setZdesc('');
+      setZsubnets([]);
+      setSubInput('');
+      setAddingSub(false);
+      setAirGapped(false);
+      setShowCreateModal(false);
+      bump();
+    }
   };
 
   const deleteZone = (zone) => {
@@ -2718,10 +2717,7 @@ function SectionZones({ a, onNavigate }) {
   const internetSuggestions = suggestInternetFacingAssets(a.assets);
   const zName = (id) => (a.zones.find((z) => z.id === id) || {}).name || id;
 
-  const assignTo = async (assetId, zoneId) => {
-    try {
-      await modelApi.overrideAssetZone(zoneId, assetId, { method: 'manual' });
-    } catch { }
+  const assignTo = (assetId, zoneId) => {
     setManualAssignment(assetId, zoneId);
     a.updateAsset(assetId, { zone: zoneId });
     bump();
@@ -3122,16 +3118,25 @@ function SectionZones({ a, onNavigate }) {
               <Btn
                 variant="outline"
                 onClick={() => setShowCreateModal(false)}
+                disabled={isSavingZone}
                 className="kpmg-btn-sm-cancel"
+                style={{ opacity: isSavingZone ? 0.5 : 1 }}
               >
                 Cancel
               </Btn>
               <Btn
                 onClick={createZone}
-                disabled={!zname.trim()}
+                disabled={!zname.trim() || isSavingZone}
                 className="kpmg-model-btn-save-blue"
               >
-                Save
+                {isSavingZone ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <span className="kpmg-spinner-sm" />
+                    Saving zone...
+                  </span>
+                ) : (
+                  'Save'
+                )}
               </Btn>
             </div>
           }
@@ -3319,13 +3324,10 @@ function SectionZones({ a, onNavigate }) {
             }`}
           warningMessage="This action cannot be undone."
           onClose={() => setDeleteConfirmTarget(null)}
-          onConfirm={async () => {
+          onConfirm={() => {
             const zId = deleteConfirmTarget.item.id;
-            try {
-              await modelApi.deleteModelZone(zId);
-            } catch (e) {
-              console.warn('Backend deleteModelZone fallback:', e.message);
-            }
+            const zName = deleteConfirmTarget.item.name || zId;
+            // a.removeZone manages local state and performs a single DELETE /api/zones/{id} call
             a.removeZone(zId);
             saveZoneRules(getZoneRules().filter((r) => r.zone !== zId));
             if (openZone && openZone.id === zId) {
@@ -3333,6 +3335,7 @@ function SectionZones({ a, onNavigate }) {
             }
             setDeleteConfirmTarget(null);
             bump();
+            showToast(`Zone "${zName}" deleted successfully`, 'success', 4000);
           }}
         />
       )}
@@ -3345,18 +3348,96 @@ function SectionZones({ a, onNavigate }) {
             })?`}
           warningMessage="This action cannot be undone."
           onClose={() => setDeleteConfirmTarget(null)}
-          onConfirm={async () => {
-            try {
-              await modelApi.deleteConduit(deleteConfirmTarget.item.id);
-              await modelApi.getConduits();
-            } catch (e) {
-              console.warn('Backend deleteConduit fallback:', e.message);
-            }
-            a.removeConduit(deleteConfirmTarget.item.id);
+          onConfirm={() => {
+            const cId = deleteConfirmTarget.item.id;
+            const cName = deleteConfirmTarget.item.name || 'Conduit';
+            // a.removeConduit manages local state and performs a single DELETE /api/conduits/{id} call
+            a.removeConduit(cId);
             setDeleteConfirmTarget(null);
             bump();
+            showToast(`Conduit "${cName}" deleted`, 'success', 4000);
           }}
         />
+      )}
+
+      {/* Toast Notification Container */}
+      {toasts.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 24,
+            right: 24,
+            zIndex: 100000,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+            maxWidth: 440,
+            pointerEvents: 'none',
+          }}
+        >
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              style={{
+                pointerEvents: 'auto',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12,
+                padding: '12px 16px',
+                borderRadius: 8,
+                boxShadow:
+                  '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                background:
+                  t.type === 'error'
+                    ? '#FEF2F2'
+                    : t.type === 'success'
+                    ? '#F0FDF4'
+                    : '#EFF6FF',
+                border: `1px solid ${
+                  t.type === 'error'
+                    ? '#FCA5A5'
+                    : t.type === 'success'
+                    ? '#86EFAC'
+                    : '#93C5FD'
+                }`,
+                color:
+                  t.type === 'error'
+                    ? '#991B1B'
+                    : t.type === 'success'
+                    ? '#166534'
+                    : '#1E40AF',
+                fontSize: 13,
+                lineHeight: 1.45,
+                animation: 'kpmgSlideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
+              <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>
+                {t.type === 'error' ? '⚠️' : t.type === 'success' ? '✅' : 'ℹ️'}
+              </span>
+              <div style={{ flex: 1, wordBreak: 'break-word', fontWeight: 500 }}>
+                {t.message}
+              </div>
+              <button
+                onClick={() => removeToast(t.id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'inherit',
+                  opacity: 0.6,
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  lineHeight: 1,
+                  padding: 0,
+                  marginLeft: 4,
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.6')}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
