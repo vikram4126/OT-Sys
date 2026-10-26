@@ -181,6 +181,9 @@ export async function initCsrfToken() {
     const token =
       res.headers?.['x-csrftoken'] ||
       res.headers?.['x-csrf-token'] ||
+      res.data?.csrf_token ||
+      res.data?.csrftoken ||
+      res.data?.csrf ||
       getCsrfToken();
     if (token) setCsrfToken(token);
     return token;

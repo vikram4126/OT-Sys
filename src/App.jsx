@@ -128,7 +128,7 @@ export default function App() {
         addLog(LOG_TYPES.LOGIN, `User session restored: ${u.email}`);
         syncBackendData();
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   // Only check backend API health when user is actively logged in
@@ -284,26 +284,6 @@ export default function App() {
               <h1 className="kpmg-title">
                 {tab === 'dashboard' ? (company?.name || 'Acme Utilities') : TITLES[tab]}
               </h1>
-              {health && (
-                <div
-                  title={`Status: ${health.status} · Features: ${health.features?.join(', ')} · Worker: ${health.enrichment_worker?.running ? 'Running' : 'Stopped'}`}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '3px 10px',
-                    background: '#ECFDF3',
-                    border: '1px solid #ABEFC6',
-                    borderRadius: 16,
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: '#027A48'
-                  }}
-                >
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#12B76A', boxShadow: '0 0 0 2px rgba(18, 183, 106, 0.2)' }} />
-                  <span>API v{health.version || '1.0.0'} ({health.features?.length || 17} features)</span>
-                </div>
-              )}
             </div>
             {headerActions}
           </div>

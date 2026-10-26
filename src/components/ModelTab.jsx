@@ -255,19 +255,61 @@ function SectionScope({ company, setCompany, onSaved }) {
     scale: company.scale || '',
     site: company.primarySite || '',
   });
-  const drop = getDrop();
-  const [tools, setTools] = useState(drop.tooling || []);
-  const [link, setLink] = useState(drop.link || '');
+  const [dropState, setDropState] = useState(() => getDrop());
+  const [tools, setTools] = useState(dropState.tooling || []);
+  const [link, setLink] = useState(dropState.link || '');
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
 
+  // Load Scope from backend API: GET /api/model/scope/
   useEffect(() => {
-    setF({
-      name: company.name || '',
-      industry: company.industry || '',
-      scale: company.scale || '',
-      site: company.primarySite || '',
-    });
+    let active = true;
+    modelApi
+      .getModelScope()
+      .then((data) => {
+        if (!active || !data) return;
+        const loaded = {
+          name: data.name || '',
+          industry: data.industry || '',
+          scale: data.size || data.scale || '',
+          site: data.site || data.primarySite || '',
+        };
+        setF(loaded);
+        if (Array.isArray(data.tooling)) {
+          setTools(data.tooling);
+        }
+        if (data.drop_url != null) {
+          setLink(data.drop_url);
+        }
+        // Keep existing store in sync for Dashboard, Header and Reports
+        setCompany({
+          name: loaded.name,
+          industry: loaded.industry,
+          scale: loaded.scale,
+          size: loaded.scale,
+          primarySite: loaded.site,
+        });
+        setDrop({
+          ...getDrop(),
+          tooling: Array.isArray(data.tooling) ? data.tooling : [],
+          link: data.drop_url || '',
+        });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setF((prev) => ({
+      name: prev.name || company.name || '',
+      industry: prev.industry || company.industry || '',
+      scale: prev.scale || company.scale || '',
+      site: prev.site || company.primarySite || '',
+    }));
   }, [company]);
 
   const toggleTool = (id) =>
@@ -281,31 +323,84 @@ function SectionScope({ company, setCompany, onSaved }) {
 
   const ok = f.name && f.industry && f.scale;
   const save = async () => {
-    const payload = {
+    setSaving(true);
+    setSaveError('');
+
+    // Rule: "tooling takes ot, it or none, though none can't be combined with the others"
+    let cleanTools = tools;
+    if (cleanTools.includes('none')) {
+      cleanTools = ['none'];
+    }
+
+    const cleanLink = link
+      ? link.startsWith('http')
+        ? link
+        : `https://${link}`
+      : '';
+
+    // Backend payload exactly matching Ali's specification:
+    // PUT /api/model/scope/
+    const backendPayload = {
+      name: f.name || '',
+      industry: f.industry || '',
+      site: f.site || '',
+      size: (f.scale || '').toLowerCase(),
+      tooling: cleanTools,
+      drop_url: cleanLink,
+    };
+
+    try {
+      await modelApi.saveModelScope(backendPayload);
+    } catch (err) {
+      console.warn('Scope API save error:', err);
+      const detail = err.response?.data?.detail;
+      const msg =
+        typeof detail === 'string'
+          ? detail
+          : Array.isArray(detail)
+          ? detail.map((d) => d.msg || d).join(', ')
+          : err.message || 'Error saving scope';
+      if (msg) setSaveError(msg);
+    }
+
+    // Preserve existing app flow: updates assessmentStore so other tabs remain in sync
+    const storePayload = {
       name: f.name,
       industry: f.industry,
       scale: f.scale,
       size: f.scale,
       primarySite: f.site,
-      tooling: tools,
-      link: link,
+      tooling: cleanTools,
+      link: cleanLink,
     };
-    setCompany(payload);
-    setDrop({ ...getDrop(), tooling: tools, link });
+    setCompany(storePayload);
+    setDrop({ ...getDrop(), tooling: cleanTools, link: cleanLink });
+    setSaving(false);
     onSaved();
   };
+
+  // Uses GET /api/model/evidence/folder-plan/ per backend developer instruction
   const copyPlan = async () => {
     try {
-      const planRes = await modelApi.getEvidencePlan();
+      const planRes = await modelApi.getFolderPlan();
       const txt =
         typeof planRes === 'string'
           ? planRes
           : planRes?.plan || planRes?.text || folderPlanText({ name: f.name });
       if (navigator.clipboard) await navigator.clipboard.writeText(txt);
     } catch {
-      const txt = folderPlanText({ name: f.name });
-      if (navigator.clipboard)
-        navigator.clipboard.writeText(txt).catch(() => { });
+      try {
+        const planRes = await modelApi.getEvidencePlan();
+        const txt =
+          typeof planRes === 'string'
+            ? planRes
+            : planRes?.plan || planRes?.text || folderPlanText({ name: f.name });
+        if (navigator.clipboard) await navigator.clipboard.writeText(txt);
+      } catch {
+        const txt = folderPlanText({ name: f.name });
+        if (navigator.clipboard)
+          navigator.clipboard.writeText(txt).catch(() => {});
+      }
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 2200);
@@ -463,11 +558,10 @@ function SectionScope({ company, setCompany, onSaved }) {
                 <span className="kpmg-model-url-prefix">https://</span>
                 <Input
                   value={link.replace(/^https?:\/\//, '')}
-                  onChange={(e) =>
-                    setLink(
-                      `https://${e.target.value.replace(/^https?:\/\//, '')}`
-                    )
-                  }
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/^https?:\/\//, '').trim();
+                    setLink(raw ? `https://${raw}` : '');
+                  }}
                   placeholder="www.example.com"
                   className="kpmg-model-url-input"
                 />
@@ -477,14 +571,20 @@ function SectionScope({ company, setCompany, onSaved }) {
         </Card>
       </div>
 
+      {saveError && (
+        <div style={{ color: '#d92d20', fontSize: '13px', margin: '8px 24px', fontWeight: 500 }}>
+          {saveError}
+        </div>
+      )}
+
       {/* Sticky Bottom Save Bar */}
       <div className="kpmg-model-save-bar">
         <Btn
           onClick={save}
-          disabled={!ok}
+          disabled={!ok || saving}
           className="kpmg-model-btn-save-primary"
         >
-          Save
+          {saving ? 'Saving…' : 'Save'}
         </Btn>
       </div>
     </div>

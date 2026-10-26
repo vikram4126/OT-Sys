@@ -22,6 +22,10 @@ export const getModelScope = () =>
 export const saveModelScope = (data) =>
   api
     .put('/model/scope/', data)
+    .then((r) => r.data);
+export const getFolderPlan = () =>
+  api
+    .get('/model/evidence/folder-plan/')
     .then((r) => r.data)
     .catch(() => null);
 export const getModelBaseline = () =>

@@ -2872,20 +2872,11 @@ export function useAssessment() {
         status: status,
         evidence_refs: [],
       })
-      .catch(() => {
-        // Fallback in case backend uses POST /compliance/status
-        api
-          .post('/compliance/status', {
-            zone_id: zoneId,
-            sr_id: itemId,
-            status: status,
-          })
-          .catch((err) =>
-            console.warn(
-              'Compliance status sync to backend failed:',
-              err.message
-            )
-          );
+      .catch((err) => {
+        console.warn(
+          `PUT /compliance/status/${zoneId}/${itemId} error:`,
+          err.response?.data || err.message
+        );
       });
   }, []);
 

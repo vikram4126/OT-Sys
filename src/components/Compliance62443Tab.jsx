@@ -283,13 +283,17 @@ function ReqModal({ zone, item, status, docs, srSeed, meta, onClose, onSetStatus
       maxWidth={1120}
       footer={(() => {
           const isSaveDisabled = Object.entries(actions).some(([, v]) => !v.note || !v.note.trim());
+          const handleSave = () => {
+            onSetStatus(zone.id, item.id, derived);
+            onClose();
+          };
           return (
             <div className="kpmg-modal-footer-right">
               <Btn variant="outline" onClick={onClose} className="kpmg-btn-modal-cancel-btn">
                 Cancel
               </Btn>
               <Btn
-                onClick={onClose}
+                onClick={handleSave}
                 disabled={isSaveDisabled}
                 className="kpmg-btn-primary-blue"
                 style={{
