@@ -98,7 +98,7 @@ function SectorBenchmarkSection({ industry, srSeed, zones, assets = [], vulns = 
       {/* Header Top Row with full-bleed end-to-end border */}
       <div className="kpmg-benchmark-header">
         <div className="kpmg-flex-1">
-          <div className="kpmg-dash-sec-title">
+          <div className="kpmg-dash-sec-title mock-section-header">
             Sector benchmark - {view === 'compliance' ? 'Compliance' : 'Risk'}
           </div>
           <div className="kpmg-dash-sec-sub">
@@ -235,7 +235,7 @@ export default function DashboardTab({ onNavigate }) {
           <span className="kpmg-dash-kpi-badge-blue">
             {totalAssetsCount || 21} assets
           </span>
-          <div className="kpmg-dash-kpi-val-blue">78%</div>
+          <div className="kpmg-dash-kpi-val-blue mock-data">78%</div>
           <div className="kpmg-dash-kpi-title">Asset visibility</div>
           <div className="kpmg-dash-kpi-sub">Tap to review in Assets</div>
         </div>
@@ -262,7 +262,7 @@ export default function DashboardTab({ onNavigate }) {
           onClick={() => onNavigate && onNavigate('compliance')}
           className="kpmg-dash-kpi-card"
         >
-          <div className="kpmg-dash-kpi-val-red">
+          <div className="kpmg-dash-kpi-val-red mock-data">
             {overallCov || 37}%
           </div>
           <div className="kpmg-dash-kpi-title">62443 Coverage</div>
@@ -274,7 +274,7 @@ export default function DashboardTab({ onNavigate }) {
           onClick={() => onNavigate && onNavigate('risk')}
           className="kpmg-dash-kpi-card"
         >
-          <div className="kpmg-dash-kpi-val-red">50%</div>
+          <div className="kpmg-dash-kpi-val-red mock-data">50%</div>
           <div className="kpmg-dash-kpi-title">Overall risk score</div>
           <div className="kpmg-dash-kpi-sub">Tap to review in Risk Landscape</div>
         </div>
@@ -364,7 +364,7 @@ export default function DashboardTab({ onNavigate }) {
       <div className="kpmg-dash-two-col-grid">
         {/* Top risk assets card */}
         <div className="kpmg-dash-card-box">
-          <div className="kpmg-dash-box-title">Top risk assets</div>
+          <div className="kpmg-dash-box-title mock-section-header">Top risk assets</div>
           <div className="kpmg-dash-box-sub">
             Highest-risk assets by mapped vulnerability score
           </div>
@@ -389,7 +389,7 @@ export default function DashboardTab({ onNavigate }) {
         <div className="kpmg-dash-card-box kpmg-pos-relative">
           <div className="kpmg-dash-radar-head">
             <div>
-              <div className="kpmg-dash-box-title">Security level - target vs achieved</div>
+              <div className="kpmg-dash-box-title mock-section-header">Security level - target vs achieved</div>
               <div className="kpmg-dash-box-sub-no-mb">
                 SL-T target vs achieved SL-A across the 7 FRs
               </div>

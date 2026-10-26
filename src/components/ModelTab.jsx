@@ -1055,7 +1055,7 @@ function SectionInputs({ onNavigate }) {
 
       {/* Text here section with Retry rows */}
       <div className="kpmg-model-text-here-section">
-        <div className="kpmg-model-text-here-title">Text here</div>
+        <div className="kpmg-model-text-here-title mock-section-header">Text here (Figma placeholder)</div>
         <div className="kpmg-model-retry-card">
           {[0, 1, 2, 3].map((idx) => (
             <div key={idx} className="kpmg-model-retry-row">
@@ -1076,7 +1076,7 @@ function SectionInputs({ onNavigate }) {
                     <line x1="12" y1="8" x2="12.01" y2="8" />
                   </svg>
                 </span>
-                <p className="kpmg-model-retry-text">
+                <p className="kpmg-model-retry-text mock-data">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
                   vulputate urna eu massa rhoncus, in tincidunt massa placerat.
                 </p>

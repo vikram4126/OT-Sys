@@ -12895,3 +12895,57 @@ button.ds-btn-success,
   color: #475467;
   line-height: 1.5;
 }
+
+/* ── Mock / Hardcoded Data Highlighter ──────────────────────────────── */
+.highlight-mock-active {
+  .mock-data {
+    background-color: rgba(254, 240, 138, 0.85) !important;
+    box-shadow: 0 0 0 2px #EAB308 !important;
+    border-radius: 4px;
+    padding: 1px 6px;
+    position: relative;
+    display: inline-block;
+    transition: all 0.2s ease-in-out;
+
+    &:hover::after {
+      content: "Static / Mock";
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #713F12;
+      color: #FEF08A;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+  }
+
+  .mock-section-header {
+    background-color: rgba(254, 240, 138, 0.35) !important;
+    border-left: 4px solid #CA8A04 !important;
+    padding-left: 8px !important;
+    border-radius: 2px;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+
+    &::after {
+      content: "⚠️ Static / Mock Section";
+      margin-left: 8px;
+      font-size: 10px;
+      font-weight: 600;
+      background: #FEF08A;
+      color: #713F12;
+      border: 1px solid #EAB308;
+      padding: 2px 7px;
+      border-radius: 4px;
+      vertical-align: middle;
+      display: inline-block;
+    }
+  }
+}

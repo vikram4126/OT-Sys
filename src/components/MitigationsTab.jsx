@@ -966,7 +966,7 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
     <div className="kpmg-mitig-container">
 
       {/* Underline Tab Navigation */}
-      <div className="kpmg-mitig-tabs">
+      <div className="kpmg-mitig-tabs mock-section-header">
         {GROUPS.map((g) => {
           const active = activeGroup === g.id;
           return (
@@ -988,7 +988,7 @@ export default function MitigationsTab({ onNavigate, setHeaderActions }) {
         </div>
         <div className="kpmg-mitig-header-right">
           {groupSteps.length > 0 && (
-            <span className="kpmg-mitig-done-count">
+            <span className="kpmg-mitig-done-count mock-data">
               {doneInGroup}/{groupSteps.length} done
             </span>
           )}

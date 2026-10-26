@@ -343,7 +343,7 @@ function ReqModal({ zone, item, status, docs, srSeed, meta, onClose, onSetStatus
           </div>
 
           {/* PDF Viewer Mock Container */}
-          <div className="kpmg-comp-pdf-viewer">
+          <div className="kpmg-comp-pdf-viewer mock-data">
             <div className="kpmg-comp-pdf-page">
               <p className="kpmg-mb-10 kpmg-fw-600">DOCUMENT EVIDENCE REF: {item.id} - COMPLIANCE DEMONSTRATION</p>
               <p className="kpmg-mb-10">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas porttitor congue massa. Fusce posuere, magna sed pulvinar ultricies, purus lectus malesuada libero, sit amet commodo magna eros quis urna. Nunc viverra imperdiet enim. Fusce est. Vivamus a tellus. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin pharetra nonummy pede. Mauris et orci.</p>
@@ -500,7 +500,7 @@ function ReqModal({ zone, item, status, docs, srSeed, meta, onClose, onSetStatus
 
           {/* Consultant Actions */}
           <div>
-            <div className="kpmg-comp-field-label">Consultant actions</div>
+            <div className="kpmg-comp-field-label mock-section-header">Consultant actions (localStorage)</div>
             <div className="kpmg-comp-actions-tag-wrap">
               {ACTION_DEFS.map(([kind, label]) => {
                 const on = !!actions[kind];

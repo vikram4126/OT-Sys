@@ -65,22 +65,22 @@ export default function LogsTab() {
       {/* KPI Row */}
       <div className="kpmg-kpi-grid-4">
         <Card className="kpmg-kpi-card">
-          <div className="kpmg-kpi-number kpmg-kpi-num-blue">{counts.total}</div>
+          <div className="kpmg-kpi-number kpmg-kpi-num-blue mock-data">{counts.total}</div>
           <div className="kpmg-kpi-label">Total Changes</div>
           <div className="kpmg-kpi-subtext">All recorded change events</div>
         </Card>
         <Card className="kpmg-kpi-card">
-          <div className="kpmg-kpi-number kpmg-kpi-num-dark">{counts.users < 10 ? `0${counts.users}` : counts.users}</div>
+          <div className="kpmg-kpi-number kpmg-kpi-num-dark mock-data">{counts.users < 10 ? `0${counts.users}` : counts.users}</div>
           <div className="kpmg-kpi-label">Users with Access</div>
           <div className="kpmg-kpi-subtext">Active accounts on this assessment</div>
         </Card>
         <Card className="kpmg-kpi-card">
-          <div className="kpmg-kpi-number kpmg-kpi-num-red">{counts.warning < 10 ? `0${counts.warning}` : counts.warning}</div>
+          <div className="kpmg-kpi-number kpmg-kpi-num-red mock-data">{counts.warning < 10 ? `0${counts.warning}` : counts.warning}</div>
           <div className="kpmg-kpi-label">Warnings</div>
           <div className="kpmg-kpi-subtext">Overrides and manual entries</div>
         </Card>
         <Card className="kpmg-kpi-card">
-          <div className="kpmg-kpi-number kpmg-kpi-num-dark">{counts.critical < 10 ? `0${counts.critical}` : counts.critical}</div>
+          <div className="kpmg-kpi-number kpmg-kpi-num-dark mock-data">{counts.critical < 10 ? `0${counts.critical}` : counts.critical}</div>
           <div className="kpmg-kpi-label">Critical Changes</div>
           <div className="kpmg-kpi-subtext">Deletions and high-risk edits</div>
         </Card>
@@ -105,7 +105,7 @@ export default function LogsTab() {
 
       {/* Log Table Card */}
       <Card className="kpmg-inventory-card">
-        <div className="kpmg-table-header kpmg-table-grid-audit-logs">
+        <div className="kpmg-table-header kpmg-table-grid-audit-logs mock-section-header">
           <span>Date</span>
           <span>Time</span>
           <span>Area</span>

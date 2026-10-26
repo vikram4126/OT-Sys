@@ -266,8 +266,8 @@ function VisibilityPanel({ assets, zones }) {
       {/* Top Title & How Calculated + View All CTA */}
       <div className="kpmg-visibility-header">
         <div className="kpmg-visibility-title-group">
-          <span className="kpmg-visibility-score-val" style={{ color: tone }}>{v.score}%</span>
-          <span className="kpmg-score-label">Asset visibility</span>
+          <span className="kpmg-visibility-score-val mock-data" style={{ color: tone }}>{v.score}%</span>
+          <span className="kpmg-score-label mock-section-header">Asset visibility</span>
         </div>
         <div className="kpmg-visibility-actions">
           <button onClick={() => setHow(true)} className="kpmg-btn-outline">
@@ -643,10 +643,10 @@ function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
   };
 
   return (
-    <div className="kpmg-card kpmg-shadow-section-card">
+    <div className="kpmg-card kpmg-shadow-section-card mock-section-header">
       <div className="kpmg-shadow-banner-top">
         <div className="kpmg-shadow-left-group">
-          <span className="kpmg-shadow-count">
+          <span className="kpmg-shadow-count mock-data">
             {shadows.length < 10 ? `0${shadows.length}` : shadows.length}
           </span>
           <div>

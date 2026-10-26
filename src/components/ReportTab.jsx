@@ -602,7 +602,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
           {/* 1. Executive summary — what we found */}
           <div className="kpmg-report-preview-card">
             <div className="kpmg-card-header-bar kpmg-report-preview-header">
-              <div className="kpmg-report-preview-title">
+              <div className="kpmg-report-preview-title mock-section-header">
                 Executive summary — what we found
               </div>
             </div>
@@ -610,7 +610,7 @@ export default function ReportTab({ onNavigate = () => {} }) {
             {/* 3 Metric Summary Cards */}
             <div className="kpmg-grid-3col-gap16-mb20">
               <div className="kpmg-report-stat-card-red">
-                <div className="kpmg-report-stat-num-red">
+                <div className="kpmg-report-stat-num-red mock-data">
                   {overallRisk}/10
                 </div>
                 <div className="kpmg-report-stat-label">Overall risk</div>

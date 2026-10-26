@@ -350,8 +350,8 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
       <Card className="kpmg-inventory-card">
         {/* Card Header Sub-row */}
         <div className="kpmg-admin-card-header-row">
-          <h2 className="kpmg-admin-card-header-title">Members</h2>
-          <span className="kpmg-badge kpmg-admin-user-count-badge">
+          <h2 className="kpmg-admin-card-header-title mock-section-header">Members</h2>
+          <span className="kpmg-badge kpmg-admin-user-count-badge mock-data">
             {users.length} users
           </span>
         </div>
@@ -374,7 +374,7 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
         </div>
 
         {/* Table Header */}
-        <div className="kpmg-table-header kpmg-table-grid-users">
+        <div className="kpmg-table-header kpmg-table-grid-users mock-section-header">
           <span>User</span>
           <span>Role</span>
           <span>Company</span>
@@ -670,22 +670,22 @@ function AllLogsSection() {
       {/* KPI Cards Grid */}
       <div className="kpmg-admin-kpi-grid">
         <div className="kpmg-card kpmg-admin-kpi-card">
-          <div className="kpmg-admin-kpi-num-blue">{totalChanges}</div>
+          <div className="kpmg-admin-kpi-num-blue mock-data">{totalChanges}</div>
           <div className="kpmg-admin-kpi-title">Total Changes</div>
           <div className="kpmg-admin-kpi-sub">Text here</div>
         </div>
         <div className="kpmg-card kpmg-admin-kpi-card">
-          <div className="kpmg-admin-kpi-num-red">{criticalCount < 10 ? `0${criticalCount}` : criticalCount}</div>
+          <div className="kpmg-admin-kpi-num-red mock-data">{criticalCount < 10 ? `0${criticalCount}` : criticalCount}</div>
           <div className="kpmg-admin-kpi-title">Critical</div>
           <div className="kpmg-admin-kpi-sub">Text here</div>
         </div>
         <div className="kpmg-card kpmg-admin-kpi-card">
-          <div className="kpmg-admin-kpi-num-dark">{warningCount}</div>
+          <div className="kpmg-admin-kpi-num-dark mock-data">{warningCount}</div>
           <div className="kpmg-admin-kpi-title">Warnings</div>
           <div className="kpmg-admin-kpi-sub">Text here</div>
         </div>
         <div className="kpmg-card kpmg-admin-kpi-card">
-          <div className="kpmg-admin-kpi-num-dark">{loginsToday < 10 ? `0${loginsToday}` : loginsToday}</div>
+          <div className="kpmg-admin-kpi-num-dark mock-data">{loginsToday < 10 ? `0${loginsToday}` : loginsToday}</div>
           <div className="kpmg-admin-kpi-title">Logins today</div>
           <div className="kpmg-admin-kpi-sub">Text here</div>
         </div>
@@ -710,7 +710,7 @@ function AllLogsSection() {
 
       {/* Table Card */}
       <Card className="kpmg-inventory-card">
-        <div className="kpmg-table-header kpmg-table-grid-logs">
+        <div className="kpmg-table-header kpmg-table-grid-logs mock-section-header">
           <span>Date</span>
           <span>Time</span>
           <span>Area</span>
@@ -958,7 +958,7 @@ function ClientsSection({ showAdd, setShowAdd }) {
               <div>
                 {/* Header Row */}
                 <div className="kpmg-client-header">
-                  <div className="kpmg-client-title">{c.name}</div>
+                  <div className="kpmg-client-title mock-section-header">{c.name}</div>
 
                   {/* Three Dots Menu Button */}
                   <div className="kpmg-relative">
@@ -1282,6 +1282,21 @@ export default function AdminPortal({ onExit, currentUser }) {
   const [isGroupOpen, setIsGroupOpen] = useState(true);
   const [showAddClient, setShowAddClient] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [highlightMock, setHighlightMock] = useState(() => {
+    try {
+      return localStorage.getItem('ot_highlight_mock') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleHighlightMock = () => {
+    setHighlightMock(prev => {
+      const next = !prev;
+      try { localStorage.setItem('ot_highlight_mock', String(next)); } catch {}
+      return next;
+    });
+  };
 
   // Enforce is_admin gate for Admin Portal
   if (currentUser && !currentUser.is_admin) {
@@ -1301,7 +1316,7 @@ export default function AdminPortal({ onExit, currentUser }) {
   }
 
   return (
-    <div className="kpmg-app-layout">
+    <div className={`kpmg-app-layout ${highlightMock ? 'highlight-mock-active' : ''}`}>
       {/* Sidebar matching updated design */}
       <div className="kpmg-sidebar">
         {/* Logo */}
@@ -1357,7 +1372,7 @@ export default function AdminPortal({ onExit, currentUser }) {
       <div className="kpmg-main-area">
         <header className="kpmg-header">
           <div className="kpmg-header-row kpmg-header-flex">
-            <h1 className="kpmg-title">{NAV.find(n => n.id === tab)?.label}</h1>
+            <h1 className={`kpmg-title ${tab !== 'health' ? 'mock-section-header' : ''}`}>{NAV.find(n => n.id === tab)?.label}</h1>
 
             {/* Right side action container */}
             <div className="kpmg-header-action-col">
@@ -1392,6 +1407,64 @@ export default function AdminPortal({ onExit, currentUser }) {
             {tab === 'health' && <SystemHealthSection />}
           </div>
         </main>
+      </div>
+
+      {/* ── Floating Data Source Mode Toggle ── */}
+      <div
+        className="kpmg-mock-toggle-floating"
+        style={{
+          position: 'fixed',
+          bottom: 18,
+          right: 22,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 9,
+          background: highlightMock ? '#FEF08A' : '#FFFFFF',
+          border: `1.5px solid ${highlightMock ? '#CA8A04' : '#D0D5DD'}`,
+          borderRadius: 24,
+          padding: '6px 14px',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
+          cursor: 'pointer',
+          userSelect: 'none',
+          transition: 'all 0.2s ease',
+        }}
+        onClick={toggleHighlightMock}
+        title="Toggle highlighting of hardcoded/mock vs live data"
+      >
+        <span style={{ fontSize: 13 }}>{highlightMock ? '🟡' : '⚪'}</span>
+        <span style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: highlightMock ? '#713F12' : '#344054',
+        }}>
+          {highlightMock ? 'Mock Highlighter: ON' : 'Highlight Mock Data'}
+        </span>
+        <span
+          style={{
+            display: 'inline-block',
+            width: 30,
+            height: 18,
+            borderRadius: 10,
+            background: highlightMock ? '#EAB308' : '#EAECF0',
+            position: 'relative',
+            transition: 'background 0.2s ease',
+          }}
+        >
+          <span
+            style={{
+              position: 'absolute',
+              top: 2,
+              left: highlightMock ? 14 : 2,
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              background: '#FFFFFF',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              transition: 'left 0.2s ease',
+            }}
+          />
+        </span>
       </div>
     </div>
   );

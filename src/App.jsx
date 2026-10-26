@@ -103,6 +103,21 @@ export default function App() {
   // baseline (their declaration that the starting evidence is loaded).
   const [baselineDone, setBaselineDone] = useState(hasBaseline()); const [headerActions, setHeaderActions] = useState(null);
   const [health, setHealth] = useState(null);
+  const [highlightMock, setHighlightMock] = useState(() => {
+    try {
+      return localStorage.getItem('ot_highlight_mock') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleHighlightMock = () => {
+    setHighlightMock(prev => {
+      const next = !prev;
+      try { localStorage.setItem('ot_highlight_mock', String(next)); } catch {}
+      return next;
+    });
+  };
 
   const handleSetTab = (newTab) => {
     setHeaderActions(null);
@@ -178,7 +193,7 @@ export default function App() {
   };
 
   return (
-    <div className="kpmg-app-layout">
+    <div className={`kpmg-app-layout ${highlightMock ? 'highlight-mock-active' : ''}`}>
 
       {/* ── Sidebar ──────────────────────────────────────────────────────── */}
       <div className="kpmg-sidebar">
@@ -332,6 +347,64 @@ export default function App() {
             )}
           </div>
         </main>
+      </div>
+
+      {/* ── Floating Data Source Mode Toggle (Mock / Hardcoded Highlighter) ── */}
+      <div
+        className="kpmg-mock-toggle-floating"
+        style={{
+          position: 'fixed',
+          bottom: 18,
+          right: 22,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 9,
+          background: highlightMock ? '#FEF08A' : '#FFFFFF',
+          border: `1.5px solid ${highlightMock ? '#CA8A04' : '#D0D5DD'}`,
+          borderRadius: 24,
+          padding: '6px 14px',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
+          cursor: 'pointer',
+          userSelect: 'none',
+          transition: 'all 0.2s ease',
+        }}
+        onClick={toggleHighlightMock}
+        title="Toggle highlighting of hardcoded/mock vs live data"
+      >
+        <span style={{ fontSize: 13 }}>{highlightMock ? '🟡' : '⚪'}</span>
+        <span style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: highlightMock ? '#713F12' : '#344054',
+        }}>
+          {highlightMock ? 'Mock Highlighter: ON' : 'Highlight Mock Data'}
+        </span>
+        <span
+          style={{
+            display: 'inline-block',
+            width: 30,
+            height: 18,
+            borderRadius: 10,
+            background: highlightMock ? '#EAB308' : '#EAECF0',
+            position: 'relative',
+            transition: 'background 0.2s ease',
+          }}
+        >
+          <span
+            style={{
+              position: 'absolute',
+              top: 2,
+              left: highlightMock ? 14 : 2,
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              background: '#FFFFFF',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              transition: 'left 0.2s ease',
+            }}
+          />
+        </span>
       </div>
     </div>
   );
