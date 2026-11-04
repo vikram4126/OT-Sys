@@ -3628,10 +3628,10 @@ export default function ModelTab({ onNavigate = () => { } }) {
     localStorage.setItem(SECTION_KEY, section);
   }, [section]);
   useEffect(() => {
-    getZones();
-    getAllZoneRules();
-    modelApi.getConduits();
-    getAssets();
+    getZones().catch(() => {});
+    getAllZoneRules().catch(() => {});
+    modelApi.getConduits().catch(() => {});
+    getAssets().catch(() => {});
   }, []);
   const prog = collectionProgress();
 

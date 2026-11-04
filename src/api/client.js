@@ -244,11 +244,11 @@ export const generateZoneModelDocx = (data) =>
   api.post('/report/zone-model/docx/', data, { responseType: 'blob' });
 
 // Direct endpoints for Zones, Assets, Dashboard Stats, and Compliance
-export const getZonesApi = () => api.get('/zones/');
-export const getAssetsApi = () => api.get('/assets/');
-export const getDashboardStats = () => api.get('/dashboard/stats');
+export const getZonesApi = () => api.get('/zones/').catch(() => ({ data: [] }));
+export const getAssetsApi = () => api.get('/assets/').catch(() => ({ data: [] }));
+export const getDashboardStats = () => api.get('/dashboard/stats').catch(() => ({ data: null }));
 export const getComplianceStatus = () =>
-  api.get('/compliance/status').then((r) => r.data);
+  api.get('/compliance/status').then((r) => r.data).catch(() => null);
 export const updateComplianceStatus = (data) =>
   api
     .post('/compliance/status', data)
@@ -280,10 +280,13 @@ const mapZoneRow = (r) => ({
 });
 
 export const getZones = () =>
-  api.get('/zones/').then((r) => {
-    mirrorZ('ot_assess_zones_v2', r.data.map(mapZoneRow));
-    return r.data;
-  });
+  api
+    .get('/zones/')
+    .then((r) => {
+      mirrorZ('ot_assess_zones_v2', r.data.map(mapZoneRow));
+      return r.data;
+    })
+    .catch(() => []);
 
 export const postZone = (z) =>
   api.post('/zones/', {

@@ -98,7 +98,11 @@ export const loadUploadedSeeds = (data = {}) =>
  * 7.2 GET /api/zones/
  * Returns all zones for the authenticated client.
  */
-export const getZones = () => api.get('/zones/').then((r) => r.data);
+export const getZones = () =>
+  api
+    .get('/zones/')
+    .then((r) => r.data)
+    .catch(() => []);
 export const getModelZones = getZones; // Alias
 
 /**
@@ -106,7 +110,10 @@ export const getModelZones = getZones; // Alias
  * Returns one zone for the authenticated client.
  */
 export const getZone = (zoneId) =>
-  api.get(`/zones/${zoneId}`).then((r) => r.data);
+  api
+    .get(`/zones/${zoneId}`)
+    .then((r) => r.data)
+    .catch(() => null);
 export const getModelZone = getZone; // Alias
 
 /**
@@ -203,7 +210,11 @@ export const deleteZoneSubnetRule = deleteZoneRule; // Alias
  * 7.13 GET /api/conduits/
  * Returns all conduits for the authenticated client.
  */
-export const getConduits = () => api.get('/conduits/').then((r) => r.data);
+export const getConduits = () =>
+  api
+    .get('/conduits/')
+    .then((r) => r.data)
+    .catch(() => []);
 
 /**
  * 7.14 POST /api/conduits/
@@ -229,7 +240,10 @@ export const deleteConduit = (conduitId) =>
  * Returns the evidence checklist divided into received and missing items with progress.
  */
 export const getEvidenceList = () =>
-  api.get('/model/evidence/').then((r) => r.data);
+  api
+    .get('/model/evidence/')
+    .then((r) => r.data)
+    .catch(() => null);
 export const getEvidenceItems = getEvidenceList; // Alias
 export const getModelEvidence = getEvidenceList; // Alias
 
@@ -238,7 +252,10 @@ export const getModelEvidence = getEvidenceList; // Alias
  * Returns evidence findings and blind spots.
  */
 export const getEvidenceFindings = () =>
-  api.get('/model/evidence/findings/').then((r) => r.data);
+  api
+    .get('/model/evidence/findings/')
+    .then((r) => r.data)
+    .catch(() => null);
 
 /**
  * 8.4 PUT /api/model/evidence/{item_id}/
@@ -253,7 +270,10 @@ export const updateEvidenceItem = (itemId, data) =>
  * Returns the 6 evidence group tiles with progress and scan states.
  */
 export const getEvidenceGroups = () =>
-  api.get('/model/evidence/groups/').then((r) => r.data);
+  api
+    .get('/model/evidence/groups/')
+    .then((r) => r.data)
+    .catch(() => null);
 
 /**
  * 8.6 POST /api/model/evidence/scan/
@@ -343,14 +363,18 @@ export const getConduitRequirements = (conduitId) =>
 export const getAssets = (zoneId) =>
   api
     .get('/assets/', { params: zoneId ? { zone_id: zoneId } : {} })
-    .then((r) => r.data);
+    .then((r) => r.data)
+    .catch(() => []);
 
 /**
  * 10.3 GET /api/assets/{asset_id}
  * Gets a single asset by ID.
  */
 export const getAsset = (assetId) =>
-  api.get(`/assets/${assetId}`).then((r) => r.data);
+  api
+    .get(`/assets/${assetId}`)
+    .then((r) => r.data)
+    .catch(() => null);
 
 /**
  * 10.4 POST /api/assets/
@@ -378,7 +402,10 @@ export const deleteAsset = (assetId) =>
  * Returns asset suggestions that may be internet-facing.
  */
 export const getInternetFacingSuggestions = () =>
-  api.get('/assets/internet-facing-suggestions/').then((r) => r.data);
+  api
+    .get('/assets/internet-facing-suggestions/')
+    .then((r) => r.data)
+    .catch(() => []);
 
 /**
  * 10.8 POST /api/assets/internet-facing-suggestions/{asset_id}/confirm/

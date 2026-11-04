@@ -146,15 +146,23 @@ export default function App() {
     }).catch(() => { });
   }, []);
 
-  // Only check backend API health when user is actively logged in
+  // Check backend API health status periodically when user is logged in
   useEffect(() => {
     if (!currentUser) {
       setHealth(null);
       return;
     }
-    checkBackendHealth()
-      .then(res => setHealth(res.data))
-      .catch(err => console.warn('Backend health check error:', err.message));
+    const checkHealth = () => {
+      checkBackendHealth()
+        .then(res => setHealth(res.data))
+        .catch(err => {
+          console.warn('Backend health check error:', err.message);
+          setHealth(null);
+        });
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
   }, [currentUser]);
 
   useEffect(() => {
@@ -299,6 +307,45 @@ export default function App() {
               <h1 className="kpmg-title">
                 {tab === 'dashboard' ? (company?.name || 'Acme Utilities') : TITLES[tab]}
               </h1>
+              {health ? (
+                <div
+                  title={`Status: ${health.status} · Features: ${health.features?.join(', ') || '17 active'} · Worker: ${health.enrichment_worker?.running ? 'Running' : 'Stopped'}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '3px 10px',
+                    background: '#ECFDF3',
+                    border: '1px solid #ABEFC6',
+                    borderRadius: 16,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: '#027A48'
+                  }}
+                >
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#12B76A', boxShadow: '0 0 0 2px rgba(18, 183, 106, 0.2)' }} />
+                  <span>API v{health.version || '1.0.0'} (Live)</span>
+                </div>
+              ) : (
+                <div
+                  title="Backend API offline · Local fallback active"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '3px 10px',
+                    background: '#F9FAFB',
+                    border: '1px solid #E4E7EC',
+                    borderRadius: 16,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: '#667085'
+                  }}
+                >
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#98A2B3' }} />
+                  <span>API v1.0.0 (Offline)</span>
+                </div>
+              )}
             </div>
             {headerActions}
           </div>
