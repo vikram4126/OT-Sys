@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getVulnerabilities } from '../api/client';
+import { modelApi } from '../api/modelApi';
 import { C } from '../theme';
 import { Card, Modal, Loading, ErrorMsg, Pagination, Btn, FormField, Input, Select, Textarea } from './UI';
 import { addLog, LOG_TYPES } from '../services/logService';
@@ -116,9 +117,14 @@ function RemoveModal({ vuln, onClose, onDeleted }) {
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [err,    setErr]    = useState('');
-  const confirm = () => {
+  const confirm = async () => {
     if (!reason.trim()) { setErr('Reason required.'); return; }
     setSaving(true);
+    try {
+      await modelApi.deleteVulnerability(vuln.vuln_id);
+    } catch (apiErr) {
+      console.warn('API delete vulnerability failed, local fallback used:', apiErr);
+    }
     deleteVulnLocal(vuln.vuln_id);
     addLog(LOG_TYPES.VULN_REMOVED, `Removed: ${vuln.vuln_id} — ${vuln.title}. Reason: ${reason}`);
     onDeleted();
@@ -759,18 +765,28 @@ function DetailModal({ vuln, isMitigated, onClose, onNavigate, onExplain, onRefr
     }));
   };
 
-  const saveDriver = (key) => {
+  const saveDriver = async (key) => {
     setSaving(true);
     const newScore = Math.max(1.0, Math.min(9.9, Number((currentScore * 0.96 + (drivers[key].val / 100) * 0.4).toFixed(1))));
     setCurrentScore(newScore);
-    setVulnOverride(vuln.vuln_id, {
+    const overridePayload = {
       risk_score: newScore,
       drivers_override: {
         driver: key,
         value: drivers[key].val,
         reason: drivers[key].reason
       }
-    });
+    };
+    try {
+      await modelApi.createVulnOverride(vuln.vuln_id, overridePayload);
+    } catch (apiErr) {
+      try {
+        await modelApi.patchVulnerability(vuln.vuln_id, { risk_score: newScore });
+      } catch (patchErr) {
+        console.warn('API override/patch vulnerability failed, local fallback used:', patchErr);
+      }
+    }
+    setVulnOverride(vuln.vuln_id, overridePayload);
     addLog(LOG_TYPES.VULN_OVERRIDDEN, `${vuln.vuln_id}: ${drivers[key].name || key} updated. Reason: ${drivers[key].reason || 'Adjusted via Exploitability controls'}`);
     setSaving(false);
     setExpandedDriver(null);
@@ -1126,6 +1142,7 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
   const [showAdd,     setShowAdd]     = useState(false);
   const [showComplementary, setShowComplementary] = useState(false);
   const [, bumpComplementary] = useState(0);
+  const [apiComplementary, setApiComplementary] = useState(null);
 
   const completedIds   = useCompletedIds();
   const mitigatedCVEs  = getMitigatedCVEs(completedIds, DEMO_STEPS);
@@ -1191,8 +1208,22 @@ export default function VulnerabilitiesTab({ onNavigate = () => {}, setHeaderAct
     return br-ar;
   });
 
+  useEffect(() => {
+    let mounted = true;
+    if ((assets && assets.length > 0) || (vulns && vulns.length > 0)) {
+      modelApi.getComplementaryCandidates({ assets, vulns }).then(res => {
+        if (mounted && Array.isArray(res?.data || res)) {
+          setApiComplementary(res.data || res);
+        }
+      }).catch(() => {});
+    }
+    return () => { mounted = false; };
+  }, [assets?.length, vulns?.length]);
+
   const paged          = sorted.slice((page-1)*PER_PAGE,page*PER_PAGE);
-  const complementary  = complementaryVulnCandidates(assets, vulns);
+  const complementary  = (apiComplementary && apiComplementary.length > 0)
+    ? apiComplementary
+    : complementaryVulnCandidates(assets, vulns);
   const isClosedFn = v => ['Closed','Resolved','Mitigated','Accepted Risk'].includes(v.status||'') || v._mitigated;
   const counts = {
     open:     withMitigation.filter(v=>!isClosedFn(v)).length,
@@ -1394,7 +1425,7 @@ function AddVulnModal({onClose,onAdded}) {
 
   const isAddDisabled = saving || !form.title.trim() || !isCvssValid;
 
-  const save=()=>{
+  const save = async () => {
     setTouched({ title: true, cvss: true });
     if(!form.title.trim()){
       setErr('Title is required.');
@@ -1411,8 +1442,23 @@ function AddVulnModal({onClose,onAdded}) {
       return;
     }
     setSaving(true);
-    addManualVuln({...form,cvss:cvssNum});
-    addLog(LOG_TYPES.VULN_ADDED,`Manual finding added: ${form.title}`);
+    const newVuln = { ...form, cvss: cvssNum };
+    try {
+      await modelApi.createVulnerability({
+        title: form.title,
+        asset_label: form.asset_label,
+        cve: form.cve,
+        domain: form.domain,
+        criticality: form.criticality,
+        cvss: cvssNum,
+        status: form.status,
+        justification: form.justification
+      });
+    } catch (apiErr) {
+      console.warn('API create vulnerability failed, local fallback used:', apiErr);
+    }
+    addManualVuln(newVuln);
+    addLog(LOG_TYPES.VULN_ADDED, `Manual finding added: ${form.title}`);
     onAdded();
   };
   return(

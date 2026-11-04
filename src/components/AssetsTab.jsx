@@ -9,6 +9,7 @@ import {
   assetVisibility, visibilityByZone, REQUIRED_ASSET_FIELDS, missingAssetFields, isRegisterOnly,
   setManualAssignment, consumeAssetsZoneJump,
 } from '../services/assessmentStore';
+import { modelApi } from '../api/modelApi';
 
 export default function AssetsTab() {
   const { zones, assets, addAsset, updateAsset, removeAsset } = useAssessment();
@@ -242,8 +243,30 @@ function VisibilityPanel({ assets, zones }) {
   const [how, setHow] = useState(false);
   const [zoneSel, setZoneSel] = useState(null);
   const [showAllCards, setShowAllCards] = useState(false);
-  const v = assetVisibility(assets);
-  const byZone = visibilityByZone(assets, zones);
+  const [apiVis, setApiVis] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    modelApi.getAssetVisibility().then(res => {
+      if (mounted && res?.data) {
+        setApiVis(res.data);
+      }
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+
+  const localV = assetVisibility(assets);
+  const localByZone = visibilityByZone(assets, zones);
+
+  const v = {
+    score: apiVis?.score ?? localV.score,
+    total: apiVis?.total ?? localV.total,
+    matched: apiVis?.matched ?? localV.matched,
+    registerOnly: apiVis?.registerOnly ?? apiVis?.register_only ?? localV.registerOnly,
+    logOnly: apiVis?.logOnly ?? apiVis?.log_only ?? apiVis?.shadow ?? localV.logOnly,
+  };
+
+  const byZone = (apiVis?.by_zone || apiVis?.byZone || localByZone);
   const tone = getScoreColor(v.score);
 
   const baseCards = byZone.length > 0 ? byZone : [];
@@ -266,7 +289,7 @@ function VisibilityPanel({ assets, zones }) {
       {/* Top Title & How Calculated + View All CTA */}
       <div className="kpmg-visibility-header">
         <div className="kpmg-visibility-title-group">
-          <span className="kpmg-visibility-score-val mock-data" style={{ color: tone }}>{v.score}%</span>
+          <span className="kpmg-visibility-score-val" style={{ color: tone }}>{v.score}%</span>
           <span className="kpmg-score-label mock-section-header">Asset visibility</span>
         </div>
         <div className="kpmg-visibility-actions">
@@ -634,7 +657,29 @@ function RegisterShadowModal({ shadow, zones, onClose, onDone }) {
 function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
   const [reg, setReg] = useState(null);
   const [isOpen, setIsOpen] = useState(true);
-  const all = allShadowAssets();
+  const [apiShadows, setApiShadows] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    modelApi.getShadowAssets().then(res => {
+      if (mounted && Array.isArray(res?.data)) {
+        setApiShadows(res.data);
+      }
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
+
+  const localAll = allShadowAssets();
+  const all = (apiShadows && apiShadows.length > 0)
+    ? apiShadows.map(s => ({
+        id: s.id || s.asset_id,
+        name: s.name || s.asset_name || 'Shadow Asset',
+        seenAs: s.seen_as || s.seenAs || 'Observed in logs',
+        deviceType: s.device_type || s.deviceType || 'Hardware',
+        zone: s.zone_id || s.zone || 'z1',
+        confidence: s.confidence || 67
+      }))
+    : localAll;
   const shadows = zoneF === 'all' ? all : all.filter(s => s.zone === zoneF);
 
   const handleCancel = (id) => {
@@ -646,7 +691,7 @@ function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
     <div className="kpmg-card kpmg-shadow-section-card mock-section-header">
       <div className="kpmg-shadow-banner-top">
         <div className="kpmg-shadow-left-group">
-          <span className="kpmg-shadow-count mock-data">
+          <span className="kpmg-shadow-count">
             {shadows.length < 10 ? `0${shadows.length}` : shadows.length}
           </span>
           <div>
@@ -704,7 +749,17 @@ function ShadowPanel({ zoneF, zName, onChange, zones, addAsset }) {
 
       {reg && (
         <RegisterShadowModal shadow={reg} zones={zones} onClose={() => setReg(null)}
-          onDone={(f) => { addAsset({ ...f, level: 3, confidence: 70, source: 'shadow-registered', kind: 'hardware' }); promoteShadowAsset(reg.id); setReg(null); onChange(); }} />
+          onDone={async (f) => {
+            addAsset({ ...f, level: 3, confidence: 70, source: 'shadow-registered', kind: 'hardware' });
+            try {
+              await modelApi.promoteShadowAsset(reg.id);
+            } catch (err) {
+              console.warn('API promote shadow asset failed, local fallback used:', err);
+            }
+            promoteShadowAsset(reg.id);
+            setReg(null);
+            onChange();
+          }} />
       )}
     </div>
   );
@@ -770,16 +825,42 @@ function UploadModal({ zones, onClose, onDone }) {
     }
   };
 
-  const simulate = () => {
+  const [uploadingState, setUploadingState] = useState(false);
+
+  const handleUpload = async () => {
+    setUploadingState(true);
     const filename = selectedFile ? selectedFile.name : 'Control_Assets_v2.xlsx';
-    const sampleRows = [
+    let sampleRows = [
       { name: 'NEW-SENSOR-01', deviceType: 'Sensor', kind: 'hardware', level: 0, ip: '10.40.9.10', os: 'Embedded' },
       { name: 'PLC-CTRL-01', deviceType: 'PLC', kind: 'hardware', level: 1 },
       { name: 'BACKUP-SRV-02', deviceType: 'Backup server', kind: 'hardware', level: 4, ip: '10.10.1.40', os: 'Windows Server 2022' },
       { name: 'Nozomi Guardian', deviceType: 'OT monitoring', kind: 'software', version: '23.4', host: 'A-OPS1' },
     ];
+
+    if (selectedFile) {
+      try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('zone_id', zone);
+        const previewRes = await modelApi.uploadAssetsPreview(formData);
+        if (previewRes?.data) {
+          await modelApi.uploadAssetsConfirm({
+            zone_id: zone,
+            rows: previewRes.data.rows || sampleRows,
+            token: previewRes.data.token || previewRes.data.preview_id
+          });
+          if (Array.isArray(previewRes.data.rows) && previewRes.data.rows.length > 0) {
+            sampleRows = previewRes.data.rows;
+          }
+        }
+      } catch (err) {
+        console.warn('API upload preview/confirm failed, using local store ingestion:', err);
+      }
+    }
+
     const r = ingestAssetFile(zone, filename, sampleRows);
     setResult(r);
+    setUploadingState(false);
     onDone();
   };
 
@@ -800,12 +881,12 @@ function UploadModal({ zones, onClose, onDone }) {
               Cancel
             </Btn>
             <Btn
-              onClick={simulate}
-              disabled={!selectedFile}
+              onClick={handleUpload}
+              disabled={!selectedFile || uploadingState}
               className="kpmg-btn-modal-save-blue"
-              style={{ opacity: selectedFile ? 1 : 0.5, cursor: selectedFile ? 'pointer' : 'not-allowed' }}
+              style={{ opacity: selectedFile && !uploadingState ? 1 : 0.5, cursor: selectedFile && !uploadingState ? 'pointer' : 'not-allowed' }}
             >
-              Upload
+              {uploadingState ? 'Uploading...' : 'Upload'}
             </Btn>
           </>
         )
@@ -1096,7 +1177,10 @@ export function AssetModal({ asset, assets, zones, aName, zName, onClose, update
       level: Number(edit.level),
       internetFacing: edit.internetFacing
     });
-    if (edit.zone !== asset.zone) setManualAssignment(asset.id, edit.zone);
+    if (edit.zone !== asset.zone) {
+      setManualAssignment(asset.id, edit.zone);
+      modelApi.assignAssetZone(asset.id, edit.zone).catch(() => {});
+    }
     onClose();
   };
 

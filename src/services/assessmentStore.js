@@ -2505,6 +2505,47 @@ export function syncBackendData() {
         );
       }
 
+      // 5. Fetch live scope: GET /api/model/scope/
+      try {
+        const scopeRes = await api.get('/model/scope/');
+        const scopeData = scopeRes.data;
+        if (
+          scopeData &&
+          (scopeData.name || scopeData.industry || scopeData.site || scopeData.size)
+        ) {
+          const currentCompany = read(CKEY, COMPANY_SEED);
+          const updatedCompany = {
+            ...currentCompany,
+            name: scopeData.name || currentCompany.name,
+            industry: scopeData.industry || currentCompany.industry,
+            primarySite:
+              scopeData.site || scopeData.primarySite || currentCompany.primarySite,
+            scale: scopeData.size || scopeData.scale || currentCompany.scale,
+            size: scopeData.size || scopeData.scale || currentCompany.size,
+          };
+          write(CKEY, updatedCompany);
+
+          if (scopeData.tooling || scopeData.drop_url != null) {
+            const currentDrop = read('ot_assess_drop_v2', {});
+            write('ot_assess_drop_v2', {
+              ...currentDrop,
+              tooling: Array.isArray(scopeData.tooling)
+                ? scopeData.tooling
+                : currentDrop.tooling || [],
+              link:
+                scopeData.drop_url != null
+                  ? scopeData.drop_url
+                  : currentDrop.link || '',
+            });
+          }
+        }
+      } catch (scopeErr) {
+        console.warn(
+          'Live backend /model/scope/ not available, using store:',
+          scopeErr.message
+        );
+      }
+
       lastSyncTimestamp = Date.now();
       window.dispatchEvent(new Event('assessment-change'));
     } finally {

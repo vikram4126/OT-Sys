@@ -448,3 +448,325 @@ export const dismissConduitSuggestion = (key) =>
     .post(`/conduits/suggestions/${encodeURIComponent(key)}/dismiss/`)
     .then((r) => r.data);
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ASSETS VISIBILITY, SHADOW ASSETS & 2-STEP UPLOAD (per Ali specification)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/assets/visibility/
+ * Returns overall visibility score, segmented bar ratios, and zone metrics.
+ */
+export const getAssetVisibility = () =>
+  api.get('/assets/visibility/').then((r) => r.data);
+
+/**
+ * GET /api/assets/shadow/
+ * Returns list of shadow assets discovered in logs.
+ */
+export const getShadowAssets = () =>
+  api.get('/assets/shadow/').then((r) => r.data);
+
+/**
+ * POST /api/assets/shadow/{asset_id}/register/
+ * Promotes an observed shadow asset into the formal registered asset inventory.
+ */
+export const promoteShadowAsset = (assetId) =>
+  api.post(`/assets/shadow/${assetId}/register/`).then((r) => r.data);
+
+/**
+ * POST /api/assets/upload/preview/
+ * Step 1: Uploads Excel/CSV file to preview parsed rows, duplicates, and zone mappings.
+ */
+export const uploadAssetsPreview = (formData) =>
+  api
+    .post('/assets/upload/preview/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    .then((r) => r.data);
+
+/**
+ * POST /api/assets/upload/confirm/
+ * Step 2: Confirms and commits the asset batch import to database.
+ */
+export const uploadAssetsConfirm = (data) =>
+  api.post('/assets/upload/confirm/', data).then((r) => r.data);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// USER MANAGEMENT & ADMIN (per Ali specification)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/users/
+ * Returns all platform users.
+ */
+export const getPlatformUsers = () =>
+  api.get('/users/').then((r) => r.data);
+
+/**
+ * POST /api/users/
+ * Creates a new user with { email, name, role, is_admin }.
+ */
+export const createPlatformUser = (userData) =>
+  api.post('/users/', userData).then((r) => r.data);
+
+/**
+ * PUT /api/users/{id}
+ * Updates user profile, role, and administrator status.
+ */
+export const updatePlatformUser = (userId, userData) =>
+  api.put(`/users/${userId}`, userData).then((r) => r.data);
+
+/**
+ * PUT /api/users/{id}/suspend
+ * Suspends user access.
+ */
+export const suspendPlatformUser = (userId) =>
+  api.put(`/users/${userId}/suspend`).then((r) => r.data);
+
+/**
+ * PUT /api/users/{id}/restore
+ * Restores suspended user access.
+ */
+export const restorePlatformUser = (userId) =>
+  api.put(`/users/${userId}/restore`).then((r) => r.data);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 8. VULNERABILITIES & CVE ANALYSIS (/api/vulnerabilities, /api/cve-analysis)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/vulnerabilities/
+ * List vulnerabilities (paginated, filterable)
+ */
+export const getVulnerabilitiesApi = (params) =>
+  api.get('/vulnerabilities/', { params }).then((r) => r.data);
+
+/**
+ * GET /api/vulnerabilities/cves
+ * List CVE catalog records
+ */
+export const getCveCatalog = (params) =>
+  api.get('/vulnerabilities/cves', { params }).then((r) => r.data);
+
+/**
+ * GET /api/vulnerabilities/asset-cves
+ * List asset-to-CVE mappings for current tenant
+ */
+export const getAssetCves = (params) =>
+  api.get('/vulnerabilities/asset-cves', { params }).then((r) => r.data);
+
+/**
+ * POST /api/vulnerabilities/cves/enrich
+ * Enrich submitted CVEs (sync)
+ */
+export const enrichCves = (data) =>
+  api.post('/vulnerabilities/cves/enrich', data).then((r) => r.data);
+
+/**
+ * POST /api/vulnerabilities/cves/enrich-batch
+ * Queue CVE enrichment job (returns 202)
+ */
+export const enrichCvesBatch = (data) =>
+  api.post('/vulnerabilities/cves/enrich-batch', data).then((r) => r.data);
+
+/**
+ * GET /api/vulnerabilities/enrichment-jobs/{job_id}
+ * Get one enrichment job status
+ */
+export const getEnrichmentJob = (jobId) =>
+  api.get(`/vulnerabilities/enrichment-jobs/${jobId}`).then((r) => r.data);
+
+/**
+ * GET /api/vulnerabilities/enrichment-jobs
+ * List enrichment jobs (supports status, limit)
+ */
+export const getEnrichmentJobs = (params) =>
+  api.get('/vulnerabilities/enrichment-jobs', { params }).then((r) => r.data);
+
+/**
+ * POST /api/vulnerabilities/cves/import
+ * Import client CVEs
+ */
+export const importClientCves = (data) =>
+  api.post('/vulnerabilities/cves/import', data).then((r) => r.data);
+
+/**
+ * GET /api/vulnerabilities/{vuln_id}
+ * Get single vulnerability
+ */
+export const getVulnerability = (vulnId) =>
+  api.get(`/vulnerabilities/${vulnId}`).then((r) => r.data);
+
+/**
+ * POST /api/vulnerabilities/
+ * Create vulnerability
+ */
+export const createVulnerability = (data) =>
+  api.post('/vulnerabilities/', data).then((r) => r.data);
+
+/**
+ * PATCH /api/vulnerabilities/{vuln_id}
+ * Update vulnerability (immutable CVE/NVD fields are blocked)
+ */
+export const patchVulnerability = (vulnId, data) =>
+  api.patch(`/vulnerabilities/${vulnId}`, data).then((r) => r.data);
+
+/**
+ * POST /api/vulnerabilities/complementary-candidates
+ * Find complementary candidate vulnerabilities
+ */
+export const getComplementaryCandidates = (data) =>
+  api.post('/vulnerabilities/complementary-candidates', data).then((r) => r.data);
+
+/**
+ * DELETE /api/vulnerabilities/{vuln_id}
+ * Delete vulnerability (204)
+ */
+export const deleteVulnerability = (vulnId) =>
+  api.delete(`/vulnerabilities/${vulnId}`).then((r) => r.data);
+
+/**
+ * GET /api/vulnerabilities/{vuln_id}/overrides
+ * List overrides for a vulnerability
+ */
+export const getVulnOverrides = (vulnId) =>
+  api.get(`/vulnerabilities/${vulnId}/overrides`).then((r) => r.data);
+
+/**
+ * POST /api/vulnerabilities/{vuln_id}/overrides
+ * Create vulnerability override (201)
+ */
+export const createVulnOverride = (vulnId, data) =>
+  api.post(`/vulnerabilities/${vulnId}/overrides`, data).then((r) => r.data);
+
+// ── CVE Analysis APIs (/api/cve-analysis) ──────────────────────────────────────
+
+/**
+ * POST /api/cve-analysis
+ * Create thematic CVE analysis job (202)
+ */
+export const startCveAnalysis = (data) =>
+  api.post('/cve-analysis', data).then((r) => r.data);
+
+/**
+ * GET /api/cve-analysis/{job_id}
+ * Get CVE analysis job status
+ */
+export const getCveAnalysisJob = (jobId) =>
+  api.get(`/cve-analysis/${jobId}`).then((r) => r.data);
+
+/**
+ * GET /api/cve-analysis/{job_id}/clusters
+ * Get generated cluster/theme results
+ */
+export const getCveAnalysisClusters = (jobId) =>
+  api.get(`/cve-analysis/${jobId}/clusters`).then((r) => r.data);
+
+/**
+ * POST /api/cve-analysis/semantic-search
+ * Semantic search across CVEs
+ */
+export const searchCvesSemantic = (data) =>
+  api.post('/cve-analysis/semantic-search', data).then((r) => r.data);
+
+// ── Consolidated API Object Export ─────────────────────────────────────────────
+export const modelApi = {
+  getModelScope,
+  saveModelScope,
+  getFolderPlan,
+  getModelBaseline,
+  captureModelBaseline,
+  getEvidencePlan,
+  overrideAssetZone,
+  startParseConnections,
+  getParseConnectionsJob,
+  startReconcile,
+  getReconcileJob,
+  loadUploadedSeeds,
+  getZones,
+  getModelZones,
+  getZone,
+  getModelZone,
+  createZone,
+  createModelZone,
+  patchZone,
+  patchModelZone,
+  batchUpdateZones,
+  applyZoneOverride,
+  clearZoneOverride,
+  previewDeleteZone,
+  deleteZone,
+  deleteModelZone,
+  checkZoneAirGap,
+  getZoneRules,
+  getZoneSubnetRules,
+  createZoneRule,
+  addZoneSubnetRule,
+  deleteZoneRule,
+  deleteZoneSubnetRule,
+  getConduits,
+  createConduit,
+  deleteConduit,
+  getEvidenceList,
+  getEvidenceItems,
+  getModelEvidence,
+  getEvidenceFindings,
+  updateEvidenceItem,
+  getEvidenceGroups,
+  scanAllEvidence,
+  scanEvidenceGroup,
+  getComplianceFR,
+  getComplianceSR,
+  getComplianceStatus,
+  setComplianceStatus,
+  getComplianceSummary,
+  getComplianceDiagram,
+  getZoneRequirements,
+  getConduitRequirements,
+  getAssets,
+  getAsset,
+  createAsset,
+  patchAsset,
+  deleteAsset,
+  getInternetFacingSuggestions,
+  confirmInternetFacingSuggestion,
+  dismissInternetFacingSuggestion,
+  getModelCoverage,
+  getUnassignedAssets,
+  assignAssetZone,
+  getConduitSuggestions,
+  acceptConduitSuggestion,
+  dismissConduitSuggestion,
+  getAssetVisibility,
+  getShadowAssets,
+  promoteShadowAsset,
+  uploadAssetsPreview,
+  uploadAssetsConfirm,
+  getPlatformUsers,
+  createPlatformUser,
+  updatePlatformUser,
+  suspendPlatformUser,
+  restorePlatformUser,
+  getVulnerabilitiesApi,
+  getCveCatalog,
+  getAssetCves,
+  enrichCves,
+  enrichCvesBatch,
+  getEnrichmentJob,
+  getEnrichmentJobs,
+  importClientCves,
+  getVulnerability,
+  createVulnerability,
+  patchVulnerability,
+  getComplementaryCandidates,
+  deleteVulnerability,
+  getVulnOverrides,
+  createVulnOverride,
+  startCveAnalysis,
+  getCveAnalysisJob,
+  getCveAnalysisClusters,
+  searchCvesSemantic,
+};
+
+export default modelApi;
+

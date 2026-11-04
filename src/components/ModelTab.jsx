@@ -261,6 +261,9 @@ function SectionScope({ company, setCompany, onSaved }) {
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [guidelineText, setGuidelineText] = useState(
+    'Give the client a folder structure organised by source, and a link to upload into. They send what exists in its native format — nothing needs to be re-keyed, and empty folders are fine.'
+  );
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
 
   // Load Scope from backend API: GET /api/model/scope/
@@ -298,6 +301,22 @@ function SectionScope({ company, setCompany, onSaved }) {
         });
       })
       .catch(() => {});
+
+    // Load Evidence Guideline text: GET /api/model/evidence/folder-plan/
+    modelApi
+      .getFolderPlan()
+      .then((planRes) => {
+        if (!active || !planRes) return;
+        const txt =
+          typeof planRes === 'string'
+            ? planRes
+            : planRes?.description || planRes?.guideline || planRes?.text;
+        if (txt && typeof txt === 'string' && txt.trim().length > 0) {
+          setGuidelineText(txt.trim());
+        }
+      })
+      .catch(() => {});
+
     return () => {
       active = false;
     };
@@ -522,10 +541,7 @@ function SectionScope({ company, setCompany, onSaved }) {
         <Card className="kpmg-model-card-p24">
           <div className="kpmg-model-section-title">Evidence drop</div>
           <div className="kpmg-model-section-desc">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Give the
-            client a folder structure organised <strong>by source</strong>, and
-            a link to upload into. They send what exists in its native format -
-            nothing needs to be re-keyed, and empty folders are fine.
+            {guidelineText}
           </div>
 
           <div className="kpmg-model-plan-box">
@@ -2812,15 +2828,46 @@ function SectionZones({ a, onNavigate }) {
     setDeleteConfirmTarget({ type: 'zone', item: zone });
   };
 
+  const [liveInternetSuggestions, setLiveInternetSuggestions] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    modelApi
+      .getInternetFacingSuggestions()
+      .then((data) => {
+        if (!active || !data) return;
+        const list = Array.isArray(data)
+          ? data
+          : data?.suggestions || data?.items || [];
+        if (list.length > 0) {
+          setLiveInternetSuggestions(list);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const unassigned = a.assets.filter((x) => !x.zone);
   const suggestions = suggestedConduits(a.assets, a.conduits);
-  const internetSuggestions = suggestInternetFacingAssets(a.assets);
+  const internetSuggestions =
+    liveInternetSuggestions || suggestInternetFacingAssets(a.assets);
   const zName = (id) => (a.zones.find((z) => z.id === id) || {}).name || id;
 
-  const assignTo = (assetId, zoneId) => {
+  // Unassigned assets, assign to zone: PUT /api/assets/{id}/zone/ per Ali's specification
+  const assignTo = async (assetId, zoneId) => {
     setManualAssignment(assetId, zoneId);
-    a.updateAsset(assetId, { zone: zoneId });
+    a.updateAsset(assetId, { zone: zoneId, zone_id: zoneId });
     bump();
+    try {
+      await modelApi.assignAssetZone(assetId, zoneId);
+    } catch (err) {
+      console.warn(
+        'Backend assignAssetZone failed, maintained in local state:',
+        err.message
+      );
+    }
   };
 
   const acceptConduit = (s) => {
@@ -2844,13 +2891,41 @@ function SectionZones({ a, onNavigate }) {
     bump();
   };
 
-  const confirmInternet = (asset) => {
-    a.updateAsset(asset.id, { internetFacing: true });
+  // Suggested internet-facing confirm / dismiss via live backend API
+  const confirmInternet = async (asset) => {
+    a.updateAsset(asset.id, { internetFacing: true, internet_facing: true });
+    if (liveInternetSuggestions) {
+      setLiveInternetSuggestions((prev) =>
+        (prev || []).filter((x) => x.id !== asset.id)
+      );
+    }
     bump();
+    try {
+      await modelApi.confirmInternetFacingSuggestion(asset.id);
+    } catch (err) {
+      console.warn(
+        'Backend confirmInternetFacingSuggestion fallback:',
+        err.message
+      );
+    }
   };
-  const dismissInternet = (asset) => {
+
+  const dismissInternet = async (asset) => {
     dismissInternetFacingSuggestion(asset.id);
+    if (liveInternetSuggestions) {
+      setLiveInternetSuggestions((prev) =>
+        (prev || []).filter((x) => x.id !== asset.id)
+      );
+    }
     bump();
+    try {
+      await modelApi.dismissInternetFacingSuggestion(asset.id);
+    } catch (err) {
+      console.warn(
+        'Backend dismissInternetFacingSuggestion fallback:',
+        err.message
+      );
+    }
   };
 
   return (

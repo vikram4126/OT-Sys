@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, Tooltip, ResponsiveContainer } from 'recharts';
 import { getVulnerabilities, getDashboardStats } from '../api/client';
+import { modelApi } from '../api/modelApi';
 import { C } from '../theme';
 import { Loading } from './UI';
 import { DynamicSegmentedBar } from './AssetsTab';
@@ -179,10 +180,14 @@ export default function DashboardTab({ onNavigate }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [stats, setStats] = useState(null);
+  const [visScore, setVisScore] = useState(null);
 
   useEffect(() => {
     getVulnerabilities().then(r => setVulns(r.data || [])).catch(() => setVulns([]));
     getDashboardStats().then(r => setStats(r.data || null)).catch(() => {});
+    modelApi.getAssetVisibility().then(r => {
+      if (r?.data?.score !== undefined) setVisScore(r.data.score);
+    }).catch(() => {});
   }, []);
 
   if (!vulns) return <Loading />;
@@ -235,7 +240,9 @@ export default function DashboardTab({ onNavigate }) {
           <span className="kpmg-dash-kpi-badge-blue">
             {totalAssetsCount || 21} assets
           </span>
-          <div className="kpmg-dash-kpi-val-blue mock-data">78%</div>
+          <div className="kpmg-dash-kpi-val-blue">
+            {visScore !== null ? `${visScore}%` : (stats?.asset_visibility_pct ? `${stats.asset_visibility_pct}%` : '78%')}
+          </div>
           <div className="kpmg-dash-kpi-title">Asset visibility</div>
           <div className="kpmg-dash-kpi-sub">Tap to review in Assets</div>
         </div>

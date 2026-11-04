@@ -6,6 +6,7 @@ import { getLogs, seedDemoLogs } from '../services/logService';
 import { getUsers, addUser, updateUser, deleteUser, suspendUser, restoreUser, ALL_PERMISSIONS, ROLES,
          getClients, addClient, updateClient, deleteClient } from '../services/userService';
 import { addLog, LOG_TYPES } from '../services/logService';
+import { modelApi } from '../api/modelApi';
 
 const PER_PAGE = 20;
 
@@ -123,7 +124,7 @@ function UserDetailModal({ user, onClose, onEdit }) {
 }
 
 // ── Edit permissions modal ────────────────────────────────────────────────────
-function EditUserModal({ user, onClose, onSave, onDelete }) {
+function EditUserModal({ user, onClose, onSave, onSuspend, onRestore }) {
   const clients = getClients();
   const [form, setForm] = useState({
     id: user.id,
@@ -154,17 +155,24 @@ function EditUserModal({ user, onClose, onSave, onDelete }) {
   return (
     <Modal
       title="Edit User"
-      subtitle="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+      subtitle="Update user profile, assigned instance, role, and status."
       onClose={onClose}
       maxWidth={460}
       footer={
         <div className="kpmg-modal-footer-between">
           <Btn
             variant="outline"
-            onClick={() => onDelete(user)}
-            className="kpmg-admin-btn-danger-outline"
+            onClick={() => {
+              if (user.status === 'suspended') {
+                onRestore ? onRestore(user) : onSave({ ...user, status: 'active' });
+              } else {
+                onSuspend ? onSuspend(user) : onSave({ ...user, status: 'suspended' });
+              }
+              onClose();
+            }}
+            className={user.status === 'suspended' ? 'kpmg-admin-btn-outline' : 'kpmg-admin-btn-danger-outline'}
           >
-            Delete User
+            {user.status === 'suspended' ? 'Restore User' : 'Suspend User'}
           </Btn>
           <div className="kpmg-d-flex kpmg-gap-12">
             <Btn variant="outline" onClick={onClose} className="kpmg-admin-btn-outline">
@@ -313,20 +321,93 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
   const [activeUserMenuId, setActiveUserMenuId] = useState(null);
   const [newUser, setNewUser] = useState({ name: '', email: '', role: 'Junior Analyst', permissions: ['view'], clientId: '' });
 
-  const reload = () => { setUsers(getUsers()); setClients(getClients()); };
+  const reload = () => {
+    setUsers(getUsers());
+    setClients(getClients());
+    modelApi.getPlatformUsers().then(res => {
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        const apiUsers = res.data.map((u, idx) => ({
+          id: u.id || `u_api_${idx}`,
+          name: u.name || u.full_name || u.email?.split('@')[0] || 'User',
+          email: u.email || '',
+          role: u.role || (u.is_admin ? 'Lead Analyst' : 'Junior Analyst'),
+          status: u.is_suspended ? 'suspended' : (u.status || 'active'),
+          clientId: u.client_id || u.clientId || '',
+          permissions: u.permissions || (u.is_admin ? ['view', 'edit', 'override', 'report', 'admin'] : ['view', 'edit']),
+          createdAt: u.created_at || u.created,
+          lastAccess: u.last_login || u.lastAccess
+        }));
+        setUsers(apiUsers);
+      }
+    }).catch(() => {});
+  };
   useEffect(() => { reload(); }, []);
 
-  const handleAdd = () => {
-    if (!newUser.name || !newUser.email) return;
-    const u = addUser(newUser);
+  const handleAdd = async (userData) => {
+    const dataToAdd = userData || newUser;
+    if (!dataToAdd.name || !dataToAdd.email) return;
+    const u = addUser(dataToAdd);
     addLog(LOG_TYPES.USER_CREATED, `User created: ${u.name} (${u.role})`);
-    reload(); setShowAdd(false);
+    try {
+      await modelApi.createPlatformUser({
+        email: dataToAdd.email,
+        name: dataToAdd.name,
+        role: dataToAdd.role,
+        is_admin: dataToAdd.role === 'Lead Analyst' || (dataToAdd.permissions || []).includes('admin')
+      });
+    } catch (err) {
+      console.warn('API create user failed, using local fallback:', err);
+    }
+    reload();
+    setShowAdd(false);
     setNewUser({ name: '', email: '', role: 'Junior Analyst', permissions: ['view'], clientId: '' });
   };
-  const handleSuspend = u => { suspendUser(u.id); addLog(LOG_TYPES.USER_SUSPENDED, `User suspended: ${u.name}`); reload(); };
-  const handleRestore = u => { restoreUser(u.id); addLog(LOG_TYPES.USER_RESTORED, `User restored: ${u.name}`); reload(); };
-  const handleDelete = u => { deleteUser(u.id); addLog(LOG_TYPES.USER_DELETED, `User deleted: ${u.name}`); reload(); setDeleteUser(null); };
-  const handleSaveEdit = u => { updateUser(u.id, u); addLog(LOG_TYPES.PERMISSION_CHANGED, `Permissions updated: ${u.name}`); reload(); setEditUser(null); };
+
+  const handleSuspend = async (u) => {
+    suspendUser(u.id);
+    addLog(LOG_TYPES.USER_SUSPENDED, `User suspended: ${u.name}`);
+    try {
+      await modelApi.suspendPlatformUser(u.id);
+    } catch (err) {
+      console.warn('API suspend user failed, using local fallback:', err);
+    }
+    reload();
+  };
+
+  const handleRestore = async (u) => {
+    restoreUser(u.id);
+    addLog(LOG_TYPES.USER_RESTORED, `User restored: ${u.name}`);
+    try {
+      await modelApi.restorePlatformUser(u.id);
+    } catch (err) {
+      console.warn('API restore user failed, using local fallback:', err);
+    }
+    reload();
+  };
+
+  const handleDelete = u => {
+    deleteUser(u.id);
+    addLog(LOG_TYPES.USER_DELETED, `User deleted: ${u.name}`);
+    reload();
+    setDeleteUser(null);
+  };
+
+  const handleSaveEdit = async (u) => {
+    updateUser(u.id, u);
+    addLog(LOG_TYPES.PERMISSION_CHANGED, `User updated: ${u.name}`);
+    try {
+      await modelApi.updatePlatformUser(u.id, {
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        is_admin: u.role === 'Lead Analyst' || (u.permissions || []).includes('admin')
+      });
+    } catch (err) {
+      console.warn('API update user failed, using local fallback:', err);
+    }
+    reload();
+    setEditUser(null);
+  };
 
   const filtered = users.filter(u => {
     const client = clients.find(c => c.id === u.clientId);
@@ -459,16 +540,29 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
                         <PageIcon name="Edit.svg" size={14} />
                         Edit
                       </button>
-                      <button
-                        onClick={() => {
-                          setDeleteUser(u);
-                          setActiveUserMenuId(null);
-                        }}
-                        className="kpmg-admin-menu-item danger"
-                      >
-                        <PageIcon name="Delete.svg" size={14} />
-                        Delete
-                      </button>
+                      {u.status === 'suspended' ? (
+                        <button
+                          onClick={() => {
+                            handleRestore(u);
+                            setActiveUserMenuId(null);
+                          }}
+                          className="kpmg-admin-menu-item"
+                        >
+                          <PageIcon name="Restore.svg" size={14} />
+                          Restore
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            handleSuspend(u);
+                            setActiveUserMenuId(null);
+                          }}
+                          className="kpmg-admin-menu-item danger"
+                        >
+                          <PageIcon name="Suspend.svg" size={14} />
+                          Suspend
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
@@ -485,29 +579,29 @@ function ManageUsersSection({ showAdd, setShowAdd }) {
         <AddUserModal
           clients={clients}
           onClose={() => setShowAdd(false)}
-          onAdd={(userData) => {
-            const u = addUser(userData);
-            addLog(LOG_TYPES.USER_CREATED, `User created: ${u.name} (${u.role})`);
-            reload();
-            setShowAdd(false);
-          }}
+          onAdd={handleAdd}
         />
       )}
 
-      {detailUser&&<UserDetailModal user={detailUser} onClose={()=>setDetailUser(null)}
-        onEdit={u=>{setEditUser(u);}} onSuspend={handleSuspend} onRestore={handleRestore} onDelete={u=>setDeleteUser(u)}/>}
+      {detailUser && (
+        <UserDetailModal
+          user={detailUser}
+          onClose={() => setDetailUser(null)}
+          onEdit={u => setEditUser(u)}
+          onSuspend={handleSuspend}
+          onRestore={handleRestore}
+        />
+      )}
       {editUser && (
         <EditUserModal
           user={editUser}
           onClose={() => setEditUser(null)}
           onSave={handleSaveEdit}
-          onDelete={(u) => {
-            setEditUser(null);
-            setDeleteUser(u);
-          }}
+          onSuspend={handleSuspend}
+          onRestore={handleRestore}
         />
       )}
-      {deleteUser_&&<DeleteModal user={deleteUser_} onClose={()=>setDeleteUser(null)} onConfirm={handleDelete}/>}
+      {deleteUser_ && <DeleteModal user={deleteUser_} onClose={() => setDeleteUser(null)} onConfirm={handleDelete} />}
     </div>
   );
 }
